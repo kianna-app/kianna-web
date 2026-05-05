@@ -15,7 +15,7 @@ import { currentUser } from '@core/signals/app.signals';
         Seu dashboard será implementado no Módulo 2.
       </p>
       <p style="margin-top: 16px;">
-        Seu link público: <strong>agendazap.tec/{{ currentUser()?.slug }}</strong>
+        Seu link público: <strong>agendazap.tech/{{ currentUser()?.slug }}</strong>
       </p>
       <button mat-stroked-button color="warn" (click)="logout()" style="margin-top: 24px;">
         <mat-icon>logout</mat-icon> Sair
@@ -26,5 +26,5 @@ import { currentUser } from '@core/signals/app.signals';
 export class DashboardComponent {
   private auth = inject(AuthService);
   currentUser = currentUser;
-  logout() { this.auth.signOut(); }
+  async logout() { await this.auth.signOut(); }
 }
