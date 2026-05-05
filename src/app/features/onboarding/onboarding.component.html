@@ -1,0 +1,187 @@
+<div class="onboarding-wrapper">
+  <div class="onboarding-header">
+    <span class="logo-icon">📅</span>
+    <span class="logo-text">AgendaZap</span>
+  </div>
+
+  @if (errorMsg()) {
+    <div class="auth-error" style="max-width:680px; margin: 0 auto 16px;">
+      <mat-icon>error_outline</mat-icon>{{ errorMsg() }}
+    </div>
+  }
+
+  <mat-stepper [linear]="true" #stepper class="onboarding-stepper">
+
+    <!-- PASSO 1: PERFIL -->
+    <mat-step [stepControl]="perfilForm" label="Seu perfil">
+      <form [formGroup]="perfilForm" class="step-form">
+        <h2>Vamos configurar seu perfil</h2>
+        <p class="step-desc">Essas informações aparecerão na sua página de agendamento</p>
+
+        <!-- Foto -->
+        <div class="foto-upload">
+          <div class="foto-preview"
+               [style.backgroundImage]="fotoPreview() ? 'url(' + fotoPreview() + ')' : 'none'">
+            @if (!fotoPreview()) { <mat-icon>person</mat-icon> }
+          </div>
+          <label for="foto-input" class="foto-btn">
+            <mat-icon>camera_alt</mat-icon> Adicionar foto
+          </label>
+          <input id="foto-input" type="file" accept="image/*"
+                 (change)="onFotoChange($event)" style="display:none">
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome completo (aparece no link)</mat-label>
+          <input matInput formControlName="nome">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Especialidade</mat-label>
+          <mat-select formControlName="especialidade">
+            <mat-option value="cabeleireiro">Cabeleireiro(a)</mat-option>
+            <mat-option value="barbeiro">Barbeiro</mat-option>
+            <mat-option value="manicure">Manicure / Nail Designer</mat-option>
+            <mat-option value="esteticista">Esteticista</mat-option>
+            <mat-option value="tatuador">Tatuador(a)</mat-option>
+            <mat-option value="psicologo">Psicólogo(a)</mat-option>
+            <mat-option value="personal">Personal Trainer</mat-option>
+            <mat-option value="massoterapeuta">Massoterapeuta</mat-option>
+            <mat-option value="outro">Outro</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>WhatsApp (com DDD)</mat-label>
+          <input matInput formControlName="whatsapp" placeholder="(44) 99999-9999">
+          <mat-icon matPrefix>phone</mat-icon>
+          @if (perfilForm.get('whatsapp')?.hasError('pattern')) {
+            <mat-error>Formato: (44) 99999-9999</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Bio (opcional)</mat-label>
+          <textarea matInput formControlName="bio" rows="2"
+                    placeholder="Uma frase curta sobre você"></textarea>
+        </mat-form-field>
+
+        <div class="step-actions">
+          <button mat-raised-button color="primary" matStepperNext
+                  [disabled]="perfilForm.invalid">
+            Próximo <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- PASSO 2: SERVIÇOS -->
+    <mat-step label="Seus serviços">
+      <form [formGroup]="servicosForm" class="step-form">
+        <h2>Quais serviços você oferece?</h2>
+        <p class="step-desc">Adicione pelo menos 1 serviço para continuar</p>
+
+        @if (servicosCadastrados().length > 0) {
+          <div class="servicos-list">
+            @for (s of servicosCadastrados(); track $index) {
+              <div class="servico-chip">
+                <span class="s-nome">{{ s.nome }}</span>
+                <span class="s-meta">{{ s.duracao }}min · R$ {{ s.preco }}</span>
+                <button type="button" class="s-remove"
+                        (click)="removerServico($index)" aria-label="Remover">×</button>
+              </div>
+            }
+          </div>
+        }
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome do serviço</mat-label>
+          <input matInput formControlName="nomeServico" placeholder="Ex: Corte feminino">
+        </mat-form-field>
+
+        <div class="row-2col">
+          <mat-form-field appearance="outline">
+            <mat-label>Duração</mat-label>
+            <mat-select formControlName="duracaoMin">
+              @for (d of duracoes; track d) {
+                <mat-option [value]="d">{{ d }} minutos</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Preço (R$)</mat-label>
+            <input matInput formControlName="preco" type="number" min="0" step="0.01">
+          </mat-form-field>
+        </div>
+
+        <button mat-stroked-button color="primary" type="button"
+                (click)="adicionarServico()" [disabled]="servicosForm.invalid">
+          <mat-icon>add</mat-icon> Adicionar serviço
+        </button>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious type="button">Voltar</button>
+          <button mat-raised-button color="primary" matStepperNext
+                  [disabled]="servicosCadastrados().length === 0">
+            Próximo <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- PASSO 3: HORÁRIOS -->
+    <mat-step label="Seus horários">
+      <div class="step-form">
+        <h2>Quando você atende?</h2>
+        <p class="step-desc">Você pode ajustar isso a qualquer momento no dashboard</p>
+
+        <div class="dias-grid">
+          @for (item of diasSemana; track item.dia) {
+            <button class="dia-btn" [class.ativo]="diasAtivos().has(item.dia)"
+                    (click)="toggleDia(item.dia)" type="button">
+              {{ item.label }}
+            </button>
+          }
+        </div>
+
+        <div class="horario-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Início</mat-label>
+            <input matInput type="time" [value]="horaInicio()"
+                   (change)="horaInicio.set($any($event.target).value)">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Fim</mat-label>
+            <input matInput type="time" [value]="horaFim()"
+                   (change)="horaFim.set($any($event.target).value)">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Intervalo</mat-label>
+            <mat-select [value]="intervalo()" (selectionChange)="intervalo.set($event.value)">
+              <mat-option [value]="15">15 min</mat-option>
+              <mat-option [value]="30">30 min</mat-option>
+              <mat-option [value]="45">45 min</mat-option>
+              <mat-option [value]="60">1 hora</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious type="button">Voltar</button>
+          <button mat-raised-button color="primary" type="button"
+                  (click)="concluirOnboarding()" [disabled]="isLoading() || diasAtivos().size === 0">
+            @if (isLoading()) {
+              <mat-spinner diameter="20"></mat-spinner> Salvando...
+            } @else {
+              <ng-container>Concluir e ir ao dashboard <mat-icon iconPositionEnd>check</mat-icon></ng-container>
+            }
+          </button>
+        </div>
+      </div>
+    </mat-step>
+
+  </mat-stepper>
+</div>

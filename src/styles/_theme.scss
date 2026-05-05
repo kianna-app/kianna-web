@@ -1,0 +1,31 @@
+@use '@angular/material' as mat;
+@use 'variables' as vars;
+
+// ── Tema AgendaZap (Material 3) ──────────────────────────────
+// Material 21 usa M3 com CSS custom properties.
+// Geramos o tema base com a paleta verde mais próxima disponível
+// e depois sobrescrevemos as variáveis primárias com o verde exato.
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$green-palette,
+      theme-type: light,
+    ),
+    typography: (
+      brand-family: 'Inter',
+      plain-family: 'Inter, Roboto, sans-serif',
+    ),
+    density: 0,
+  ));
+
+  // ── Sobrescrever com o verde AgendaZap exato ─────────────
+  --mat-sys-primary:                #{vars.$agendazap-green-500};
+  --mat-sys-on-primary:             white;
+  --mat-sys-primary-container:      #{vars.$agendazap-green-100};
+  --mat-sys-on-primary-container:   #{vars.$agendazap-green-900};
+  --mat-sys-primary-fixed:          #{vars.$agendazap-green-100};
+  --mat-sys-primary-fixed-dim:      #{vars.$agendazap-green-300};
+  --mat-sys-on-primary-fixed:       #{vars.$agendazap-green-900};
+  --mat-sys-on-primary-fixed-variant: #{vars.$agendazap-green-700};
+}

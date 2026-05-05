@@ -1,0 +1,78 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <span class="logo-icon">📅</span>
+      <span class="logo-text">AgendaZap</span>
+    </div>
+
+    <h1 class="auth-title">Criar conta grátis</h1>
+    <p class="auth-subtitle">Comece a organizar seus agendamentos hoje</p>
+
+    @if (errorMsg()) {
+      <div class="auth-error">
+        <mat-icon>error_outline</mat-icon>{{ errorMsg() }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nome completo</mat-label>
+        <input matInput formControlName="nome" placeholder="Seu nome" autocomplete="name">
+        <mat-icon matPrefix>person_outline</mat-icon>
+        @if (form.get('nome')?.hasError('minlength')) {
+          <mat-error>Mínimo 3 caracteres</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>E-mail</mat-label>
+        <input matInput formControlName="email" type="email" autocomplete="email">
+        <mat-icon matPrefix>mail_outline</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Senha (mín. 8 caracteres)</mat-label>
+        <input matInput formControlName="senha"
+               [type]="showSenha() ? 'text' : 'password'"
+               autocomplete="new-password">
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        <button mat-icon-button matSuffix type="button"
+                (click)="showSenha.set(!showSenha())">
+          <mat-icon>{{ showSenha() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Confirmar senha</mat-label>
+        <input matInput formControlName="confirmarSenha" type="password"
+               autocomplete="new-password">
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        @if (form.get('confirmarSenha')?.hasError('senhasDiferentes')) {
+          <mat-error>As senhas não coincidem</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-checkbox formControlName="termos" color="primary">
+        <span style="font-size:13px">
+          Li e aceito os <a href="/termos" target="_blank">Termos de Uso</a>
+        </span>
+      </mat-checkbox>
+
+      <button mat-raised-button color="primary" type="submit"
+              class="full-width submit-btn" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          Criar conta grátis
+        }
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Já tem conta? <a routerLink="/auth/login">Entrar</a>
+    </p>
+
+  </div>
+</div>

@@ -1,0 +1,60 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <span class="logo-icon">📅</span>
+      <span class="logo-text">AgendaZap</span>
+    </div>
+
+    <h1 class="auth-title">Bem-vindo de volta</h1>
+    <p class="auth-subtitle">Entre na sua conta para acessar o dashboard</p>
+
+    @if (errorMsg()) {
+      <div class="auth-error">
+        <mat-icon>error_outline</mat-icon>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>E-mail</mat-label>
+        <input matInput formControlName="email" type="email"
+               placeholder="seu@email.com" autocomplete="email">
+        <mat-icon matPrefix>mail_outline</mat-icon>
+        @if (form.get('email')?.hasError('email')) {
+          <mat-error>Digite um e-mail válido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Senha</mat-label>
+        <input matInput formControlName="senha"
+               [type]="showSenha() ? 'text' : 'password'"
+               autocomplete="current-password">
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        <button mat-icon-button matSuffix type="button"
+                (click)="showSenha.set(!showSenha())">
+          <mat-icon>{{ showSenha() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit"
+              class="full-width submit-btn" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          Entrar
+        }
+      </button>
+
+    </form>
+
+    <p class="auth-footer">
+      Ainda não tem conta?
+      <a routerLink="/auth/cadastro">Criar conta grátis</a>
+    </p>
+
+  </div>
+</div>
