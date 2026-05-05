@@ -1,9 +1,8 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
+// Todas as rotas como CSR puro.
+// Este app é 100% auth-protected: nenhuma rota tem valor de SEO para pré-render.
+// Prerender da rota raiz (redirect → /dashboard) causava loop infinito no Vercel.
 export const serverRoutes: ServerRoute[] = [
-  // Rotas autenticadas: CSR puro (sem SSR, sem pré-render — usuário precisa estar logado)
-  { path: 'dashboard/**', renderMode: RenderMode.Client },
-  { path: 'onboarding',   renderMode: RenderMode.Client },
-  // Demais rotas (auth, 404, raiz): pré-renderizadas como HTML estático
-  { path: '**',           renderMode: RenderMode.Prerender },
+  { path: '**', renderMode: RenderMode.Client },
 ];
