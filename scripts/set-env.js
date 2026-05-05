@@ -1,6 +1,6 @@
-// Gerado automaticamente durante o build no Vercel.
-// Lê as variáveis de ambiente e escreve src/environments/environment.prod.ts.
-// Para rodar localmente: SUPABASE_URL=... SUPABASE_ANON_KEY=... node scripts/set-env.js
+// Executado pelo Vercel antes do build (ver build:vercel em package.json).
+// Gera src/environments/environment.ts a partir das variáveis de ambiente do Vercel.
+// O arquivo de destino está no .gitignore — nunca é commitado com credenciais reais.
 
 const fs   = require('fs');
 const path = require('path');
@@ -23,6 +23,6 @@ const content = `export const environment = {
 };
 `;
 
-const target = path.join(__dirname, '..', 'src', 'environments', 'environment.prod.ts');
+const target = path.join(__dirname, '..', 'src', 'environments', 'environment.ts');
 fs.writeFileSync(target, content, { encoding: 'utf8' });
-console.log('environment.prod.ts gerado com sucesso em', target);
+console.log('environment.ts gerado com sucesso em', target);
