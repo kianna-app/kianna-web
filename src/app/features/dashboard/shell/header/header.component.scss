@@ -1,0 +1,41 @@
+@use 'styles/variables' as v;
+
+.dash-header {
+  background: #fff;
+  border-bottom: 1px solid v.$agendazap-slate-200;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 64px;
+}
+
+.link-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: v.$agendazap-green-50;
+  border: 1px solid v.$agendazap-green-200;
+  border-radius: 99px;
+  padding: 4px 4px 4px 12px;
+
+  mat-icon {
+    color: v.$agendazap-green-700;
+    font-size: 16px; width: 16px; height: 16px;
+  }
+}
+
+.link-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$agendazap-slate-700;
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 600px) {
+  .dash-header { padding: 8px 12px; height: 56px; }
+  .link-text { max-width: 140px; font-size: 12px; }
+}

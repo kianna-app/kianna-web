@@ -1,0 +1,49 @@
+@use 'styles/variables' as v;
+
+.agenda-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$agendazap-slate-900; }
+}
+
+.calendar {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+
+  ::ng-deep {
+    .fc-toolbar-title { font-size: 16px !important; font-weight: 600; }
+    .fc-button-primary {
+      background: v.$agendazap-slate-100 !important;
+      border-color: v.$agendazap-slate-200 !important;
+      color: v.$agendazap-slate-700 !important;
+      text-transform: capitalize;
+      font-weight: 500 !important;
+
+      &:hover { background: v.$agendazap-slate-200 !important; }
+      &.fc-button-active {
+        background: v.$agendazap-green-500 !important;
+        border-color: v.$agendazap-green-500 !important;
+        color: #fff !important;
+      }
+    }
+    .fc-event { cursor: pointer; border-radius: 4px; padding: 2px 4px; }
+    .fc-timegrid-now-indicator-line { border-color: v.$agendazap-green-500 !important; }
+    .fc-col-header-cell-cushion { font-weight: 600; color: v.$agendazap-slate-700; text-decoration: none; }
+  }
+
+  @media (max-width: 600px) {
+    padding: 8px;
+    ::ng-deep .fc-toolbar { flex-direction: column; gap: 8px; }
+  }
+}

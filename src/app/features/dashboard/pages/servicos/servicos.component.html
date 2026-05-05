@@ -1,0 +1,54 @@
+<div class="page-header">
+  <div>
+    <h1>Serviços</h1>
+    <p class="page-sub">
+      {{ store.total() }} de
+      {{ store.limite() === -1 ? 'ilimitados' : store.limite() }}
+      no plano atual
+    </p>
+  </div>
+  <button mat-raised-button color="primary" (click)="abrirDialogNovo()"
+          [disabled]="store.atingiuLimite()">
+    <mat-icon>add</mat-icon> Novo serviço
+  </button>
+</div>
+
+@if (store.carregando()) {
+  <div class="loading-state"><mat-spinner diameter="40"></mat-spinner></div>
+} @else if (store.servicos().length === 0) {
+  <div class="empty-state">
+    <mat-icon>cut</mat-icon>
+    <h3>Nenhum serviço cadastrado</h3>
+    <p>Adicione seus serviços para começar a receber agendamentos</p>
+    <button mat-raised-button color="primary" (click)="abrirDialogNovo()">
+      <mat-icon>add</mat-icon> Adicionar primeiro serviço
+    </button>
+  </div>
+} @else {
+  <div class="servicos-grid">
+    @for (s of store.servicos(); track s.id) {
+      <mat-card class="servico-card" [class.inativo]="!s.ativo">
+        <div class="card-top">
+          <h3>{{ s.nome }}</h3>
+          <mat-slide-toggle color="primary" [checked]="s.ativo" (change)="toggle(s)" />
+        </div>
+
+        <div class="card-meta">
+          <span class="meta-item">
+            <mat-icon>schedule</mat-icon> {{ formatarDuracao(s.duracao_min) }}
+          </span>
+          <span class="meta-item preco">{{ formatarPreco(s.preco) }}</span>
+        </div>
+
+        <div class="card-actions">
+          <button mat-button (click)="abrirDialogEdicao(s)">
+            <mat-icon>edit</mat-icon> Editar
+          </button>
+          <button mat-button color="warn" (click)="excluir(s)">
+            <mat-icon>delete_outline</mat-icon> Excluir
+          </button>
+        </div>
+      </mat-card>
+    }
+  </div>
+}

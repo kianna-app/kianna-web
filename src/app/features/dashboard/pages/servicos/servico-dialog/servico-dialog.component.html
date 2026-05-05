@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>{{ isEdicao ? 'Editar serviço' : 'Novo serviço' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="servico-form">
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nome do serviço</mat-label>
+      <input matInput formControlName="nome" placeholder="Ex: Corte feminino">
+      @if (form.get('nome')?.hasError('minlength')) {
+        <mat-error>Mínimo 2 caracteres</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Duração</mat-label>
+      <mat-select formControlName="duracao_min">
+        @for (d of duracoes; track d) {
+          <mat-option [value]="d">{{ d }} minutos</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Preço (R$)</mat-label>
+      <input matInput formControlName="preco" type="number" min="0" step="0.01">
+      @if (form.get('preco')?.hasError('min')) {
+        <mat-error>Preço não pode ser negativo</mat-error>
+      }
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="fechar()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="salvar()" [disabled]="form.invalid">
+    {{ isEdicao ? 'Salvar' : 'Criar' }}
+  </button>
+</mat-dialog-actions>

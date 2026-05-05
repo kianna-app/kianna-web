@@ -1,0 +1,76 @@
+<div class="page-header">
+  <div>
+    <h1>Horários de atendimento</h1>
+    <p class="page-sub">Configure quando você está disponível para receber clientes</p>
+  </div>
+</div>
+
+@if (store.carregando()) {
+  <div class="loading-state"><mat-spinner diameter="40"></mat-spinner></div>
+} @else {
+  <mat-card class="preview-card">
+    <div class="preview-item">
+      <span class="pv-label">Dias ativos</span>
+      <span class="pv-value">{{ diasAtivosCount() }}</span>
+    </div>
+    <div class="preview-item">
+      <span class="pv-label">Horas/semana</span>
+      <span class="pv-value">{{ horasSemanais() | number:'1.0-1' }}h</span>
+    </div>
+    <div class="preview-item">
+      <span class="pv-label">Slots/semana</span>
+      <span class="pv-value">{{ slotsSemanais() }}</span>
+    </div>
+  </mat-card>
+
+  <div class="dias-list">
+    @for (c of config(); track c.dia) {
+      <mat-card class="dia-card" [class.inativo]="!c.ativo">
+        <div class="dia-row">
+          <div class="dia-toggle">
+            <mat-slide-toggle color="primary" [checked]="c.ativo"
+                              (change)="toggleDia(c.dia, $event.checked)" />
+            <span class="dia-label">{{ c.label }}</span>
+          </div>
+
+          @if (c.ativo) {
+            <div class="dia-campos">
+              <mat-form-field appearance="outline">
+                <mat-label>Início</mat-label>
+                <input matInput type="time" [value]="c.hora_inicio"
+                       (change)="atualizar(c.dia, 'hora_inicio', $any($event.target).value)">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Fim</mat-label>
+                <input matInput type="time" [value]="c.hora_fim"
+                       (change)="atualizar(c.dia, 'hora_fim', $any($event.target).value)">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Intervalo</mat-label>
+                <mat-select [value]="c.intervalo_min"
+                            (selectionChange)="atualizar(c.dia, 'intervalo_min', $event.value)">
+                  @for (i of intervalos; track i) {
+                    <mat-option [value]="i">{{ i }} min</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+        </div>
+      </mat-card>
+    }
+  </div>
+
+  <div class="actions">
+    <button mat-raised-button color="primary"
+            (click)="salvar()" [disabled]="store.salvando()">
+      @if (store.salvando()) {
+        <ng-container><mat-spinner diameter="20"></mat-spinner> Salvando...</ng-container>
+      } @else {
+        <ng-container><mat-icon>save</mat-icon> Salvar horários</ng-container>
+      }
+    </button>
+  </div>
+}

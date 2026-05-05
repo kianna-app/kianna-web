@@ -1,0 +1,79 @@
+@use 'styles/variables' as v;
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$agendazap-slate-900; }
+  .page-sub { font-size: 13px; color: v.$agendazap-slate-500; margin: 4px 0 0; }
+}
+
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+  gap: 12px;
+  color: v.$agendazap-slate-500;
+  text-align: center;
+
+  mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: .5; }
+  h3 { margin: 0; color: v.$agendazap-slate-700; }
+  p  { margin: 0; max-width: 320px; }
+}
+
+.servicos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.servico-card {
+  padding: 16px !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity .2s;
+
+  &.inativo { opacity: .55; }
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+
+  h3 { margin: 0; font-size: 16px; font-weight: 600; color: v.$agendazap-slate-900; }
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: v.$agendazap-slate-600;
+    mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  }
+  .preco { font-weight: 700; color: v.$agendazap-green-700; font-size: 15px; }
+}
+
+.card-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  border-top: 1px solid v.$agendazap-slate-100;
+  padding-top: 8px;
+  margin-top: auto;
+}

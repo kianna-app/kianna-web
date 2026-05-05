@@ -1,0 +1,49 @@
+<div class="sheet">
+  <div class="sheet-header" [attr.data-status]="a.status">
+    <span class="status-tag">{{ rotulo(a.status) }}</span>
+    <button mat-icon-button (click)="fechar()" aria-label="Fechar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <h2>{{ a.cliente_nome }}</h2>
+  <p class="data-hora">
+    <mat-icon>event</mat-icon>
+    {{ a.data_hora | date:"EEEE, d 'de' MMMM 'às' HH:mm":'':'pt-BR' }}
+  </p>
+
+  @if (a.servico) {
+    <div class="info-row">
+      <mat-icon>cut</mat-icon>
+      <span>{{ a.servico.nome }} · {{ a.servico.duracao_min }}min · R$ {{ a.servico.preco }}</span>
+    </div>
+  }
+
+  <div class="info-row">
+    <mat-icon>phone</mat-icon>
+    <span>{{ a.cliente_wpp }}</span>
+    <button mat-button color="primary" (click)="abrirWhatsApp()">
+      <mat-icon>chat</mat-icon> Abrir WhatsApp
+    </button>
+  </div>
+
+  @if (a.observacoes) {
+    <div class="info-row">
+      <mat-icon>notes</mat-icon>
+      <span>{{ a.observacoes }}</span>
+    </div>
+  }
+
+  <div class="sheet-actions">
+    @if (podeConfirmar) {
+      <button mat-raised-button color="primary" (click)="acao('confirmar')">
+        <mat-icon>check_circle</mat-icon> Confirmar
+      </button>
+    }
+    @if (podeCancelar) {
+      <button mat-stroked-button color="warn" (click)="acao('cancelar')">
+        <mat-icon>cancel</mat-icon> Cancelar
+      </button>
+    }
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div class="dash-shell" [class.mobile]="isMobile()">
+  @if (!isMobile()) {
+    <app-sidenav />
+  }
+
+  <div class="dash-main">
+    <app-dashboard-header />
+    <main class="dash-content">
+      <router-outlet />
+    </main>
+  </div>
+
+  @if (isMobile()) {
+    <app-bottom-nav />
+  }
+</div>

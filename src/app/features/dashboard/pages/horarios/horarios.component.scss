@@ -1,0 +1,71 @@
+@use 'styles/variables' as v;
+
+.page-header {
+  margin-bottom: 24px;
+  h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$agendazap-slate-900; }
+  .page-sub { font-size: 13px; color: v.$agendazap-slate-500; margin: 4px 0 0; }
+}
+
+.preview-card {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 16px !important;
+  margin-bottom: 24px;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  .pv-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: v.$agendazap-slate-500; }
+  .pv-value { font-size: 22px; font-weight: 700; color: v.$agendazap-green-700; margin-top: 4px; }
+}
+
+.dias-list { display: flex; flex-direction: column; gap: 8px; }
+
+.dia-card {
+  padding: 16px !important;
+  transition: opacity .2s;
+  &.inativo { opacity: .6; }
+}
+
+.dia-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.dia-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 160px;
+
+  .dia-label { font-weight: 600; color: v.$agendazap-slate-800; }
+}
+
+.dia-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  flex: 1;
+  min-width: 280px;
+
+  mat-form-field { width: 100%; }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.loading-state {
+  display: flex; justify-content: center; padding: 64px;
+}

@@ -1,0 +1,10 @@
+<header class="dash-header">
+  <div class="link-chip">
+    <mat-icon>link</mat-icon>
+    <span class="link-text">{{ linkPublico }}</span>
+    <button mat-button color="primary" (click)="copiarLink()">
+      <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
+      {{ copiado() ? 'Copiado' : 'Copiar' }}
+    </button>
+  </div>
+</header>
