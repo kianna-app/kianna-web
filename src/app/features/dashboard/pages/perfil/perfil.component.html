@@ -1,0 +1,69 @@
+<div class="perfil-page">
+  <div class="page-header">
+    <h1>Meu Perfil</h1>
+    <p class="page-sub">Suas informações e configurações de conta</p>
+  </div>
+
+  @if (user(); as u) {
+    <div class="perfil-grid">
+
+      <mat-card class="perfil-card">
+        <div class="avatar-section">
+          @if (u.foto_url) {
+            <img [src]="u.foto_url" [alt]="u.nome" class="avatar-img">
+          } @else {
+            <div class="avatar-fallback"><mat-icon>person</mat-icon></div>
+          }
+          <div class="avatar-info">
+            <h2>{{ u.nome }}</h2>
+            <span class="especialidade-badge">{{ u.especialidade ?? 'Profissional' }}</span>
+          </div>
+        </div>
+
+        <mat-divider />
+
+        <div class="info-list">
+          <div class="info-item">
+            <mat-icon>badge</mat-icon>
+            <div>
+              <span class="info-label">Plano atual</span>
+              <span class="info-value plano-badge" [attr.data-plano]="u.plano">
+                {{ u.plano === 'gratis' ? 'Gratuito' : u.plano === 'pro' ? 'Pro' : 'Studio' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon>phone</mat-icon>
+            <div>
+              <span class="info-label">WhatsApp</span>
+              <span class="info-value">{{ u.whatsapp }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="link-card">
+        <h3><mat-icon>link</mat-icon> Seu link de agendamento</h3>
+        <p class="link-desc">Compartilhe este link com seus clientes para receber agendamentos.</p>
+
+        <div class="link-box">
+          <span class="link-url">{{ linkPublico }}</span>
+          <button mat-stroked-button color="primary" (click)="copiarLink()">
+            <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
+            {{ copiado() ? 'Copiado!' : 'Copiar' }}
+          </button>
+        </div>
+      </mat-card>
+
+      <mat-card class="sair-card">
+        <h3><mat-icon>logout</mat-icon> Sair da conta</h3>
+        <p>Você será redirecionado para a tela de login.</p>
+        <button mat-stroked-button color="warn" (click)="logout()">
+          <mat-icon>logout</mat-icon> Sair
+        </button>
+      </mat-card>
+
+    </div>
+  }
+</div>

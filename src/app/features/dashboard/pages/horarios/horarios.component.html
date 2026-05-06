@@ -75,10 +75,11 @@
             (click)="salvar()" [disabled]="store.salvando()"
             [class.btn-salvar-destaque]="temAlteracoes()">
       @if (store.salvando()) {
-        <ng-container><mat-spinner diameter="20"></mat-spinner> Salvando...</ng-container>
+        <mat-spinner diameter="18"></mat-spinner>
       } @else {
-        <ng-container><mat-icon>save</mat-icon> Salvar horários</ng-container>
+        <mat-icon>save</mat-icon>
       }
+      {{ store.salvando() ? 'Salvando...' : 'Salvar horários' }}
     </button>
   </div>
 }

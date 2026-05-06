@@ -1,15 +1,14 @@
 <header class="dash-header">
+  <div class="header-greeting">
+    <span class="greeting-text">Olá, <strong>{{ user()?.nome?.split(' ')?.at(0) ?? '' }}</strong> 👋</span>
+  </div>
+
   <div class="link-chip">
     <mat-icon>link</mat-icon>
     <span class="link-text">{{ linkPublico }}</span>
-    <button mat-button color="primary" (click)="copiarLink()">
+    <button mat-button color="primary" (click)="copiarLink()" matTooltip="Copiar link público">
       <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
-      {{ copiado() ? 'Copiado' : 'Copiar' }}
+      <span class="copiar-label">{{ copiado() ? 'Copiado' : 'Copiar' }}</span>
     </button>
   </div>
-
-  <button class="logout-mobile" mat-icon-button (click)="logout()"
-          matTooltip="Sair" aria-label="Sair">
-    <mat-icon>logout</mat-icon>
-  </button>
 </header>

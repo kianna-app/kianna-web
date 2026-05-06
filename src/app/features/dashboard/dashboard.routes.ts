@@ -8,6 +8,12 @@ export const dashboardRoutes: Routes = [
     children: [
       { path: '', redirectTo: 'agenda', pathMatch: 'full' },
       {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./pages/perfil/perfil.component').then(m => m.PerfilComponent),
+        title: 'Meu Perfil — AgendaZap',
+      },
+      {
         path: 'agenda',
         loadComponent: () =>
           import('./pages/agenda/agenda.component').then(m => m.AgendaComponent),

@@ -12,5 +12,5 @@ import { MENU_ITEMS } from '../menu.config';
   styleUrl: './bottom-nav.component.scss',
 })
 export class BottomNavComponent {
-  readonly menu = MENU_ITEMS.filter(m => !m.implementadoEm).slice(0, 3);
+  readonly menu = MENU_ITEMS.filter(m => !m.implementadoEm);
 }

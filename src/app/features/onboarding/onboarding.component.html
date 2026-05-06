@@ -32,8 +32,14 @@
         </div>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nome completo (aparece no link)</mat-label>
-          <input matInput formControlName="nome">
+          <mat-label>Nome do negócio ou profissional</mat-label>
+          <input matInput formControlName="nome" placeholder="Ex: Studio Ana Lima, Barbearia Central">
+          <mat-hint>Será seu nome público e fará parte do seu link de agendamento</mat-hint>
+          @if (perfilForm.get('nome')?.hasError('required') && perfilForm.get('nome')?.touched) {
+            <mat-error>Nome é obrigatório</mat-error>
+          } @else if (perfilForm.get('nome')?.hasError('minlength')) {
+            <mat-error>Mínimo 3 caracteres</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -44,6 +50,7 @@
             <mat-option value="manicure">Manicure / Nail Designer</mat-option>
             <mat-option value="esteticista">Esteticista</mat-option>
             <mat-option value="tatuador">Tatuador(a)</mat-option>
+            <mat-option value="dentista">Dentista</mat-option>
             <mat-option value="psicologo">Psicólogo(a)</mat-option>
             <mat-option value="personal">Personal Trainer</mat-option>
             <mat-option value="massoterapeuta">Massoterapeuta</mat-option>
@@ -53,10 +60,16 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>WhatsApp (com DDD)</mat-label>
-          <input matInput formControlName="whatsapp" placeholder="(44) 99999-9999">
+          <input matInput formControlName="whatsapp" placeholder="(44) 99999-9999"
+                 type="tel" autocomplete="tel">
           <mat-icon matPrefix>phone</mat-icon>
-          @if (perfilForm.get('whatsapp')?.hasError('pattern')) {
+          <mat-hint>Seus clientes usarão este número para confirmar agendamentos</mat-hint>
+          @if (perfilForm.get('whatsapp')?.hasError('required') && perfilForm.get('whatsapp')?.touched) {
+            <mat-error>WhatsApp é obrigatório</mat-error>
+          } @else if (perfilForm.get('whatsapp')?.hasError('pattern')) {
             <mat-error>Formato: (44) 99999-9999</mat-error>
+          } @else if (perfilForm.get('whatsapp')?.hasError('jaCadastrado')) {
+            <mat-error>Este número já está cadastrado em outra conta</mat-error>
           }
         </mat-form-field>
 
@@ -176,7 +189,7 @@
             @if (isLoading()) {
               <mat-spinner diameter="20"></mat-spinner> Salvando...
             } @else {
-              <ng-container>Concluir e ir ao dashboard <mat-icon iconPositionEnd>check</mat-icon></ng-container>
+              <ng-container>Finalizar <mat-icon iconPositionEnd>check_circle</mat-icon></ng-container>
             }
           </button>
         </div>

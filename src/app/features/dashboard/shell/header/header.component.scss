@@ -6,8 +6,9 @@
   padding: 12px 24px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   height: 64px;
+  gap: 16px;
 }
 
 .link-chip {
@@ -35,12 +36,18 @@
   text-overflow: ellipsis;
 }
 
-.logout-mobile {
-  color: v.$agendazap-slate-500;
-  @media (min-width: 961px) { display: none; }
+.header-greeting {
+  .greeting-text {
+    font-size: 15px;
+    color: v.$agendazap-slate-700;
+    white-space: nowrap;
+    strong { color: v.$agendazap-slate-900; }
+  }
 }
 
 @media (max-width: 600px) {
   .dash-header { padding: 8px 12px; height: 56px; }
-  .link-text { max-width: 140px; font-size: 12px; }
+  .link-text { max-width: 100px; font-size: 12px; }
+  .header-greeting .greeting-text { font-size: 13px; }
+  .copiar-label { display: none; }
 }

@@ -1,20 +1,25 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 import { currentUser } from '@core/signals/app.signals';
+import { AuthService } from '@core/auth/auth.service';
 import { APP } from '@core/constants/app.constants';
 
 @Component({
-  selector: 'app-dashboard-header',
+  selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.scss',
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule,
+            MatTooltipModule, MatDividerModule],
+  templateUrl: './perfil.component.html',
+  styleUrl: './perfil.component.scss',
 })
-export class HeaderComponent {
+export class PerfilComponent {
+  private auth  = inject(AuthService);
   private snack = inject(MatSnackBar);
 
   readonly user    = currentUser;
@@ -34,4 +39,6 @@ export class HeaderComponent {
       this.snack.open('Não foi possível copiar', 'OK', { duration: 2000 });
     }
   }
+
+  logout(): void { this.auth.signOut(); }
 }

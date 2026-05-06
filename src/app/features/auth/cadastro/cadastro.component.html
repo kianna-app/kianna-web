@@ -21,7 +21,7 @@
         <mat-label>Nome completo</mat-label>
         <input matInput formControlName="nome" placeholder="Ex: Studio Ana Lima" autocomplete="name">
         <mat-icon matPrefix>person_outline</mat-icon>
-        <mat-hint>Nome público da sua empresa ou perfil profissional</mat-hint>
+        <mat-hint>Nome da sua empresa ou do profissional</mat-hint>
         @if (form.get('nome')?.hasError('required') && form.get('nome')?.touched) {
           <mat-error>Nome é obrigatório</mat-error>
         } @else if (form.get('nome')?.hasError('minlength')) {

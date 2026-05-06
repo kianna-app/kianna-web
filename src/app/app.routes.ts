@@ -4,8 +4,10 @@ import { authGuard, publicGuard } from '@core/auth/auth.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/dashboard',
-    pathMatch: 'full',
+    canActivate: [publicGuard],
+    loadComponent: () =>
+      import('./features/landing/landing.component').then(m => m.LandingComponent),
+    title: 'AgendaZap — Agendamentos pelo WhatsApp',
   },
   {
     path: 'auth',

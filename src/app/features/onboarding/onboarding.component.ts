@@ -29,6 +29,7 @@ import { gerarSlug, slugComSufixo } from '@core/utils/slug.util';
     useValue: { showError: true },
   }],
   templateUrl: './onboarding.component.html',
+  styleUrl: './onboarding.component.scss',
 })
 export class OnboardingComponent {
   private fb     = inject(FormBuilder);
@@ -135,6 +136,18 @@ export class OnboardingComponent {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Não autenticado');
+
+      const whatsapp = this.perfilForm.value.whatsapp!;
+      const { data: wppExistente } = await supabase
+        .from('profissionais')
+        .select('id')
+        .eq('whatsapp', whatsapp)
+        .maybeSingle();
+      if (wppExistente) {
+        this.perfilForm.get('whatsapp')?.setErrors({ jaCadastrado: true });
+        this.errorMsg.set('Este número de WhatsApp já está em uso em outra conta.');
+        return;
+      }
 
       const nome = this.perfilForm.value.nome!;
       const slug = await this.gerarSlugUnico(nome);

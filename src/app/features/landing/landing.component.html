@@ -1,0 +1,156 @@
+<div class="landing">
+
+  <!-- HEADER -->
+  <header class="landing-header">
+    <div class="header-logo">
+      <span class="logo-icon">📅</span>
+      <span class="logo-text">AgendaZap</span>
+    </div>
+    <a routerLink="/auth/login" mat-raised-button color="primary" class="btn-painel">
+      Acessar Painel
+    </a>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <span class="hero-badge">
+        <mat-icon>auto_awesome</mat-icon> Simples, rápido e gratuito
+      </span>
+      <h1>Receba agendamentos pelo WhatsApp, sem complicação</h1>
+      <p>O AgendaZap organiza seus horários, reduz faltas e deixa seus clientes agendarem a qualquer hora — mesmo enquanto você trabalha.</p>
+      <div class="hero-actions">
+        <a routerLink="/auth/cadastro" mat-raised-button color="primary" class="btn-cta">
+          <mat-icon>rocket_launch</mat-icon> Criar conta grátis
+        </a>
+        <a routerLink="/auth/login" mat-button class="btn-login">
+          Já tenho conta
+        </a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="phone-mockup">
+        <div class="phone-screen">
+          <div class="mock-header">
+            <mat-icon>event</mat-icon>
+            <span>Agenda de hoje</span>
+          </div>
+          <div class="mock-item confirmado">
+            <span class="mock-hora">09:00</span>
+            <div>
+              <span class="mock-nome">Maria Silva</span>
+              <span class="mock-servico">Corte + escova · 1h</span>
+            </div>
+            <span class="mock-status">Confirmado</span>
+          </div>
+          <div class="mock-item pendente">
+            <span class="mock-hora">10:30</span>
+            <div>
+              <span class="mock-nome">Ana Souza</span>
+              <span class="mock-servico">Manicure · 45min</span>
+            </div>
+            <span class="mock-status">Pendente</span>
+          </div>
+          <div class="mock-item confirmado">
+            <span class="mock-hora">14:00</span>
+            <div>
+              <span class="mock-nome">Carla Lima</span>
+              <span class="mock-servico">Escova · 30min</span>
+            </div>
+            <span class="mock-status">Confirmado</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="como-funciona">
+    <div class="section-inner">
+      <h2>Como funciona?</h2>
+      <p class="section-sub">Em 3 passos simples você começa a receber agendamentos</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <mat-icon class="step-icon">person_add</mat-icon>
+          <h3>Crie sua conta</h3>
+          <p>Cadastre-se gratuitamente em menos de 2 minutos. Sem cartão de crédito.</p>
+        </div>
+        <div class="step-arrow"><mat-icon>arrow_forward</mat-icon></div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <mat-icon class="step-icon">link</mat-icon>
+          <h3>Compartilhe seu link</h3>
+          <p>Receba um link único. Envie para seus clientes via WhatsApp, Instagram ou onde quiser.</p>
+        </div>
+        <div class="step-arrow"><mat-icon>arrow_forward</mat-icon></div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <mat-icon class="step-icon">event_available</mat-icon>
+          <h3>Gerencie tudo aqui</h3>
+          <p>Confirme, cancele e visualize sua agenda em tempo real no seu painel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUNCIONALIDADES -->
+  <section class="features">
+    <div class="section-inner">
+      <h2>Tudo que você precisa</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <mat-icon>calendar_month</mat-icon>
+          <h3>Agenda visual</h3>
+          <p>Visualize todos os agendamentos em formato de semana, dia ou lista.</p>
+        </div>
+        <div class="feature-card">
+          <mat-icon>notifications_active</mat-icon>
+          <h3>Lembretes automáticos</h3>
+          <p>Seus clientes recebem confirmação e lembrete pelo WhatsApp. Menos faltas.</p>
+        </div>
+        <div class="feature-card">
+          <mat-icon>content_cut</mat-icon>
+          <h3>Seus serviços</h3>
+          <p>Cadastre seus serviços com duração e preço. Controle o que você oferece.</p>
+        </div>
+        <div class="feature-card">
+          <mat-icon>schedule</mat-icon>
+          <h3>Seus horários</h3>
+          <p>Configure dias e horários de atendimento. Só aparecem slots disponíveis para o cliente.</p>
+        </div>
+        <div class="feature-card">
+          <mat-icon>smartphone</mat-icon>
+          <h3>100% Mobile</h3>
+          <p>Funciona perfeitamente no celular. iOS, Android, qualquer navegador.</p>
+        </div>
+        <div class="feature-card">
+          <mat-icon>lock</mat-icon>
+          <h3>Seguro e privado</h3>
+          <p>Seus dados e os dos seus clientes protegidos com autenticação segura.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="cta-final">
+    <div class="section-inner">
+      <h2>Comece hoje, é gratuito</h2>
+      <p>Sem limite de tempo no plano grátis. Faça upgrade quando quiser crescer.</p>
+      <a routerLink="/auth/cadastro" mat-raised-button color="primary" class="btn-cta-final">
+        <mat-icon>rocket_launch</mat-icon> Criar minha conta agora
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+    <span>© 2025 AgendaZap · Todos os direitos reservados</span>
+    <div class="footer-links">
+      <a routerLink="/auth/login">Entrar</a>
+      <a routerLink="/auth/cadastro">Cadastrar</a>
+    </div>
+  </footer>
+
+</div>
