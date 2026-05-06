@@ -35,6 +35,11 @@
   text-overflow: ellipsis;
 }
 
+.logout-mobile {
+  color: v.$agendazap-slate-500;
+  @media (min-width: 961px) { display: none; }
+}
+
 @media (max-width: 600px) {
   .dash-header { padding: 8px 12px; height: 56px; }
   .link-text { max-width: 140px; font-size: 12px; }

@@ -39,7 +39,8 @@ export class HorariosComponent implements OnInit {
   private snack   = inject(MatSnackBar);
 
   readonly intervalos = [15, 30, 45, 60];
-  readonly config = signal<DiaConfig[]>(this.configPadrao());
+  readonly config          = signal<DiaConfig[]>(this.configPadrao());
+  readonly temAlteracoes   = signal(false);
 
   readonly diasAtivosCount = computed(() => this.config().filter(c => c.ativo).length);
   readonly horasSemanais   = computed(() =>
@@ -91,10 +92,12 @@ export class HorariosComponent implements OnInit {
 
   toggleDia(dia: DiaSemana, ativo: boolean): void {
     this.config.update(arr => arr.map(c => c.dia === dia ? { ...c, ativo } : c));
+    this.temAlteracoes.set(true);
   }
 
   atualizar<K extends keyof DiaConfig>(dia: DiaSemana, campo: K, valor: DiaConfig[K]): void {
     this.config.update(arr => arr.map(c => c.dia === dia ? { ...c, [campo]: valor } : c));
+    this.temAlteracoes.set(true);
   }
 
   async salvar(): Promise<void> {
@@ -115,7 +118,8 @@ export class HorariosComponent implements OnInit {
 
     try {
       await this.store.salvar(inputs);
-      this.snack.open('Horários salvos', 'OK', { duration: 2000 });
+      this.temAlteracoes.set(false);
+      this.snack.open('Horários salvos com sucesso!', 'OK', { duration: 2500 });
     } catch (e: unknown) {
       this.snack.open(e instanceof Error ? e.message : 'Erro ao salvar', 'OK', { duration: 3000 });
     }

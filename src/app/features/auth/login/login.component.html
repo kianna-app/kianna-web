@@ -23,7 +23,9 @@
         <input matInput formControlName="email" type="email"
                placeholder="seu@email.com" autocomplete="email">
         <mat-icon matPrefix>mail_outline</mat-icon>
-        @if (form.get('email')?.hasError('email')) {
+        @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+          <mat-error>E-mail é obrigatório</mat-error>
+        } @else if (form.get('email')?.hasError('email')) {
           <mat-error>Digite um e-mail válido</mat-error>
         }
       </mat-form-field>
@@ -38,6 +40,9 @@
                 (click)="showSenha.set(!showSenha())">
           <mat-icon>{{ showSenha() ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
+        @if (form.get('senha')?.hasError('required') && form.get('senha')?.touched) {
+          <mat-error>Senha é obrigatória</mat-error>
+        }
       </mat-form-field>
 
       <button mat-raised-button color="primary" type="submit"

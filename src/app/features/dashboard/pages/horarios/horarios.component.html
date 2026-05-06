@@ -63,9 +63,17 @@
     }
   </div>
 
+  @if (temAlteracoes()) {
+    <div class="alteracoes-banner">
+      <mat-icon>edit_note</mat-icon>
+      <span>Você tem alterações não salvas</span>
+    </div>
+  }
+
   <div class="actions">
-    <button mat-raised-button color="primary"
-            (click)="salvar()" [disabled]="store.salvando()">
+    <button mat-raised-button [color]="temAlteracoes() ? 'accent' : 'primary'"
+            (click)="salvar()" [disabled]="store.salvando()"
+            [class.btn-salvar-destaque]="temAlteracoes()">
       @if (store.salvando()) {
         <ng-container><mat-spinner diameter="20"></mat-spinner> Salvando...</ng-container>
       } @else {

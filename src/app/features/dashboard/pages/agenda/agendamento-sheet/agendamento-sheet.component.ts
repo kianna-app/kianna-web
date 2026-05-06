@@ -8,7 +8,7 @@ import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
 export interface SheetData {
   agendamento: AgendamentoComServico;
 }
-export type SheetResult = { acao: 'confirmar' | 'cancelar' } | undefined;
+export type SheetResult = { acao: 'confirmar' | 'cancelar' | 'reabrir' } | undefined;
 
 @Component({
   selector: 'app-agendamento-sheet',
@@ -24,8 +24,9 @@ export class AgendamentoSheetComponent {
   get a(): AgendamentoComServico { return this.data.agendamento; }
   get podeConfirmar(): boolean { return this.a.status === 'pendente'; }
   get podeCancelar(): boolean { return this.a.status !== 'cancelado' && this.a.status !== 'concluido'; }
+  get podeReabrir(): boolean { return this.a.status === 'cancelado'; }
 
-  acao(a: 'confirmar' | 'cancelar'): void { this.ref.dismiss({ acao: a }); }
+  acao(a: 'confirmar' | 'cancelar' | 'reabrir'): void { this.ref.dismiss({ acao: a }); }
   fechar(): void { this.ref.dismiss(); }
 
   abrirWhatsApp(): void {

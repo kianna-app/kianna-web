@@ -1,7 +1,7 @@
 <div class="sheet">
   <div class="sheet-header" [attr.data-status]="a.status">
     <span class="status-tag">{{ rotulo(a.status) }}</span>
-    <button mat-icon-button (click)="fechar()" aria-label="Fechar">
+    <button mat-icon-button (click)="fechar()" aria-label="Fechar detalhes">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -14,35 +14,49 @@
 
   @if (a.servico) {
     <div class="info-row">
-      <mat-icon>cut</mat-icon>
-      <span>{{ a.servico.nome }} · {{ a.servico.duracao_min }}min · R$ {{ a.servico.preco }}</span>
+      <mat-icon>content_cut</mat-icon>
+      <div class="info-col">
+        <span class="info-label">Serviço</span>
+        <span>{{ a.servico.nome }} · {{ a.servico.duracao_min }}min · R$ {{ a.servico.preco }}</span>
+      </div>
     </div>
   }
 
   <div class="info-row">
     <mat-icon>phone</mat-icon>
-    <span>{{ a.cliente_wpp }}</span>
+    <div class="info-col">
+      <span class="info-label">WhatsApp</span>
+      <span>{{ a.cliente_wpp }}</span>
+    </div>
     <button mat-button color="primary" (click)="abrirWhatsApp()">
-      <mat-icon>chat</mat-icon> Abrir WhatsApp
+      <mat-icon>chat</mat-icon> Abrir
     </button>
   </div>
 
   @if (a.observacoes) {
     <div class="info-row">
       <mat-icon>notes</mat-icon>
-      <span>{{ a.observacoes }}</span>
+      <div class="info-col">
+        <span class="info-label">Observações</span>
+        <span>{{ a.observacoes }}</span>
+      </div>
     </div>
   }
 
   <div class="sheet-actions">
     @if (podeConfirmar) {
       <button mat-raised-button color="primary" (click)="acao('confirmar')">
-        <mat-icon>check_circle</mat-icon> Confirmar
+        <mat-icon>check_circle</mat-icon> Confirmar agendamento
+      </button>
+    }
+    @if (podeReabrir) {
+      <button mat-raised-button color="primary" (click)="acao('reabrir')">
+        <mat-icon>restart_alt</mat-icon> Reabrir agendamento
       </button>
     }
     @if (podeCancelar) {
       <button mat-stroked-button color="warn" (click)="acao('cancelar')">
-        <mat-icon>cancel</mat-icon> Cancelar
+        <mat-icon>cancel</mat-icon> Cancelar agendamento
       </button>
     }
   </div>

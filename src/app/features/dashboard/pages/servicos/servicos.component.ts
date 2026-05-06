@@ -4,12 +4,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ServicosStore } from '../../state/servicos.store';
 import { Servico } from '@core/types/database.types';
 import { ServicoDialogComponent, ServicoDialogData } from './servico-dialog/servico-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -17,7 +19,7 @@ import { firstValueFrom } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule, MatCardModule, MatButtonModule, MatIconModule,
-    MatSlideToggleModule, MatProgressSpinnerModule,
+    MatSlideToggleModule, MatProgressSpinnerModule, MatTooltipModule,
   ],
   templateUrl: './servicos.component.html',
   styleUrl: './servicos.component.scss',
@@ -42,11 +44,16 @@ export class ServicosComponent implements OnInit {
 
   async abrirDialogNovo(): Promise<void> {
     if (this.store.atingiuLimite()) {
-      this.snack.open(
-        `Plano ${this.store.limite()} serviços atingido. Faça upgrade para Pro.`,
-        'OK',
-        { duration: 4000 }
-      );
+      const limite = this.store.limite();
+      this.dialog.open<ConfirmDialogComponent, ConfirmDialogData>(ConfirmDialogComponent, {
+        data: {
+          titulo: 'Limite de serviços atingido',
+          mensagem: `Seu plano gratuito permite cadastrar até ${limite} serviço${limite === 1 ? '' : 's'}. Faça upgrade para o plano Pro e cadastre serviços ilimitados.`,
+          confirmLabel: 'Entendido',
+          tipo: 'primary',
+          ocultarCancelar: true,
+        },
+      });
       return;
     }
     const ref = this.dialog.open<ServicoDialogComponent, ServicoDialogData>(
@@ -77,15 +84,30 @@ export class ServicosComponent implements OnInit {
   }
 
   async toggle(servico: Servico): Promise<void> {
+    const novoAtivo = !servico.ativo;
     try {
-      await this.store.toggleAtivo(servico.id, !servico.ativo);
+      await this.store.toggleAtivo(servico.id, novoAtivo);
+      this.snack.open(
+        novoAtivo ? `"${servico.nome}" ativado` : `"${servico.nome}" desativado`,
+        'OK',
+        { duration: 2000 }
+      );
     } catch {
       this.snack.open('Erro ao alterar status', 'OK', { duration: 2000 });
     }
   }
 
   async excluir(servico: Servico): Promise<void> {
-    if (!confirm(`Excluir o serviço "${servico.nome}"?`)) return;
+    const ref = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData>(ConfirmDialogComponent, {
+      data: {
+        titulo: 'Excluir serviço',
+        mensagem: `Tem certeza que deseja excluir "${servico.nome}"? Esta ação não pode ser desfeita.`,
+        confirmLabel: 'Excluir',
+        tipo: 'warn',
+      },
+    });
+    const confirmado = await firstValueFrom(ref.afterClosed());
+    if (!confirmado) return;
     try {
       await this.store.excluir(servico.id);
       this.snack.open('Serviço excluído', 'OK', { duration: 2000 });

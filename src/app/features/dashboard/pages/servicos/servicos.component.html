@@ -7,10 +7,16 @@
       no plano atual
     </p>
   </div>
-  <button mat-raised-button color="primary" (click)="abrirDialogNovo()"
-          [disabled]="store.atingiuLimite()">
-    <mat-icon>add</mat-icon> Novo serviço
-  </button>
+  @if (store.atingiuLimite()) {
+    <button mat-raised-button class="btn-limite" (click)="abrirDialogNovo()"
+            matTooltip="Limite do plano gratuito atingido. Clique para saber mais.">
+      <mat-icon>block</mat-icon> Limite atingido
+    </button>
+  } @else {
+    <button mat-raised-button color="primary" (click)="abrirDialogNovo()">
+      <mat-icon>add</mat-icon> Novo serviço
+    </button>
+  }
 </div>
 
 @if (store.carregando()) {
@@ -30,7 +36,8 @@
       <mat-card class="servico-card" [class.inativo]="!s.ativo">
         <div class="card-top">
           <h3>{{ s.nome }}</h3>
-          <mat-slide-toggle color="primary" [checked]="s.ativo" (change)="toggle(s)" />
+          <mat-slide-toggle color="primary" [checked]="s.ativo" (change)="toggle(s)"
+                            [matTooltip]="s.ativo ? 'Desativar serviço' : 'Ativar serviço'" />
         </div>
 
         <div class="card-meta">

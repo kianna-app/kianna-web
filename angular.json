@@ -36,8 +36,6 @@
             "stylePreprocessorOptions": {
               "includePaths": ["src"]
             },
-            "server": "src/main.server.ts",
-            "outputMode": "static",
             "security": {
               "allowedHosts": []
             }

@@ -7,4 +7,9 @@
       {{ copiado() ? 'Copiado' : 'Copiar' }}
     </button>
   </div>
+
+  <button class="logout-mobile" mat-icon-button (click)="logout()"
+          matTooltip="Sair" aria-label="Sair">
+    <mat-icon>logout</mat-icon>
+  </button>
 </header>

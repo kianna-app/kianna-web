@@ -34,15 +34,29 @@ h2 { font-size: 18px; margin: 0 0 4px; color: v.$agendazap-slate-900; }
 
 .info-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 10px 0;
   border-top: 1px solid v.$agendazap-slate-100;
   font-size: 14px;
   color: v.$agendazap-slate-700;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; color: v.$agendazap-slate-500; flex-shrink: 0; }
-  span { flex: 1; }
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: v.$agendazap-slate-500; flex-shrink: 0; margin-top: 2px; }
+}
+
+.info-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+}
+
+.info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: v.$agendazap-slate-400;
+  font-weight: 600;
 }
 
 .sheet-actions {

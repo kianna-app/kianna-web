@@ -11,7 +11,7 @@ import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AgendamentosStore } from '../../state/agendamentos.store';
-import { AgendamentoComServico } from '@core/types/database.types';
+import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
 import { STATUS_CORES } from '@core/constants/app.constants';
 import { BreakpointService } from '@core/services/breakpoint.service';
 import { AgendamentoSheetComponent, SheetData, SheetResult } from './agendamento-sheet/agendamento-sheet.component';
@@ -89,10 +89,27 @@ export class AgendaComponent implements OnInit {
     );
     const r = await firstValueFrom(ref.afterDismissed());
     if (!r) return;
+
+    const novoStatus: StatusAgend =
+      r.acao === 'confirmar' ? 'confirmado' :
+      r.acao === 'reabrir'   ? 'pendente'   : 'cancelado';
+
     try {
-      const novoStatus = r.acao === 'confirmar' ? 'confirmado' : 'cancelado';
       await this.store.atualizarStatus(agendamento.id, novoStatus);
-      this.snack.open(`Agendamento ${novoStatus}`, 'OK', { duration: 2000 });
+
+      const fcEvent = this.calendarRef?.getApi().getEventById(agendamento.id);
+      if (fcEvent) {
+        fcEvent.setProp('backgroundColor', STATUS_CORES[novoStatus]);
+        fcEvent.setProp('borderColor', STATUS_CORES[novoStatus]);
+        fcEvent.setExtendedProp('agendamento', { ...agendamento, status: novoStatus });
+      }
+
+      const labels = {
+        confirmado: 'Agendamento confirmado',
+        cancelado:  'Agendamento cancelado',
+        pendente:   'Agendamento reaberto',
+      } as const;
+      this.snack.open(labels[novoStatus], 'OK', { duration: 2500 });
     } catch (e: unknown) {
       this.snack.open(e instanceof Error ? e.message : 'Erro ao atualizar', 'OK', { duration: 3000 });
     }

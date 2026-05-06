@@ -60,10 +60,30 @@
   mat-form-field { width: 100%; }
 }
 
+.alteracoes-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #78350f;
+  font-weight: 500;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: #d97706; }
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 24px;
+  margin-top: 16px;
+}
+
+.btn-salvar-destaque {
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, .35) !important;
 }
 
 .loading-state {
