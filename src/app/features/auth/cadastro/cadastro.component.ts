@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AuthService } from '@core/auth/auth.service';
+import { APP } from '@core/constants/app.constants';
 
 function senhasIguaisValidator(control: AbstractControl) {
   const senha    = control.get('senha');
@@ -34,6 +35,7 @@ function senhasIguaisValidator(control: AbstractControl) {
   templateUrl: './cadastro.component.html',
 })
 export class CadastroComponent {
+  readonly APP = APP;
   private fb     = inject(FormBuilder);
   private auth   = inject(AuthService);
   private router = inject(Router);

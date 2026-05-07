@@ -14,6 +14,7 @@ import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { supabase } from '@core/supabase/supabase.client';
 import { currentUser } from '@core/signals/app.signals';
 import { gerarSlug, slugComSufixo } from '@core/utils/slug.util';
+import { APP } from '@core/constants/app.constants';
 
 @Component({
   selector: 'app-onboarding',
@@ -32,6 +33,7 @@ import { gerarSlug, slugComSufixo } from '@core/utils/slug.util';
   styleUrl: './onboarding.component.scss',
 })
 export class OnboardingComponent {
+  readonly APP = APP;
   private fb     = inject(FormBuilder);
   private router = inject(Router);
 

@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '@core/auth/auth.service';
+import { APP } from '@core/constants/app.constants';
 import { isOnboardingDone } from '@core/signals/app.signals';
 
 @Component({
@@ -22,6 +23,7 @@ import { isOnboardingDone } from '@core/signals/app.signals';
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
+  readonly APP = APP;
   private fb     = inject(FormBuilder);
   private auth   = inject(AuthService);
   private router = inject(Router);
