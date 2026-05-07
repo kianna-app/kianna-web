@@ -14,22 +14,22 @@ html, body {
   height: 100%;
   margin: 0;
   font-family: vars.$font-primary;
-  background-color: vars.$agendazap-slate-50;
-  color: vars.$agendazap-slate-900;
+  background-color: vars.$kianna-slate-50;
+  color: vars.$kianna-slate-900;
   -webkit-font-smoothing: antialiased;
 }
 
 // ── Utilitários globais ───────────────────────────────────────
-.text-primary    { color: vars.$agendazap-green-500 !important; }
-.bg-primary      { background-color: vars.$agendazap-green-500 !important; }
-.text-muted      { color: vars.$agendazap-slate-500 !important; }
+.text-primary    { color: vars.$kianna-green-500 !important; }
+.bg-primary      { background-color: vars.$kianna-green-500 !important; }
+.text-muted      { color: vars.$kianna-slate-500 !important; }
 .full-width      { width: 100%; }
 
 // ── Scrollbar personalizada ───────────────────────────────────
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: vars.$agendazap-slate-300;
+  background: vars.$kianna-slate-300;
   border-radius: 3px;
 }
 
@@ -120,7 +120,7 @@ html, body {
 // ── Onboarding ────────────────────────────────────────────────
 .onboarding-wrapper {
   min-height: 100vh;
-  background: vars.$agendazap-slate-50;
+  background: vars.$kianna-slate-50;
   padding: 24px 16px;
 }
 
@@ -133,7 +133,7 @@ html, body {
   margin-inline: auto;
 
   .logo-icon { font-size: 26px; }
-  .logo-text  { font-size: 20px; font-weight: 700; color: vars.$agendazap-green-500; }
+  .logo-text  { font-size: 20px; font-weight: 700; color: vars.$kianna-green-500; }
 }
 
 .onboarding-stepper {
@@ -151,7 +151,7 @@ html, body {
   h2 { font-size: 20px; font-weight: 700; margin: 0; }
 }
 
-.step-desc { color: vars.$agendazap-slate-500; font-size: 14px; margin: 0; }
+.step-desc { color: vars.$kianna-slate-500; font-size: 14px; margin: 0; }
 
 .foto-upload {
   display: flex;
@@ -164,13 +164,13 @@ html, body {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background-color: vars.$agendazap-slate-100;
+  background-color: vars.$kianna-slate-100;
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  mat-icon { color: vars.$agendazap-slate-400; font-size: 32px; }
+  mat-icon { color: vars.$kianna-slate-400; font-size: 32px; }
 }
 
 .foto-btn {
@@ -179,12 +179,12 @@ html, body {
   gap: 6px;
   padding: 8px 16px;
   border-radius: 8px;
-  border: 1.5px dashed vars.$agendazap-slate-300;
-  color: vars.$agendazap-slate-600;
+  border: 1.5px dashed vars.$kianna-slate-300;
+  color: vars.$kianna-slate-600;
   cursor: pointer;
   font-size: 13px;
   transition: border-color .2s;
-  &:hover { border-color: vars.$agendazap-green-500; color: vars.$agendazap-green-500; }
+  &:hover { border-color: vars.$kianna-green-500; color: vars.$kianna-green-500; }
 }
 
 .servicos-list {
@@ -195,18 +195,18 @@ html, body {
 }
 
 .servico-chip {
-  background: vars.$agendazap-green-50;
-  border: 1px solid vars.$agendazap-green-200;
+  background: vars.$kianna-green-50;
+  border: 1px solid vars.$kianna-green-200;
   border-radius: 99px;
   padding: 4px 8px 4px 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  .s-nome { font-size: 13px; font-weight: 500; color: vars.$agendazap-slate-900; }
-  .s-meta { font-size: 12px; color: vars.$agendazap-slate-500; }
+  .s-nome { font-size: 13px; font-weight: 500; color: vars.$kianna-slate-900; }
+  .s-meta { font-size: 12px; color: vars.$kianna-slate-500; }
   .s-remove {
     background: transparent; border: none; cursor: pointer;
-    color: vars.$agendazap-slate-500; font-size: 18px;
+    color: vars.$kianna-slate-500; font-size: 18px;
     padding: 0 4px; line-height: 1;
     &:hover { color: vars.$status-cancelado; }
   }
@@ -228,17 +228,17 @@ html, body {
 .dia-btn {
   padding: 8px 16px;
   border-radius: 8px;
-  border: 1.5px solid vars.$agendazap-slate-200;
+  border: 1.5px solid vars.$kianna-slate-200;
   background: #fff;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all .2s;
-  color: vars.$agendazap-slate-700;
+  color: vars.$kianna-slate-700;
 
   &.ativo {
-    background: vars.$agendazap-green-500;
-    border-color: vars.$agendazap-green-500;
+    background: vars.$kianna-green-500;
+    border-color: vars.$kianna-green-500;
     color: #fff;
   }
 }

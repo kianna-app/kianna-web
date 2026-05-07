@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { APP } from '@core/constants/app.constants';
 
 @Component({
   selector: 'app-landing',
@@ -10,4 +11,6 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })
-export class LandingComponent {}
+export class LandingComponent {
+  readonly APP = APP;
+}

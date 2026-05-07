@@ -2,7 +2,7 @@
 
 .onboarding-wrapper {
   min-height: 100vh;
-  background: v.$agendazap-slate-50;
+  background: v.$kianna-slate-50;
   padding: 0 0 48px;
 }
 
@@ -12,11 +12,11 @@
   gap: 8px;
   padding: 20px 24px;
   background: #fff;
-  border-bottom: 1px solid v.$agendazap-slate-200;
+  border-bottom: 1px solid v.$kianna-slate-200;
   margin-bottom: 24px;
 
   .logo-icon { font-size: 22px; }
-  .logo-text  { font-size: 20px; font-weight: 700; color: v.$agendazap-green-500; }
+  .logo-text  { font-size: 20px; font-weight: 700; color: v.$kianna-green-500; }
 }
 
 .auth-error {
@@ -50,18 +50,18 @@
     }
 
     .mat-step-label-selected {
-      color: v.$agendazap-green-600 !important;
+      color: v.$kianna-green-600 !important;
       font-weight: 700 !important;
     }
 
     .mat-stepper-horizontal-line {
-      border-top-color: v.$agendazap-slate-200;
+      border-top-color: v.$kianna-slate-200;
     }
 
     .mat-step-icon-selected,
     .mat-step-icon-state-done,
     .mat-step-icon-state-edit {
-      background-color: v.$agendazap-green-500 !important;
+      background-color: v.$kianna-green-500 !important;
     }
 
     // Mobile: mostra labels abaixo do ícone
@@ -98,13 +98,13 @@
     font-size: 20px;
     font-weight: 700;
     margin: 0 0 4px;
-    color: v.$agendazap-slate-900;
+    color: v.$kianna-slate-900;
   }
 }
 
 .step-desc {
   font-size: 14px;
-  color: v.$agendazap-slate-500;
+  color: v.$kianna-slate-500;
   margin: 0 0 20px;
 }
 
@@ -129,7 +129,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: v.$agendazap-slate-100;
+  background: v.$kianna-slate-100;
   background-size: cover;
   background-position: center;
   display: flex;
@@ -137,7 +137,7 @@
   justify-content: center;
   flex-shrink: 0;
 
-  mat-icon { color: v.$agendazap-slate-400; font-size: 32px; }
+  mat-icon { color: v.$kianna-slate-400; font-size: 32px; }
 }
 
 .foto-btn {
@@ -145,15 +145,15 @@
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border: 1px solid v.$agendazap-green-500;
+  border: 1px solid v.$kianna-green-500;
   border-radius: 6px;
-  color: v.$agendazap-green-600;
+  color: v.$kianna-green-600;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: background .15s;
 
-  &:hover { background: v.$agendazap-green-50; }
+  &:hover { background: v.$kianna-green-50; }
   mat-icon { font-size: 18px; }
 }
 
@@ -168,16 +168,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: v.$agendazap-green-50;
-  border: 1px solid v.$agendazap-green-200;
+  background: v.$kianna-green-50;
+  border: 1px solid v.$kianna-green-200;
   border-radius: 8px;
   padding: 8px 12px;
 
-  .s-nome  { font-weight: 600; font-size: 14px; flex: 1; color: v.$agendazap-slate-800; }
-  .s-meta  { font-size: 12px; color: v.$agendazap-slate-500; }
+  .s-nome  { font-weight: 600; font-size: 14px; flex: 1; color: v.$kianna-slate-800; }
+  .s-meta  { font-size: 12px; color: v.$kianna-slate-500; }
   .s-remove {
     background: none; border: none; cursor: pointer;
-    color: v.$agendazap-slate-400; font-size: 18px; line-height: 1;
+    color: v.$kianna-slate-400; font-size: 18px; line-height: 1;
     padding: 0 4px;
     &:hover { color: #E11D48; }
   }
@@ -192,19 +192,19 @@
 
 .dia-btn {
   padding: 8px 16px;
-  border: 1.5px solid v.$agendazap-slate-200;
+  border: 1.5px solid v.$kianna-slate-200;
   border-radius: 8px;
   background: #fff;
-  color: v.$agendazap-slate-600;
+  color: v.$kianna-slate-600;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
   transition: all .15s;
 
-  &:hover { border-color: v.$agendazap-green-400; color: v.$agendazap-green-600; }
+  &:hover { border-color: v.$kianna-green-400; color: v.$kianna-green-600; }
   &.ativo {
-    background: v.$agendazap-green-500;
-    border-color: v.$agendazap-green-500;
+    background: v.$kianna-green-500;
+    border-color: v.$kianna-green-500;
     color: #fff;
   }
 }
@@ -224,5 +224,5 @@
   gap: 8px;
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid v.$agendazap-slate-100;
+  border-top: 1px solid v.$kianna-slate-100;
 }

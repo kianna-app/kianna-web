@@ -23,11 +23,11 @@
   &[data-status="concluido"]  .status-tag { background: #F1F5F9; color: #334155; }
 }
 
-h2 { font-size: 18px; margin: 0 0 4px; color: v.$agendazap-slate-900; }
+h2 { font-size: 18px; margin: 0 0 4px; color: v.$kianna-slate-900; }
 
 .data-hora {
   display: flex; align-items: center; gap: 6px;
-  color: v.$agendazap-slate-600; font-size: 14px; margin: 0 0 16px;
+  color: v.$kianna-slate-600; font-size: 14px; margin: 0 0 16px;
   text-transform: capitalize;
   mat-icon { font-size: 18px; width: 18px; height: 18px; }
 }
@@ -37,11 +37,11 @@ h2 { font-size: 18px; margin: 0 0 4px; color: v.$agendazap-slate-900; }
   align-items: flex-start;
   gap: 8px;
   padding: 10px 0;
-  border-top: 1px solid v.$agendazap-slate-100;
+  border-top: 1px solid v.$kianna-slate-100;
   font-size: 14px;
-  color: v.$agendazap-slate-700;
+  color: v.$kianna-slate-700;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; color: v.$agendazap-slate-500; flex-shrink: 0; margin-top: 2px; }
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: v.$kianna-slate-500; flex-shrink: 0; margin-top: 2px; }
 }
 
 .info-col {
@@ -55,7 +55,7 @@ h2 { font-size: 18px; margin: 0 0 4px; color: v.$agendazap-slate-900; }
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: .05em;
-  color: v.$agendazap-slate-400;
+  color: v.$kianna-slate-400;
   font-weight: 600;
 }
 
@@ -65,7 +65,7 @@ h2 { font-size: 18px; margin: 0 0 4px; color: v.$agendazap-slate-900; }
   gap: 8px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid v.$agendazap-slate-100;
+  border-top: 1px solid v.$kianna-slate-100;
 
   button { width: 100%; justify-content: center; }
 }
