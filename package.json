@@ -1,6 +1,7 @@
 {
-  "name": "agendazap-web",
-  "version": "0.0.0",
+  "name": "kianna-web",
+  "version": "0.1.0",
+  "description": "Kianna — sua secretária digital de agendamentos via WhatsApp",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -8,7 +9,7 @@
     "build:vercel": "node scripts/set-env.js && ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:agendazap-web": "node dist/agendazap-web/server/server.mjs"
+    "serve:ssr:kianna-web": "node dist/kianna-web/server/server.mjs"
   },
   "private": true,
   "packageManager": "npm@11.6.2",
