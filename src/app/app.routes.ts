@@ -7,7 +7,7 @@ export const routes: Routes = [
     canActivate: [publicGuard],
     loadComponent: () =>
       import('./features/landing/landing.component').then(m => m.LandingComponent),
-    title: 'AgendaZap — Agendamentos pelo WhatsApp',
+    title: 'Kianna — Agendamentos pelo WhatsApp',
   },
   {
     path: 'auth',
@@ -22,7 +22,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/onboarding/onboarding.component')
         .then(m => m.OnboardingComponent),
-    title: 'Configurar perfil — AgendaZap',
+    title: 'Configurar perfil — Kianna',
   },
   {
     path: 'dashboard',

@@ -6,6 +6,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '@core/auth/auth.service';
 import { currentUser } from '@core/signals/app.signals';
 import { MENU_ITEMS } from '../menu.config';
+import { APP } from '@core/constants/app.constants';
 
 @Component({
   selector: 'app-sidenav',
@@ -15,6 +16,7 @@ import { MENU_ITEMS } from '../menu.config';
   styleUrl: './sidenav.component.scss',
 })
 export class SidenavComponent {
+  readonly APP = APP;
   private auth = inject(AuthService);
   readonly menu = MENU_ITEMS;
   readonly user = currentUser;

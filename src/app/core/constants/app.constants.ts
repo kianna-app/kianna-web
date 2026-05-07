@@ -1,7 +1,9 @@
 export const APP = {
-  NOME: 'AgendaZap',
-  DOMINIO: 'agendazap.tech',
-  URL_BASE: 'https://agendazap.tech',
+  NOME: 'Kianna',
+  DOMINIO: 'kianna.com.br',
+  URL_BASE: 'https://kianna.com.br',
+  EMOJI: '✨',
+  TAGLINE: 'Sua secretária digital de agendamentos',
 } as const;
 
 export const BREAKPOINTS = {

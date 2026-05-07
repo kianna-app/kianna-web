@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "agendazap-web": {
+    "kianna-web": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -68,10 +68,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "agendazap-web:build:production"
+              "buildTarget": "kianna-web:build:production"
             },
             "development": {
-              "buildTarget": "agendazap-web:build:development"
+              "buildTarget": "kianna-web:build:development"
             }
           },
           "defaultConfiguration": "development"

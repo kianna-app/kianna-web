@@ -3,8 +3,8 @@
   <!-- HEADER -->
   <header class="landing-header">
     <div class="header-logo">
-      <span class="logo-icon">📅</span>
-      <span class="logo-text">AgendaZap</span>
+      <span class="logo-icon">{{ APP.EMOJI }}</span>
+      <span class="logo-text">{{ APP.NOME }}</span>
     </div>
     <a routerLink="/auth/login" mat-raised-button color="primary" class="btn-painel">
       Acessar Painel
@@ -18,7 +18,7 @@
         <mat-icon>auto_awesome</mat-icon> Simples, rápido e gratuito
       </span>
       <h1>Receba agendamentos pelo WhatsApp, sem complicação</h1>
-      <p>O AgendaZap organiza seus horários, reduz faltas e deixa seus clientes agendarem a qualquer hora — mesmo enquanto você trabalha.</p>
+      <p>A {{ APP.NOME }} organiza seus horários, reduz faltas e deixa seus clientes agendarem a qualquer hora — mesmo enquanto você trabalha.</p>
       <div class="hero-actions">
         <a routerLink="/auth/cadastro" mat-raised-button color="primary" class="btn-cta">
           <mat-icon>rocket_launch</mat-icon> Criar conta grátis
@@ -146,7 +146,7 @@
 
   <!-- FOOTER -->
   <footer class="landing-footer">
-    <span>© 2025 AgendaZap · Todos os direitos reservados</span>
+    <span>© 2025 {{ APP.NOME }} · Todos os direitos reservados</span>
     <div class="footer-links">
       <a routerLink="/auth/login">Entrar</a>
       <a routerLink="/auth/cadastro">Cadastrar</a>

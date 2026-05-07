@@ -12,7 +12,7 @@
   align-items: center;
   gap: 12px;
 
-  h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$agendazap-slate-900; }
+  h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$kianna-slate-900; }
 }
 
 .calendar {
@@ -24,22 +24,22 @@
   ::ng-deep {
     .fc-toolbar-title { font-size: 16px !important; font-weight: 600; }
     .fc-button-primary {
-      background: v.$agendazap-slate-100 !important;
-      border-color: v.$agendazap-slate-200 !important;
-      color: v.$agendazap-slate-700 !important;
+      background: v.$kianna-slate-100 !important;
+      border-color: v.$kianna-slate-200 !important;
+      color: v.$kianna-slate-700 !important;
       text-transform: capitalize;
       font-weight: 500 !important;
 
-      &:hover { background: v.$agendazap-slate-200 !important; }
+      &:hover { background: v.$kianna-slate-200 !important; }
       &.fc-button-active {
-        background: v.$agendazap-green-500 !important;
-        border-color: v.$agendazap-green-500 !important;
+        background: v.$kianna-green-500 !important;
+        border-color: v.$kianna-green-500 !important;
         color: #fff !important;
       }
     }
     .fc-event { cursor: pointer; border-radius: 4px; padding: 2px 4px; }
-    .fc-timegrid-now-indicator-line { border-color: v.$agendazap-green-500 !important; }
-    .fc-col-header-cell-cushion { font-weight: 600; color: v.$agendazap-slate-700; text-decoration: none; }
+    .fc-timegrid-now-indicator-line { border-color: v.$kianna-green-500 !important; }
+    .fc-col-header-cell-cushion { font-weight: 600; color: v.$kianna-slate-700; text-decoration: none; }
   }
 
   @media (max-width: 600px) {

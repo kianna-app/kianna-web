@@ -9,7 +9,7 @@
   justify-content: space-between;
   padding: 16px 48px;
   background: #fff;
-  border-bottom: 1px solid v.$agendazap-slate-100;
+  border-bottom: 1px solid v.$kianna-slate-100;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -22,7 +22,7 @@
   align-items: center;
   gap: 8px;
   .logo-icon { font-size: 24px; }
-  .logo-text  { font-size: 20px; font-weight: 800; color: v.$agendazap-green-500; }
+  .logo-text  { font-size: 20px; font-weight: 800; color: v.$kianna-green-500; }
 }
 
 .btn-painel { font-weight: 600 !important; }
@@ -50,7 +50,7 @@
     font-size: 42px;
     font-weight: 800;
     line-height: 1.15;
-    color: v.$agendazap-slate-900;
+    color: v.$kianna-slate-900;
     margin: 0;
 
     @media (max-width: 600px) { font-size: 28px; }
@@ -58,7 +58,7 @@
 
   p {
     font-size: 17px;
-    color: v.$agendazap-slate-600;
+    color: v.$kianna-slate-600;
     line-height: 1.6;
     margin: 0;
   }
@@ -68,9 +68,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: v.$agendazap-green-50;
-  border: 1px solid v.$agendazap-green-200;
-  color: v.$agendazap-green-700;
+  background: v.$kianna-green-50;
+  border: 1px solid v.$kianna-green-200;
+  color: v.$kianna-green-700;
   border-radius: 99px;
   padding: 6px 14px;
   font-size: 13px;
@@ -88,14 +88,14 @@
 }
 
 .btn-cta { font-weight: 700 !important; padding: 10px 24px !important; font-size: 15px !important; }
-.btn-login { font-weight: 500; color: v.$agendazap-slate-600 !important; }
+.btn-login { font-weight: 500; color: v.$kianna-slate-600 !important; }
 
 // ── PHONE MOCKUP ─────────────────────────────────────────────
 .hero-visual { display: flex; justify-content: center; }
 
 .phone-mockup {
   width: 300px;
-  background: v.$agendazap-slate-900;
+  background: v.$kianna-slate-900;
   border-radius: 32px;
   padding: 12px;
   box-shadow: 0 24px 64px rgba(0,0,0,.18);
@@ -114,7 +114,7 @@
   align-items: center;
   gap: 8px;
   padding: 14px 16px 10px;
-  background: v.$agendazap-green-500;
+  background: v.$kianna-green-500;
   color: #fff;
   font-weight: 700;
   font-size: 14px;
@@ -126,24 +126,24 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  border-bottom: 1px solid v.$agendazap-slate-100;
+  border-bottom: 1px solid v.$kianna-slate-100;
   font-size: 12px;
 
   &:last-child { border-bottom: none; }
 
-  &.confirmado .mock-status { color: v.$agendazap-green-600; background: v.$agendazap-green-50; }
+  &.confirmado .mock-status { color: v.$kianna-green-600; background: v.$kianna-green-50; }
   &.pendente   .mock-status { color: #92400e; background: #fef3c7; }
 }
 
 .mock-hora {
   font-weight: 700;
   font-size: 13px;
-  color: v.$agendazap-slate-700;
+  color: v.$kianna-slate-700;
   min-width: 40px;
 }
 
-.mock-nome  { display: block; font-weight: 600; color: v.$agendazap-slate-800; }
-.mock-servico { display: block; font-size: 11px; color: v.$agendazap-slate-500; }
+.mock-nome  { display: block; font-weight: 600; color: v.$kianna-slate-800; }
+.mock-servico { display: block; font-size: 11px; color: v.$kianna-slate-500; }
 
 .mock-status {
   margin-left: auto;
@@ -158,7 +158,7 @@
 
 // ── SECTIONS ─────────────────────────────────────────────────
 .como-funciona {
-  background: v.$agendazap-slate-50;
+  background: v.$kianna-slate-50;
   padding: 72px 0;
 }
 
@@ -179,7 +179,7 @@
     font-size: 32px;
     font-weight: 800;
     margin: 0 0 8px;
-    color: v.$agendazap-slate-900;
+    color: v.$kianna-slate-900;
 
     @media (max-width: 600px) { font-size: 24px; }
   }
@@ -187,7 +187,7 @@
 
 .section-sub {
   font-size: 16px;
-  color: v.$agendazap-slate-500;
+  color: v.$kianna-slate-500;
   margin: 0 0 48px;
 }
 
@@ -208,15 +208,15 @@
   max-width: 220px;
   text-align: center;
 
-  h3 { font-size: 16px; font-weight: 700; margin: 0; color: v.$agendazap-slate-800; }
-  p  { font-size: 14px; color: v.$agendazap-slate-500; margin: 0; line-height: 1.5; }
+  h3 { font-size: 16px; font-weight: 700; margin: 0; color: v.$kianna-slate-800; }
+  p  { font-size: 14px; color: v.$kianna-slate-500; margin: 0; line-height: 1.5; }
 }
 
 .step-num {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: v.$agendazap-green-500;
+  background: v.$kianna-green-500;
   color: #fff;
   font-weight: 800;
   font-size: 16px;
@@ -229,11 +229,11 @@
   font-size: 36px;
   width: 36px;
   height: 36px;
-  color: v.$agendazap-green-500;
+  color: v.$kianna-green-500;
 }
 
 .step-arrow {
-  color: v.$agendazap-slate-300;
+  color: v.$kianna-slate-300;
   padding-top: 48px;
   mat-icon { font-size: 28px; }
 
@@ -253,22 +253,22 @@
 }
 
 .feature-card {
-  background: v.$agendazap-slate-50;
-  border: 1px solid v.$agendazap-slate-200;
+  background: v.$kianna-slate-50;
+  border: 1px solid v.$kianna-slate-200;
   border-radius: 12px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 
-  mat-icon { font-size: 28px; color: v.$agendazap-green-500; }
-  h3 { font-size: 15px; font-weight: 700; margin: 0; color: v.$agendazap-slate-800; }
-  p  { font-size: 13px; color: v.$agendazap-slate-500; margin: 0; line-height: 1.5; }
+  mat-icon { font-size: 28px; color: v.$kianna-green-500; }
+  h3 { font-size: 15px; font-weight: 700; margin: 0; color: v.$kianna-slate-800; }
+  p  { font-size: 13px; color: v.$kianna-slate-500; margin: 0; line-height: 1.5; }
 }
 
 // ── CTA FINAL ────────────────────────────────────────────────
 .cta-final {
-  background: linear-gradient(135deg, v.$agendazap-green-600, v.$agendazap-green-400);
+  background: linear-gradient(135deg, v.$kianna-green-600, v.$kianna-green-400);
   padding: 72px 0;
   color: #fff;
 
@@ -278,7 +278,7 @@
 
 .btn-cta-final {
   background: #fff !important;
-  color: v.$agendazap-green-600 !important;
+  color: v.$kianna-green-600 !important;
   font-weight: 700 !important;
   font-size: 15px !important;
   padding: 12px 28px !important;
@@ -286,8 +286,8 @@
 
 // ── FOOTER ───────────────────────────────────────────────────
 .landing-footer {
-  background: v.$agendazap-slate-900;
-  color: v.$agendazap-slate-400;
+  background: v.$kianna-slate-900;
+  color: v.$kianna-slate-400;
   padding: 24px 48px;
   display: flex;
   align-items: center;
@@ -303,7 +303,7 @@
   display: flex;
   gap: 16px;
   a {
-    color: v.$agendazap-slate-400;
+    color: v.$kianna-slate-400;
     text-decoration: none;
     &:hover { color: #fff; }
   }

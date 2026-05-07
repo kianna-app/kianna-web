@@ -2,8 +2,8 @@
 
 .page-header {
   margin-bottom: 24px;
-  h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$agendazap-slate-900; }
-  .page-sub { font-size: 13px; color: v.$agendazap-slate-500; margin: 4px 0 0; }
+  h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$kianna-slate-900; }
+  .page-sub { font-size: 13px; color: v.$kianna-slate-500; margin: 4px 0 0; }
 }
 
 .preview-card {
@@ -22,8 +22,8 @@
   align-items: center;
   text-align: center;
 
-  .pv-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: v.$agendazap-slate-500; }
-  .pv-value { font-size: 22px; font-weight: 700; color: v.$agendazap-green-700; margin-top: 4px; }
+  .pv-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: v.$kianna-slate-500; }
+  .pv-value { font-size: 22px; font-weight: 700; color: v.$kianna-green-700; margin-top: 4px; }
 }
 
 .dias-list { display: flex; flex-direction: column; gap: 8px; }
@@ -47,7 +47,7 @@
   gap: 12px;
   min-width: 160px;
 
-  .dia-label { font-weight: 600; color: v.$agendazap-slate-800; }
+  .dia-label { font-weight: 600; color: v.$kianna-slate-800; }
 }
 
 .dia-campos {

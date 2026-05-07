@@ -2,7 +2,7 @@
 
 .sidenav {
   width: 240px;
-  background: v.$agendazap-slate-900;
+  background: v.$kianna-slate-900;
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -19,7 +19,7 @@
   border-bottom: 1px solid rgba(255,255,255,.08);
 
   .logo-icon { font-size: 22px; }
-  .logo-text { font-size: 18px; font-weight: 700; color: v.$agendazap-green-400; }
+  .logo-text { font-size: 18px; font-weight: 700; color: v.$kianna-green-400; }
 }
 
 .sidenav-menu {
@@ -37,7 +37,7 @@
   gap: 12px;
   padding: 10px 12px;
   border-radius: 8px;
-  color: v.$agendazap-slate-300;
+  color: v.$kianna-slate-300;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -48,7 +48,7 @@
   &:hover { background: rgba(255,255,255,.06); color: #fff; }
 
   &.ativo {
-    background: v.$agendazap-green-500;
+    background: v.$kianna-green-500;
     color: #fff;
   }
 
@@ -82,20 +82,20 @@
   flex-shrink: 0;
 
   &.fallback {
-    background: v.$agendazap-slate-700;
+    background: v.$kianna-slate-700;
     display: flex; align-items: center; justify-content: center;
-    mat-icon { font-size: 20px; color: v.$agendazap-slate-400; }
+    mat-icon { font-size: 20px; color: v.$kianna-slate-400; }
   }
 }
 
 .user-info { min-width: 0; }
 .user-nome  { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-plano { font-size: 11px; color: v.$agendazap-slate-400; text-transform: capitalize; }
+.user-plano { font-size: 11px; color: v.$kianna-slate-400; text-transform: capitalize; }
 
 .logout-btn {
   background: transparent;
   border: none;
-  color: v.$agendazap-slate-400;
+  color: v.$kianna-slate-400;
   cursor: pointer;
   padding: 8px;
   border-radius: 6px;

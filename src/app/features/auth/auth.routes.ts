@@ -10,12 +10,12 @@ export const authRoutes: Routes = [
     path: 'login',
     loadComponent: () =>
       import('./login/login.component').then(m => m.LoginComponent),
-    title: 'Entrar — AgendaZap',
+    title: 'Entrar — Kianna',
   },
   {
     path: 'cadastro',
     loadComponent: () =>
       import('./cadastro/cadastro.component').then(m => m.CadastroComponent),
-    title: 'Criar conta — AgendaZap',
+    title: 'Criar conta — Kianna',
   },
 ];
