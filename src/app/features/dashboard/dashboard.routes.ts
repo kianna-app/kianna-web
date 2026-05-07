@@ -11,25 +11,25 @@ export const dashboardRoutes: Routes = [
         path: 'perfil',
         loadComponent: () =>
           import('./pages/perfil/perfil.component').then(m => m.PerfilComponent),
-        title: 'Meu Perfil — AgendaZap',
+        title: 'Meu Perfil — Kianna',
       },
       {
         path: 'agenda',
         loadComponent: () =>
           import('./pages/agenda/agenda.component').then(m => m.AgendaComponent),
-        title: 'Agenda — AgendaZap',
+        title: 'Agenda — Kianna',
       },
       {
         path: 'servicos',
         loadComponent: () =>
           import('./pages/servicos/servicos.component').then(m => m.ServicosComponent),
-        title: 'Serviços — AgendaZap',
+        title: 'Serviços — Kianna',
       },
       {
         path: 'horarios',
         loadComponent: () =>
           import('./pages/horarios/horarios.component').then(m => m.HorariosComponent),
-        title: 'Horários — AgendaZap',
+        title: 'Horários — Kianna',
       },
       {
         path: 'clientes',
