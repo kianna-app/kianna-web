@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build:vercel",
-  "outputDirectory": "dist/agendazap-web/browser",
+  "outputDirectory": "dist/kianna-web/browser",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
