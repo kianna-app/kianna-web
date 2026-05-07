@@ -1,0 +1,34 @@
+<header class="header-pub">
+  <div class="header-inner">
+    <a routerLink="/" class="logo">
+      <span class="logo-emoji">{{ APP.EMOJI }}</span>
+      <span class="logo-text">{{ APP.NOME }}</span>
+    </a>
+
+    <nav class="nav-desktop">
+      @for (s of secoes; track s.id) {
+        <button class="nav-link" (click)="scrollPara(s.id)">{{ s.label }}</button>
+      }
+    </nav>
+
+    <div class="cta-group">
+      <a routerLink="/auth/login" class="btn-entrar">Entrar</a>
+      <a routerLink="/auth/cadastro" mat-flat-button color="primary" class="btn-cadastrar">
+        Criar conta grátis
+      </a>
+      <button class="btn-menu" (click)="menuAberto.set(!menuAberto())" aria-label="Menu">
+        <mat-icon>{{ menuAberto() ? 'close' : 'menu' }}</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  @if (menuAberto()) {
+    <div class="nav-mobile">
+      @for (s of secoes; track s.id) {
+        <button class="nav-link-mobile" (click)="scrollPara(s.id)">{{ s.label }}</button>
+      }
+      <a routerLink="/auth/login" class="nav-link-mobile">Entrar</a>
+      <a routerLink="/auth/cadastro" class="nav-link-mobile nav-link-cta">Criar conta grátis</a>
+    </div>
+  }
+</header>

@@ -1,0 +1,203 @@
+@use 'styles/variables' as v;
+
+.hero {
+  background: linear-gradient(180deg, #fff 0%, v.$kianna-green-50 100%);
+  padding: 64px 24px 80px;
+
+  @media (max-width: 600px) { padding: 32px 16px 48px; }
+}
+
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 48px;
+  align-items: center;
+
+  @media (max-width: 880px) {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+.hero-content { display: flex; flex-direction: column; gap: 20px; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  background: v.$kianna-green-100;
+  color: v.$kianna-green-800;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hero-title {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  color: v.$kianna-slate-900;
+  margin: 0;
+
+  .grifo { color: v.$kianna-green-600; }
+
+  @media (max-width: 880px) { font-size: 36px; }
+  @media (max-width: 600px) { font-size: 30px; }
+}
+
+.hero-sub {
+  font-size: 17px;
+  color: v.$kianna-slate-600;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 540px;
+}
+
+.hero-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+
+.cta-principal {
+  height: 52px !important;
+  padding: 0 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.cta-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: v.$kianna-slate-500;
+
+  .check-icon {
+    color: v.$kianna-green-500;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.hero-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+
+  .estrelas { display: flex; gap: 2px; }
+  .estrela { color: #FBBF24; font-size: 18px; width: 18px; height: 18px; }
+  .rating-text { font-size: 13px; color: v.$kianna-slate-500; }
+}
+
+// ── Mockup ─────────────────────────────────────────────────
+.hero-mockup {
+  display: flex;
+  justify-content: center;
+}
+
+.mockup-frame {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow:
+    0 20px 60px -20px rgba(15, 23, 42, .25),
+    0 8px 24px -8px rgba(29, 158, 117, .15);
+  width: 100%;
+  max-width: 380px;
+  overflow: hidden;
+}
+
+.mockup-header {
+  background: v.$kianna-slate-100;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .mockup-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: v.$kianna-slate-300;
+    &:nth-child(1) { background: #EF4444; }
+    &:nth-child(2) { background: #F59E0B; }
+    &:nth-child(3) { background: #10B981; }
+  }
+
+  .mockup-url {
+    margin-left: 12px;
+    font-size: 12px;
+    color: v.$kianna-slate-500;
+    font-family: monospace;
+  }
+}
+
+.mockup-body { padding: 20px; }
+
+.mock-perfil {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mock-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, v.$kianna-green-400, v.$kianna-green-600);
+  color: #fff;
+  font-weight: 700;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mock-nome { font-weight: 600; color: v.$kianna-slate-900; }
+.mock-tag  { font-size: 12px; color: v.$kianna-slate-500; }
+
+.mock-servicos { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+.mock-servico {
+  padding: 12px;
+  border: 1px solid v.$kianna-slate-200;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+
+  .m-titulo { font-weight: 500; color: v.$kianna-slate-800; }
+  .m-meta { color: v.$kianna-slate-500; font-size: 12px; }
+
+  &.ativo {
+    border-color: v.$kianna-green-500;
+    background: v.$kianna-green-50;
+    .m-titulo { color: v.$kianna-green-800; font-weight: 600; }
+  }
+}
+
+.mock-cta {
+  width: 100%;
+  background: v.$kianna-green-500;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}

@@ -1,0 +1,17 @@
+<section class="nichos-section">
+  <div class="nichos-inner">
+    <div class="section-header">
+      <h2 class="section-titulo">Pra qualquer profissional que atende com hora marcada</h2>
+    </div>
+
+    <div class="nichos-grid">
+      @for (n of nichos; track n.id) {
+        <div class="nicho-card">
+          <span class="nicho-emoji">{{ n.emoji }}</span>
+          <h3 class="nicho-titulo">{{ n.titulo }}</h3>
+          <p class="nicho-desc">{{ n.descricao }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

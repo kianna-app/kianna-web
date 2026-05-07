@@ -1,0 +1,18 @@
+<section class="faq-section">
+  <div class="faq-inner">
+    <div class="section-header">
+      <h2 class="section-titulo">Ainda tem dúvidas?</h2>
+    </div>
+
+    <mat-accordion class="faq-accordion">
+      @for (item of faq; track item.pergunta) {
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>{{ item.pergunta }}</mat-panel-title>
+          </mat-expansion-panel-header>
+          <p class="faq-resposta">{{ item.resposta }}</p>
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  </div>
+</section>

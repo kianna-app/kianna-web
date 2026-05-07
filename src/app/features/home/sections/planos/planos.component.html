@@ -1,0 +1,62 @@
+<section class="planos-section">
+  <div class="planos-inner">
+    <div class="section-header">
+      <h2 class="section-titulo">Escolha o plano que cabe no seu momento</h2>
+      <p class="section-sub">Sem fidelidade. Sem taxa escondida. Cancele quando quiser.</p>
+
+      <div class="toggle-wrapper">
+        <span [class.ativo]="mensal()">Mensal</span>
+        <button class="toggle" (click)="mensal.set(!mensal())" [class.anual]="!mensal()">
+          <span class="toggle-knob"></span>
+        </button>
+        <span [class.ativo]="!mensal()">
+          Anual
+          @if (!mensal()) {
+            <span class="selo-desconto">-20%</span>
+          }
+        </span>
+      </div>
+    </div>
+
+    <div class="planos-grid">
+      @for (p of planos; track p.id) {
+        <div class="plano-card" [class.destaque]="p.destaque">
+          @if (p.selo) {
+            <div class="plano-selo">{{ p.selo }}</div>
+          }
+          <div class="plano-header">
+            <h3 class="plano-nome">{{ p.nome }}</h3>
+            <p class="plano-desc">{{ p.descricao }}</p>
+          </div>
+
+          <div class="plano-preco">
+            @if (p.precoMensal === 0) {
+              <span class="preco-valor">Grátis</span>
+            } @else {
+              <span class="preco-prefixo">R$</span>
+              <span class="preco-valor">{{ preco(p) | number:'1.2-2' }}</span>
+              <span class="preco-periodo">/mês</span>
+            }
+          </div>
+          @if (!mensal() && p.precoAnual > 0) {
+            <p class="preco-nota">cobrado anualmente</p>
+          }
+
+          <a routerLink="/auth/cadastro" mat-flat-button [color]="p.destaque ? 'primary' : undefined"
+             class="plano-cta" [class.plano-cta-outline]="!p.destaque">
+            {{ p.ctaTexto }}
+          </a>
+
+          <ul class="plano-features">
+            @for (f of p.features; track f) {
+              <li>
+                <mat-icon class="check-icon">check</mat-icon>
+                {{ f }}
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </div>
+</section>

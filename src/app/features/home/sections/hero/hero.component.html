@@ -1,0 +1,75 @@
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <span class="badge">⚡ A partir de R$ 39,90/mês</span>
+
+      <h1 class="hero-title">
+        Sua agenda <span class="grifo">cheia</span>,<br>
+        sem você responder<br>
+        <span class="grifo">um único WhatsApp</span>.
+      </h1>
+
+      <p class="hero-sub">
+        Sua secretária digital recebe agendamentos 24h por dia, confirma sozinha
+        e lembra seu cliente — direto pelo WhatsApp. Tudo pronto em 2 minutos.
+      </p>
+
+      <div class="hero-cta">
+        <a routerLink="/auth/cadastro" mat-flat-button color="primary" class="cta-principal">
+          Criar minha agenda grátis
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+        <span class="cta-sub">
+          <mat-icon class="check-icon">check_circle</mat-icon>
+          Sem cartão de crédito · Pronto em 2 minutos
+        </span>
+      </div>
+
+      <div class="hero-rating">
+        <div class="estrelas">
+          @for (i of [1,2,3,4,5]; track i) {
+            <mat-icon class="estrela">star</mat-icon>
+          }
+        </div>
+        <span class="rating-text">5,0 — Avaliação dos primeiros usuários</span>
+      </div>
+    </div>
+
+    <div class="hero-mockup">
+      <div class="mockup-frame">
+        <div class="mockup-header">
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <span class="mockup-url">kianna.com.br/maria</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mock-perfil">
+            <div class="mock-avatar">M</div>
+            <div>
+              <div class="mock-nome">Maria Cabeleireira</div>
+              <div class="mock-tag">Salão de beleza · Maringá</div>
+            </div>
+          </div>
+
+          <div class="mock-servicos">
+            <div class="mock-servico">
+              <span class="m-titulo">Corte feminino</span>
+              <span class="m-meta">45 min · R$ 80</span>
+            </div>
+            <div class="mock-servico ativo">
+              <span class="m-titulo">Escova progressiva</span>
+              <span class="m-meta">2h · R$ 250</span>
+            </div>
+            <div class="mock-servico">
+              <span class="m-titulo">Coloração</span>
+              <span class="m-meta">1h30 · R$ 180</span>
+            </div>
+          </div>
+
+          <button class="mock-cta">Ver horários disponíveis</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

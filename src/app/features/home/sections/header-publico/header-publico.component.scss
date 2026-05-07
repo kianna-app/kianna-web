@@ -1,0 +1,125 @@
+@use 'styles/variables' as v;
+
+.header-pub {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid v.$kianna-slate-100;
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  @media (max-width: 600px) { padding: 10px 16px; }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: v.$kianna-slate-900;
+  font-weight: 700;
+  font-size: 20px;
+
+  .logo-emoji { font-size: 22px; }
+  .logo-text { color: v.$kianna-green-600; }
+}
+
+.nav-desktop {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+
+  @media (max-width: 880px) { display: none; }
+}
+
+.nav-link {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: v.$kianna-slate-700;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background .15s, color .15s;
+
+  &:hover { background: v.$kianna-slate-100; color: v.$kianna-green-600; }
+}
+
+.cta-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-entrar {
+  font-size: 14px;
+  font-weight: 500;
+  color: v.$kianna-slate-700;
+  text-decoration: none;
+  padding: 8px 12px;
+
+  @media (max-width: 600px) { display: none; }
+}
+
+.btn-cadastrar {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+
+  @media (max-width: 600px) { display: none !important; }
+}
+
+.btn-menu {
+  display: none;
+  background: transparent;
+  border: 1px solid v.$kianna-slate-200;
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  @media (max-width: 880px) { display: flex; }
+}
+
+.nav-mobile {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid v.$kianna-slate-100;
+  padding: 8px 16px 16px;
+  background: #fff;
+
+  @media (min-width: 881px) { display: none; }
+}
+
+.nav-link-mobile {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 12px 8px;
+  font-size: 15px;
+  color: v.$kianna-slate-700;
+  text-decoration: none;
+  cursor: pointer;
+  border-bottom: 1px solid v.$kianna-slate-100;
+
+  &:last-child { border-bottom: none; }
+}
+
+.nav-link-cta {
+  color: v.$kianna-green-600;
+  font-weight: 600;
+}

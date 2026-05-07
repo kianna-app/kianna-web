@@ -1,0 +1,22 @@
+<section class="cf-section">
+  <div class="cf-inner">
+    <div class="section-header">
+      <h2 class="section-titulo">Sua nova rotina em 3 passos simples</h2>
+    </div>
+
+    <div class="passos-list">
+      @for (p of passos; track p.numero) {
+        <div class="passo-card">
+          <div class="passo-numero">{{ p.numero }}</div>
+          <div class="passo-content">
+            <h3 class="passo-titulo">{{ p.titulo }}</h3>
+            <p class="passo-desc">{{ p.descricao }}</p>
+          </div>
+        </div>
+        @if (!$last) {
+          <div class="passo-conector"></div>
+        }
+      }
+    </div>
+  </div>
+</section>

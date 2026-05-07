@@ -1,0 +1,59 @@
+@use 'styles/variables' as v;
+
+.faq-section {
+  background: v.$kianna-slate-50;
+  padding: 80px 24px;
+
+  @media (max-width: 600px) { padding: 48px 16px; }
+}
+
+.faq-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.section-titulo {
+  font-size: 36px;
+  font-weight: 800;
+  color: v.$kianna-slate-900;
+  margin: 0;
+
+  @media (max-width: 600px) { font-size: 26px; }
+}
+
+.faq-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  ::ng-deep {
+    .mat-expansion-panel {
+      border-radius: 12px !important;
+      box-shadow: none !important;
+      border: 1px solid v.$kianna-slate-200;
+    }
+
+    .mat-expansion-panel-header {
+      font-size: 15px;
+      font-weight: 600;
+      color: v.$kianna-slate-800;
+      padding: 16px 20px;
+    }
+
+    .mat-expansion-panel-body {
+      padding: 0 20px 16px;
+    }
+  }
+}
+
+.faq-resposta {
+  font-size: 14px;
+  color: v.$kianna-slate-600;
+  line-height: 1.6;
+  margin: 0;
+}

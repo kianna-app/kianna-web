@@ -1,0 +1,29 @@
+<section class="dep-section">
+  <div class="dep-inner">
+    <div class="section-header">
+      <h2 class="section-titulo">Quem testa, não volta pra agenda de papel</h2>
+    </div>
+
+    <div class="dep-grid">
+      @for (d of depoimentos; track d.nome) {
+        <div class="dep-card">
+          <div class="estrelas">
+            @for (i of [1,2,3,4,5]; track i) {
+              <mat-icon class="estrela">star</mat-icon>
+            }
+          </div>
+          <p class="dep-texto">"{{ d.texto }}"</p>
+          <div class="dep-autor">
+            <div class="dep-avatar">{{ iniciais(d.nome) }}</div>
+            <div>
+              <div class="dep-nome">{{ d.nome }}</div>
+              <div class="dep-meta">{{ d.cargo }} · {{ d.cidade }}</div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <p class="dep-aviso">* Depoimentos representativos baseados em pesquisa de mercado com profissionais autônomos de beleza.</p>
+  </div>
+</section>

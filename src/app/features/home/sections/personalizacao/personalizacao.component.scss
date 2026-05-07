@@ -1,0 +1,112 @@
+@use 'styles/variables' as v;
+
+.pers-section {
+  background: #fff;
+  padding: 80px 24px;
+
+  @media (max-width: 600px) { padding: 48px 16px; }
+}
+
+.pers-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 64px;
+  align-items: center;
+
+  @media (max-width: 880px) {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+.pers-titulo {
+  font-size: 36px;
+  font-weight: 800;
+  color: v.$kianna-slate-900;
+  margin: 0 0 16px;
+
+  @media (max-width: 600px) { font-size: 26px; }
+}
+
+.pers-desc {
+  font-size: 16px;
+  color: v.$kianna-slate-600;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+.pers-cta {
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+}
+
+// ── Mockups ────────────────────────────────────────────────
+.pers-mockups {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.mockup-mini {
+  min-width: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid v.$kianna-slate-200;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+}
+
+.mini-header {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .3);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mini-nome { font-size: 12px; font-weight: 700; color: #fff; }
+.mini-cargo { font-size: 10px; color: rgba(255, 255, 255, .8); }
+
+.mini-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mini-servico {
+  font-size: 10px;
+  padding: 6px 8px;
+  border: 1.5px solid;
+  border-radius: 6px;
+  color: v.$kianna-slate-700;
+  font-weight: 500;
+}
+
+.mini-btn {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+}

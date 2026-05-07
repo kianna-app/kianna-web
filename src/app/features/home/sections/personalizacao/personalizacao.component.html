@@ -1,0 +1,33 @@
+<section class="pers-section">
+  <div class="pers-inner">
+    <div class="pers-content">
+      <h2 class="pers-titulo">Sua página, sua marca</h2>
+      <p class="pers-desc">
+        Cada profissional tem uma identidade única. Com a Kianna, você escolhe as cores,
+        a foto, a bio e os serviços que aparecem na sua página. Seus clientes veem uma
+        página profissional com a sua cara — não um formulário genérico.
+      </p>
+      <a routerLink="/auth/cadastro" mat-flat-button color="primary" class="pers-cta">
+        Criar minha página grátis
+      </a>
+    </div>
+
+    <div class="pers-mockups">
+      @for (t of temas; track t.cor) {
+        <div class="mockup-mini" [style.background]="t.fundo">
+          <div class="mini-header" [style.background]="t.cor">
+            <div class="mini-avatar">M</div>
+            <div class="mini-info">
+              <div class="mini-nome">Maria</div>
+              <div class="mini-cargo">Cabeleireira</div>
+            </div>
+          </div>
+          <div class="mini-body">
+            <div class="mini-servico" [style.border-color]="t.cor">Corte · R$ 80</div>
+            <div class="mini-btn" [style.background]="t.cor">Agendar</div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

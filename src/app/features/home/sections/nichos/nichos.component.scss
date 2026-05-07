@@ -1,0 +1,68 @@
+@use 'styles/variables' as v;
+
+.nichos-section {
+  background: v.$kianna-slate-50;
+  padding: 80px 24px;
+
+  @media (max-width: 600px) { padding: 48px 16px; }
+}
+
+.nichos-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.section-titulo {
+  font-size: 36px;
+  font-weight: 800;
+  color: v.$kianna-slate-900;
+  margin: 0;
+
+  @media (max-width: 600px) { font-size: 26px; }
+}
+
+.nichos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+
+  @media (max-width: 880px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+.nicho-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid v.$kianna-slate-200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow .2s, border-color .2s;
+
+  &:hover {
+    border-color: v.$kianna-green-300;
+    box-shadow: 0 4px 16px rgba(29, 158, 117, .1);
+  }
+}
+
+.nicho-emoji { font-size: 36px; }
+
+.nicho-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: v.$kianna-slate-900;
+  margin: 0;
+}
+
+.nicho-desc {
+  font-size: 13px;
+  color: v.$kianna-slate-600;
+  line-height: 1.5;
+  margin: 0;
+}
