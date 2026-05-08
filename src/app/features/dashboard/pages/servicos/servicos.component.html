@@ -44,6 +44,10 @@
           <span class="meta-item">
             <mat-icon>schedule</mat-icon> {{ formatarDuracao(s.duracao_min) }}
           </span>
+          <span class="meta-item modalidade">
+            <mat-icon>{{ MODALIDADE_LABELS[s.modalidade].icone }}</mat-icon>
+            {{ MODALIDADE_LABELS[s.modalidade].label }}
+          </span>
           <span class="meta-item preco">{{ formatarPreco(s.preco) }}</span>
         </div>
 

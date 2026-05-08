@@ -7,6 +7,7 @@
   <nav class="sidenav-menu">
     @for (item of menu; track item.rota) {
       <a [routerLink]="item.rota" routerLinkActive="ativo"
+         [routerLinkActiveOptions]="item.exactMatch ? {exact: true} : {exact: false}"
          [matTooltip]="item.implementadoEm ? 'Disponível em breve' : ''"
          class="menu-item" [class.disabled]="item.implementadoEm">
         <mat-icon>{{ item.icone }}</mat-icon>

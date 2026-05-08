@@ -6,7 +6,12 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import('./dashboard.component').then(m => m.DashboardComponent),
     children: [
-      { path: '', redirectTo: 'agenda', pathMatch: 'full' },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./pages/visao-geral/visao-geral.component').then(m => m.VisaoGeralComponent),
+        title: 'Visão Geral — Kianna',
+      },
       {
         path: 'perfil',
         loadComponent: () =>
@@ -46,8 +51,8 @@ export const dashboardRoutes: Routes = [
       {
         path: 'configuracoes',
         loadComponent: () =>
-          import('./pages/em-breve/em-breve.component').then(m => m.EmBreveComponent),
-        data: { titulo: 'Configurações' },
+          import('./pages/configuracoes/configuracoes.component').then(m => m.ConfiguracoesComponent),
+        title: 'Configurações — Kianna',
       },
     ],
   },

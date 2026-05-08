@@ -9,7 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ServicosStore } from '../../state/servicos.store';
-import { Servico } from '@core/types/database.types';
+import { Servico, MODALIDADE_LABELS } from '@core/types/database.types';
 import { ServicoDialogComponent, ServicoDialogData } from './servico-dialog/servico-dialog.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { firstValueFrom } from 'rxjs';
@@ -28,6 +28,8 @@ export class ServicosComponent implements OnInit {
   protected store = inject(ServicosStore);
   private dialog  = inject(MatDialog);
   private snack   = inject(MatSnackBar);
+
+  readonly MODALIDADE_LABELS = MODALIDADE_LABELS;
 
   ngOnInit(): void { this.store.carregar(); }
 

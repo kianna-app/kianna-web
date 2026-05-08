@@ -1,0 +1,100 @@
+<div class="vg-page">
+  <!-- ── Cabeçalho com saudação ────────────────────── -->
+  <div class="vg-header">
+    <div>
+      <h1>{{ saudacao }}, {{ user()?.nome?.split(' ')?.[0] }} ✨</h1>
+      <p class="vg-sub">Aqui está o resumo do seu negócio hoje.</p>
+    </div>
+  </div>
+
+  <!-- ── Card destaque: link público ─────────────────── -->
+  <mat-card class="link-publico-card">
+    <div class="lp-content">
+      <div class="lp-info">
+        <span class="lp-label">🔗 Seu link de agendamento</span>
+        <code class="lp-url">{{ linkPublico }}</code>
+        <p class="lp-help">Compartilhe este link no Instagram, WhatsApp, cartão de visita. É por aqui que seus clientes agendam.</p>
+      </div>
+      <div class="lp-actions">
+        <button mat-flat-button color="primary" (click)="copiarLink()">
+          <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
+          {{ copiado() ? 'Copiado!' : 'Copiar link' }}
+        </button>
+        <button mat-stroked-button (click)="abrirLink()">
+          <mat-icon>open_in_new</mat-icon>
+          Visualizar
+        </button>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- ── Loading state ─────────────────────────────── -->
+  @if (carregando()) {
+    <div class="loading-state">
+      <mat-spinner diameter="32"></mat-spinner>
+    </div>
+  } @else if (stats(); as s) {
+    <!-- ── Cards de KPIs ────────────────────────────── -->
+    <div class="kpi-grid">
+      <mat-card class="kpi-card kpi-hoje">
+        <mat-icon class="kpi-icone">today</mat-icon>
+        <div class="kpi-conteudo">
+          <span class="kpi-numero">{{ s.doDia }}</span>
+          <span class="kpi-label">{{ s.doDia === 1 ? 'agendamento' : 'agendamentos' }} hoje</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card kpi-mes">
+        <mat-icon class="kpi-icone">event_available</mat-icon>
+        <div class="kpi-conteudo">
+          <span class="kpi-numero">{{ s.totalDoMes }}</span>
+          <span class="kpi-label">no mês atual</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card kpi-cancelados">
+        <mat-icon class="kpi-icone">cancel</mat-icon>
+        <div class="kpi-conteudo">
+          <span class="kpi-numero">{{ s.cancelamentosDoMes }}</span>
+          <span class="kpi-label">cancelados no mês</span>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- ── Próximos agendamentos ────────────────────── -->
+    <section class="vg-section">
+      <div class="section-header">
+        <h2>Próximos agendamentos</h2>
+        <a routerLink="/dashboard/agenda" class="section-link">
+          Ver agenda completa <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      @if (s.proximosAgendamentos.length === 0) {
+        <mat-card class="empty-card">
+          <mat-icon>event_busy</mat-icon>
+          <h3>Nenhum agendamento próximo</h3>
+          <p>Compartilhe seu link pra começar a receber!</p>
+        </mat-card>
+      } @else {
+        <div class="proximos-list">
+          @for (a of s.proximosAgendamentos; track a.id) {
+            <mat-card class="prox-card" [attr.data-status]="a.status">
+              <div class="prox-data">
+                <span class="prox-dia">{{ a.data_hora | date:'dd' }}</span>
+                <span class="prox-mes">{{ a.data_hora | date:'MMM':'':'pt-BR' }}</span>
+              </div>
+              <div class="prox-info">
+                <strong>{{ a.cliente_nome }}</strong>
+                <span class="prox-meta">
+                  {{ a.servico?.nome ?? 'Serviço' }} · {{ a.data_hora | date:'HH:mm' }}
+                </span>
+              </div>
+              <span class="prox-status">{{ a.status }}</span>
+            </mat-card>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>
