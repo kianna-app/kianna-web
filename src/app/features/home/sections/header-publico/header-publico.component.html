@@ -27,8 +27,12 @@
       @for (s of secoes; track s.id) {
         <button class="nav-link-mobile" (click)="scrollPara(s.id)">{{ s.label }}</button>
       }
-      <a routerLink="/auth/login" class="nav-link-mobile">Entrar</a>
-      <a routerLink="/auth/cadastro" class="nav-link-mobile nav-link-cta">Criar conta grátis</a>
+      <a routerLink="/auth/login" class="nav-link-mobile entrar-mobile">
+        <mat-icon>login</mat-icon> Entrar na minha conta
+      </a>
+      <a routerLink="/auth/cadastro" class="nav-link-mobile cadastrar-mobile">
+        <mat-icon>add</mat-icon> Criar conta grátis
+      </a>
     </div>
   }
 </header>

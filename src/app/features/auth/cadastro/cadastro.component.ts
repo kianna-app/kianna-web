@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AuthService } from '@core/auth/auth.service';
 import { APP } from '@core/constants/app.constants';
+import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
 
 function senhasIguaisValidator(control: AbstractControl) {
   const senha    = control.get('senha');
@@ -30,7 +31,7 @@ function senhasIguaisValidator(control: AbstractControl) {
     CommonModule, RouterLink, ReactiveFormsModule,
     MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    MatCheckboxModule,
+    MatCheckboxModule, LoadingButtonComponent,
   ],
   templateUrl: './cadastro.component.html',
 })

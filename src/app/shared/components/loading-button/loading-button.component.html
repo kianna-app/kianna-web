@@ -1,0 +1,40 @@
+@switch (variant) {
+  @case ('flat') {
+    <button mat-flat-button [color]="color" [type]="type"
+            [disabled]="isDisabled" [attr.aria-label]="ariaLabel"
+            (click)="onClick($event)" class="lb">
+      <ng-container *ngTemplateOutlet="content"></ng-container>
+    </button>
+  }
+  @case ('stroked') {
+    <button mat-stroked-button [color]="color" [type]="type"
+            [disabled]="isDisabled" [attr.aria-label]="ariaLabel"
+            (click)="onClick($event)" class="lb">
+      <ng-container *ngTemplateOutlet="content"></ng-container>
+    </button>
+  }
+  @case ('raised') {
+    <button mat-raised-button [color]="color" [type]="type"
+            [disabled]="isDisabled" [attr.aria-label]="ariaLabel"
+            (click)="onClick($event)" class="lb">
+      <ng-container *ngTemplateOutlet="content"></ng-container>
+    </button>
+  }
+}
+
+<ng-template #content>
+  <span class="lb-content" [class.is-loading]="loading">
+    @if (loading) {
+      <mat-spinner diameter="18" class="lb-spinner"></mat-spinner>
+      <span class="lb-text">{{ loadingText || 'Carregando...' }}</span>
+    } @else {
+      @if (icon && iconPosition === 'start') {
+        <mat-icon class="lb-icon">{{ icon }}</mat-icon>
+      }
+      <span class="lb-text"><ng-content></ng-content></span>
+      @if (icon && iconPosition === 'end') {
+        <mat-icon class="lb-icon">{{ icon }}</mat-icon>
+      }
+    }
+  </span>
+</ng-template>

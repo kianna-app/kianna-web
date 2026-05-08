@@ -76,15 +76,16 @@
         </span>
       </mat-checkbox>
 
-      <button mat-raised-button color="primary" type="submit"
-              class="full-width submit-btn"
-              [disabled]="isLoading() || !form.get('termos')?.value">
-        @if (isLoading()) {
-          <mat-spinner diameter="20"></mat-spinner>
-        } @else {
-          Criar conta grátis
-        }
-      </button>
+      <app-loading-button
+        variant="raised"
+        color="primary"
+        type="submit"
+        [loading]="isLoading()"
+        [disabled]="!form.get('termos')?.value"
+        loadingText="Criando conta..."
+        class="full-width">
+        Criar conta grátis
+      </app-loading-button>
     </form>
 
     <p class="auth-footer">

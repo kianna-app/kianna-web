@@ -45,14 +45,15 @@
         }
       </mat-form-field>
 
-      <button mat-raised-button color="primary" type="submit"
-              class="full-width submit-btn" [disabled]="isLoading()">
-        @if (isLoading()) {
-          <mat-spinner diameter="20"></mat-spinner>
-        } @else {
-          Entrar
-        }
-      </button>
+      <app-loading-button
+        variant="raised"
+        color="primary"
+        type="submit"
+        [loading]="isLoading()"
+        loadingText="Entrando..."
+        class="full-width">
+        Entrar
+      </app-loading-button>
 
     </form>
 

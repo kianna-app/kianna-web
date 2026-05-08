@@ -1,0 +1,44 @@
+@use 'styles/variables' as v;
+
+:host {
+  display: inline-block;
+}
+
+.lb {
+  height: 48px !important;
+  min-width: 120px;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  padding: 0 20px !important;
+}
+
+.lb-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  line-height: 1;
+}
+
+.lb-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+}
+
+.lb-spinner {
+  ::ng-deep circle {
+    stroke: currentColor;
+  }
+}
+
+.lb-text {
+  white-space: nowrap;
+}
+
+.is-loading {
+  opacity: 0.85;
+}

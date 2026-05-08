@@ -71,15 +71,16 @@
   }
 
   <div class="actions">
-    <button mat-raised-button [color]="temAlteracoes() ? 'accent' : 'primary'"
-            (click)="salvar()" [disabled]="store.salvando()"
-            [class.btn-salvar-destaque]="temAlteracoes()">
-      @if (store.salvando()) {
-        <mat-spinner diameter="18"></mat-spinner>
-      } @else {
-        <mat-icon>save</mat-icon>
-      }
-      {{ store.salvando() ? 'Salvando...' : 'Salvar horários' }}
-    </button>
+    <app-loading-button
+      variant="raised"
+      [color]="temAlteracoes() ? 'accent' : 'primary'"
+      [loading]="store.salvando()"
+      loadingText="Salvando..."
+      icon="save"
+      iconPosition="start"
+      [class.btn-salvar-destaque]="temAlteracoes()"
+      (clicked)="salvar()">
+      Salvar horários
+    </app-loading-button>
   </div>
 }
