@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '@core/auth/auth.service';
 import { APP } from '@core/constants/app.constants';
 import { isOnboardingDone } from '@core/signals/app.signals';
+import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ import { isOnboardingDone } from '@core/signals/app.signals';
     CommonModule, RouterLink, ReactiveFormsModule,
     MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    LoadingButtonComponent,
   ],
   templateUrl: './login.component.html',
 })

@@ -63,11 +63,11 @@
           <input matInput formControlName="whatsapp" placeholder="(44) 99999-9999"
                  type="tel" autocomplete="tel">
           <mat-icon matPrefix>phone</mat-icon>
-          <mat-hint>Seus clientes usarão este número para confirmar agendamentos</mat-hint>
+          <mat-hint align="start">Pode digitar com ou sem parênteses</mat-hint>
           @if (perfilForm.get('whatsapp')?.hasError('required') && perfilForm.get('whatsapp')?.touched) {
             <mat-error>WhatsApp é obrigatório</mat-error>
-          } @else if (perfilForm.get('whatsapp')?.hasError('pattern')) {
-            <mat-error>Formato: (44) 99999-9999</mat-error>
+          } @else if (perfilForm.get('whatsapp')?.hasError('whatsappInvalido')) {
+            <mat-error>Digite um WhatsApp válido (10 ou 11 dígitos)</mat-error>
           } @else if (perfilForm.get('whatsapp')?.hasError('jaCadastrado')) {
             <mat-error>Este número já está cadastrado em outra conta</mat-error>
           }
@@ -184,14 +184,17 @@
 
         <div class="step-actions">
           <button mat-button matStepperPrevious type="button">Voltar</button>
-          <button mat-raised-button color="primary" type="button"
-                  (click)="concluirOnboarding()" [disabled]="isLoading() || diasAtivos().size === 0">
-            @if (isLoading()) {
-              <mat-spinner diameter="20"></mat-spinner> Salvando...
-            } @else {
-              <ng-container>Finalizar <mat-icon iconPositionEnd>check_circle</mat-icon></ng-container>
-            }
-          </button>
+          <app-loading-button
+            variant="flat"
+            color="primary"
+            [loading]="isLoading()"
+            [disabled]="diasAtivos().size === 0"
+            loadingText="Salvando..."
+            icon="check"
+            iconPosition="end"
+            (clicked)="concluirOnboarding()">
+            Concluir e ir ao dashboard
+          </app-loading-button>
         </div>
       </div>
     </mat-step>

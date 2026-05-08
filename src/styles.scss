@@ -143,15 +143,15 @@ html, body {
 }
 
 .step-form {
-  padding: 8px 0 16px;
+  padding: 16px 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 
-  h2 { font-size: 20px; font-weight: 700; margin: 0; }
+  h2 { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
 }
 
-.step-desc { color: vars.$kianna-slate-500; font-size: 14px; margin: 0; }
+.step-desc { color: vars.$kianna-slate-500; font-size: 14px; margin: 0 0 12px; line-height: 1.5; }
 
 .foto-upload {
   display: flex;
@@ -215,7 +215,13 @@ html, body {
 .row-2col {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
+  margin-top: 4px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 .dias-grid {
@@ -255,5 +261,7 @@ html, body {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid vars.$kianna-slate-100;
 }

@@ -15,6 +15,8 @@ import { supabase } from '@core/supabase/supabase.client';
 import { currentUser } from '@core/signals/app.signals';
 import { gerarSlug, slugComSufixo } from '@core/utils/slug.util';
 import { APP } from '@core/constants/app.constants';
+import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
+import { whatsAppValidator, limparWhatsApp } from '@core/utils/whatsapp.util';
 
 @Component({
   selector: 'app-onboarding',
@@ -24,6 +26,7 @@ import { APP } from '@core/constants/app.constants';
     MatStepperModule, MatButtonModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatIconModule,
     MatProgressSpinnerModule, MatChipsModule,
+    LoadingButtonComponent,
   ],
   providers: [{
     provide: STEPPER_GLOBAL_OPTIONS,
@@ -45,7 +48,7 @@ export class OnboardingComponent {
   perfilForm = this.fb.group({
     nome:          ['', [Validators.required, Validators.minLength(3)]],
     especialidade: ['', Validators.required],
-    whatsapp:      ['', [Validators.required, Validators.pattern(/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/)]],
+    whatsapp:      ['', [Validators.required, whatsAppValidator]],
     bio:           [''],
   });
 
@@ -173,7 +176,7 @@ export class OnboardingComponent {
           nome,
           slug,
           foto_url,
-          whatsapp:      this.perfilForm.value.whatsapp!,
+          whatsapp:      limparWhatsApp(this.perfilForm.value.whatsapp!),
           especialidade: this.perfilForm.value.especialidade!,
           bio:           this.perfilForm.value.bio || null,
           plano:         'gratis',
