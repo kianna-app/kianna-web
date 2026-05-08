@@ -62,8 +62,8 @@
 .card-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
 
   .meta-item {
     display: flex;
@@ -74,6 +74,16 @@
     mat-icon { font-size: 16px; width: 16px; height: 16px; }
   }
   .preco { font-weight: 700; color: v.$kianna-green-700; font-size: 15px; }
+}
+
+.modalidade {
+  background: v.$kianna-green-50;
+  color: v.$kianna-green-700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-weight: 500;
+
+  mat-icon { color: v.$kianna-green-600; }
 }
 
 .card-actions {

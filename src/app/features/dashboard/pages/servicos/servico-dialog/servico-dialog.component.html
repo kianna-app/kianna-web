@@ -21,6 +21,18 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Modalidade</mat-label>
+      <mat-select formControlName="modalidade">
+        @for (m of modalidades; track m.valor) {
+          <mat-option [value]="m.valor">
+            {{ m.label }} — {{ m.descricao }}
+          </mat-option>
+        }
+      </mat-select>
+      <mat-hint>Como você atende esse serviço</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Preço (R$)</mat-label>
       <input matInput formControlName="preco" type="number" min="0" step="0.01">
       @if (form.get('preco')?.hasError('min')) {

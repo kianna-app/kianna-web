@@ -20,6 +20,15 @@
         <span>{{ a.servico.nome }} · {{ a.servico.duracao_min }}min · R$ {{ a.servico.preco }}</span>
       </div>
     </div>
+    @if (a.servico.modalidade) {
+      <div class="info-row">
+        <mat-icon>{{ MODALIDADE_LABELS[a.servico.modalidade].icone }}</mat-icon>
+        <div class="info-col">
+          <span class="info-label">Modalidade</span>
+          <span>{{ MODALIDADE_LABELS[a.servico.modalidade].label }}</span>
+        </div>
+      </div>
+    }
   }
 
   <div class="info-row">

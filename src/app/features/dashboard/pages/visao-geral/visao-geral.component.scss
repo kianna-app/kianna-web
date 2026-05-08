@@ -1,0 +1,189 @@
+@use 'styles/variables' as v;
+
+.vg-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.vg-header {
+  h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$kianna-slate-900; }
+  .vg-sub { font-size: 14px; color: v.$kianna-slate-500; margin: 4px 0 0; }
+}
+
+// ── Card link público ─────────────────────────────────
+.link-publico-card {
+  padding: 20px !important;
+  background: linear-gradient(135deg, v.$kianna-green-50, #fff) !important;
+  border: 1px solid v.$kianna-green-200 !important;
+}
+
+.lp-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.lp-info { flex: 1; min-width: 280px; }
+
+.lp-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: v.$kianna-green-700;
+  text-transform: uppercase;
+}
+
+.lp-url {
+  display: block;
+  background: #fff;
+  border: 1px solid v.$kianna-slate-200;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: v.$kianna-slate-900;
+  margin: 8px 0;
+  word-break: break-all;
+}
+
+.lp-help {
+  font-size: 13px;
+  color: v.$kianna-slate-600;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.lp-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// ── KPIs ──────────────────────────────────────────────
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.kpi-card {
+  padding: 20px !important;
+  display: flex !important;
+  align-items: center;
+  gap: 16px;
+}
+
+.kpi-icone {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.kpi-hoje .kpi-icone        { color: v.$kianna-green-600; }
+.kpi-mes .kpi-icone         { color: #3B82F6; }
+.kpi-cancelados .kpi-icone  { color: v.$status-cancelado; }
+
+.kpi-conteudo { display: flex; flex-direction: column; }
+
+.kpi-numero {
+  font-size: 28px;
+  font-weight: 800;
+  color: v.$kianna-slate-900;
+  line-height: 1;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: v.$kianna-slate-500;
+  margin-top: 4px;
+}
+
+// ── Seções ────────────────────────────────────────────
+.vg-section { display: flex; flex-direction: column; gap: 12px; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  h2 { font-size: 16px; font-weight: 700; margin: 0; color: v.$kianna-slate-800; }
+}
+
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: v.$kianna-green-600;
+  text-decoration: none;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &:hover { color: v.$kianna-green-700; }
+}
+
+.empty-card {
+  padding: 40px 20px !important;
+  text-align: center;
+  color: v.$kianna-slate-500;
+
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: .4; }
+  h3 { margin: 8px 0 4px; color: v.$kianna-slate-700; }
+  p  { margin: 0; font-size: 13px; }
+}
+
+.proximos-list { display: flex; flex-direction: column; gap: 8px; }
+
+.prox-card {
+  display: flex !important;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px !important;
+}
+
+.prox-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+  flex-shrink: 0;
+
+  .prox-dia { font-size: 20px; font-weight: 800; color: v.$kianna-slate-900; line-height: 1; }
+  .prox-mes { font-size: 11px; text-transform: uppercase; color: v.$kianna-slate-500; }
+}
+
+.prox-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong { color: v.$kianna-slate-900; font-size: 14px; }
+  .prox-meta { font-size: 12px; color: v.$kianna-slate-500; }
+}
+
+.prox-status {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 99px;
+  background: v.$kianna-slate-100;
+  color: v.$kianna-slate-600;
+}
+
+[data-status="confirmado"] .prox-status { background: #DCFCE7; color: #14532D; }
+[data-status="pendente"] .prox-status   { background: #FEF3C7; color: #92400E; }
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}

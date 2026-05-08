@@ -3,7 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
+import { AgendamentoComServico, StatusAgend, MODALIDADE_LABELS } from '@core/types/database.types';
 
 export interface SheetData {
   agendamento: AgendamentoComServico;
@@ -20,6 +20,8 @@ export type SheetResult = { acao: 'confirmar' | 'cancelar' | 'reabrir' } | undef
 export class AgendamentoSheetComponent {
   data = inject<SheetData>(MAT_BOTTOM_SHEET_DATA);
   private ref = inject(MatBottomSheetRef<AgendamentoSheetComponent, SheetResult>);
+
+  readonly MODALIDADE_LABELS = MODALIDADE_LABELS;
 
   get a(): AgendamentoComServico { return this.data.agendamento; }
   get podeConfirmar(): boolean { return this.a.status === 'pendente'; }

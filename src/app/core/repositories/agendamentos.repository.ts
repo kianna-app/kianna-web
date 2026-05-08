@@ -11,7 +11,7 @@ export class AgendamentosRepository {
       .from('agendamentos')
       .select(`
         *,
-        servico:servicos ( id, nome, duracao_min, preco )
+        servico:servicos ( id, nome, duracao_min, preco, modalidade )
       `)
       .eq('profissional_id', profissional_id)
       .gte('data_hora', inicio.toISOString())

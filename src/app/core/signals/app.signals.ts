@@ -1,4 +1,5 @@
 import { signal, computed } from '@angular/core';
+import { LinkPersonalizado } from '@core/types/database.types';
 
 export interface AppUser {
   id: string;
@@ -12,6 +13,22 @@ export interface AppUser {
   bio?: string;
   plano: 'gratis' | 'pro' | 'studio';
   onboarding_concluido: boolean;
+
+  // ── Módulo 2 ──
+  politica_cancelamento?: string | null;
+  endereco_cep?: string | null;
+  endereco_rua?: string | null;
+  endereco_numero?: string | null;
+  endereco_complemento?: string | null;
+  endereco_bairro?: string | null;
+  endereco_cidade?: string | null;
+  endereco_estado?: string | null;
+  instagram_url?: string | null;
+  facebook_url?: string | null;
+  twitter_url?: string | null;
+  youtube_url?: string | null;
+  links_personalizados?: LinkPersonalizado[];
+  slug_alterado_em?: string | null;
 }
 
 export const currentUser     = signal<AppUser | null>(null);

@@ -1,0 +1,31 @@
+@use 'styles/variables' as v;
+
+.cfg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+h2 {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: v.$kianna-slate-600;
+  margin: 8px 0 0;
+}
+
+.full-width { width: 100%; }
+
+.slug-prefix {
+  color: v.$kianna-slate-500;
+  font-size: 14px;
+  font-family: 'Fira Code', monospace;
+}
+
+.cfg-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
