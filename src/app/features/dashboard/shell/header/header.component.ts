@@ -53,7 +53,7 @@ export class HeaderComponent {
     }
   }
 
-  logout(): void {
-    this.auth.signOut();
+  async logout(): Promise<void> {
+    await this.auth.signOut();
   }
 }

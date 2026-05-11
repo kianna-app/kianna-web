@@ -1,10 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { DisponibilidadesRepository } from '@core/repositories/disponibilidades.repository';
+import { isAuthError } from '@core/repositories/base.repository';
+import { SessionService } from '@core/auth/session.service';
 import { Disponibilidade, DisponibilidadeInput } from '@core/types/database.types';
 
 @Injectable({ providedIn: 'root' })
 export class HorariosStore {
-  private repo = inject(DisponibilidadesRepository);
+  private repo    = inject(DisponibilidadesRepository);
+  private session = inject(SessionService);
 
   readonly disponibilidades = signal<Disponibilidade[]>([]);
   readonly carregando       = signal(false);
@@ -39,6 +42,7 @@ export class HorariosStore {
       const lista = await this.repo.listar();
       this.disponibilidades.set(lista);
     } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
       this.erro.set(e instanceof Error ? e.message : 'Erro ao carregar horários');
     } finally {
       this.carregando.set(false);
@@ -52,6 +56,7 @@ export class HorariosStore {
       await this.repo.substituirTodas(inputs);
       await this.carregar();
     } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
       this.erro.set(e instanceof Error ? e.message : 'Erro ao salvar horários');
       throw e;
     } finally {

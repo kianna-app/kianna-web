@@ -2,7 +2,20 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MENU_ITEMS } from '../menu.config';
+
+interface BottomNavItem {
+  rota: string;
+  label: string;
+  icone: string;
+  exact?: boolean;
+}
+
+const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
+  { rota: '/dashboard',          label: 'Início',   icone: 'dashboard',    exact: true },
+  { rota: '/dashboard/agenda',   label: 'Agenda',   icone: 'event' },
+  { rota: '/dashboard/servicos', label: 'Serviços', icone: 'content_cut' },
+  { rota: '/dashboard/horarios', label: 'Horários', icone: 'schedule' },
+];
 
 @Component({
   selector: 'app-bottom-nav',
@@ -12,5 +25,5 @@ import { MENU_ITEMS } from '../menu.config';
   styleUrl: './bottom-nav.component.scss',
 })
 export class BottomNavComponent {
-  readonly menu = MENU_ITEMS.filter(m => !m.implementadoEm);
+  readonly menu = BOTTOM_NAV_ITEMS;
 }

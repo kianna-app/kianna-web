@@ -1,12 +1,15 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { ServicosRepository } from '@core/repositories/servicos.repository';
+import { isAuthError } from '@core/repositories/base.repository';
+import { SessionService } from '@core/auth/session.service';
 import { Servico, ServicoInput } from '@core/types/database.types';
 import { userPlano } from '@core/signals/app.signals';
 import { PLAN_LIMITS, exceededLimit } from '@core/constants/plan.limits';
 
 @Injectable({ providedIn: 'root' })
 export class ServicosStore {
-  private repo = inject(ServicosRepository);
+  private repo    = inject(ServicosRepository);
+  private session = inject(SessionService);
 
   readonly servicos    = signal<Servico[]>([]);
   readonly carregando  = signal(false);
@@ -25,6 +28,7 @@ export class ServicosStore {
       const lista = await this.repo.listar();
       this.servicos.set(lista);
     } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
       this.erro.set(e instanceof Error ? e.message : 'Erro ao carregar serviços');
     } finally {
       this.carregando.set(false);
@@ -35,22 +39,42 @@ export class ServicosStore {
     if (this.atingiuLimite()) {
       throw new Error(`Limite do plano atingido (${this.limite()} serviços).`);
     }
-    const novo = await this.repo.criar(input);
-    this.servicos.update(arr => [...arr, novo]);
+    try {
+      const novo = await this.repo.criar(input);
+      this.servicos.update(arr => [...arr, novo]);
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      throw e;
+    }
   }
 
   async atualizar(id: string, input: Partial<ServicoInput>): Promise<void> {
-    const atualizado = await this.repo.atualizar(id, input);
-    this.servicos.update(arr => arr.map(s => s.id === id ? atualizado : s));
+    try {
+      const atualizado = await this.repo.atualizar(id, input);
+      this.servicos.update(arr => arr.map(s => s.id === id ? atualizado : s));
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      throw e;
+    }
   }
 
   async toggleAtivo(id: string, ativo: boolean): Promise<void> {
-    await this.repo.toggleAtivo(id, ativo);
-    this.servicos.update(arr => arr.map(s => s.id === id ? { ...s, ativo } : s));
+    try {
+      await this.repo.toggleAtivo(id, ativo);
+      this.servicos.update(arr => arr.map(s => s.id === id ? { ...s, ativo } : s));
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      throw e;
+    }
   }
 
   async excluir(id: string): Promise<void> {
-    await this.repo.excluir(id);
-    this.servicos.update(arr => arr.filter(s => s.id !== id));
+    try {
+      await this.repo.excluir(id);
+      this.servicos.update(arr => arr.filter(s => s.id !== id));
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      throw e;
+    }
   }
 }

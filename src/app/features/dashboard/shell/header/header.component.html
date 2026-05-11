@@ -35,10 +35,19 @@
     </button>
 
     <mat-menu #menuPerfil="matMenu" xPosition="before" class="menu-perfil">
-      <div class="menu-header" (click)="$event.stopPropagation()">
-        <div class="menu-nome">{{ user()?.nome }}</div>
-        <div class="menu-plano">Plano {{ user()?.plano }}</div>
-      </div>
+      <!-- Cabeçalho clicável → vai pra aba Perfil -->
+      <button mat-menu-item routerLink="/dashboard/configuracoes"
+              [queryParams]="{ aba: 'perfil' }" class="menu-header-btn">
+        @if (user()?.foto_url) {
+          <img [src]="user()!.foto_url" [alt]="user()!.nome" class="menu-avatar">
+        } @else {
+          <div class="menu-avatar fallback">{{ iniciais() }}</div>
+        }
+        <div class="menu-user-info">
+          <div class="menu-nome">{{ user()?.nome }}</div>
+          <div class="menu-plano">Plano {{ user()?.plano }}</div>
+        </div>
+      </button>
       <mat-divider />
       <button mat-menu-item routerLink="/dashboard/configuracoes">
         <mat-icon>settings</mat-icon>
