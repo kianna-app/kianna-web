@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,5 +21,14 @@ export class SidenavComponent {
   readonly menu = MENU_ITEMS;
   readonly user = currentUser;
 
-  logout() { this.auth.signOut(); }
+  @Output() itemClicked = new EventEmitter<void>();
+
+  logout(): void {
+    this.itemClicked.emit();
+    this.auth.signOut();
+  }
+
+  navegarItem(): void {
+    this.itemClicked.emit();
+  }
 }

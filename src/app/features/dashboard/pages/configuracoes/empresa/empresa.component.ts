@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,8 +16,8 @@ import { differenceInDays, addDays } from 'date-fns';
   selector: 'app-cfg-empresa',
   standalone: true,
   imports: [
-    CommonModule, DatePipe, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatIconModule, LoadingButtonComponent,
+    CommonModule, DatePipe, ReactiveFormsModule, MatCardModule, MatFormFieldModule,
+    MatInputModule, MatIconModule, LoadingButtonComponent,
   ],
   templateUrl: './empresa.component.html',
   styleUrl: './empresa.component.scss',

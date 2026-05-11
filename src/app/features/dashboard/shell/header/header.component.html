@@ -1,14 +1,53 @@
 <header class="dash-header">
-  <div class="header-greeting">
-    <span class="greeting-text">Olá, <strong>{{ user()?.nome?.split(' ')?.at(0) ?? '' }}</strong> 👋</span>
-  </div>
-
-  <div class="link-chip">
-    <mat-icon>link</mat-icon>
-    <span class="link-text">{{ linkPublico }}</span>
-    <button mat-button color="primary" (click)="copiarLink()" matTooltip="Copiar link público">
-      <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
-      <span class="copiar-label">{{ copiado() ? 'Copiado' : 'Copiar' }}</span>
+  <!-- ── Esquerda: hamburguer (mobile) ─────────────────── -->
+  @if (isMobile()) {
+    <button mat-icon-button class="btn-menu" (click)="abrirMenu.emit()" aria-label="Abrir menu">
+      <mat-icon>menu</mat-icon>
     </button>
+  }
+
+  <!-- ── Centro: link público (só desktop) ─────────────── -->
+  @if (!isMobile()) {
+    <div class="link-chip">
+      <mat-icon>link</mat-icon>
+      <span class="link-text">{{ linkPublico }}</span>
+      <button mat-button color="primary" (click)="copiarLink()">
+        <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
+        {{ copiado() ? 'Copiado' : 'Copiar' }}
+      </button>
+    </div>
+  }
+
+  <!-- ── Direita: ícones de ação ────────────────────────── -->
+  <div class="header-actions">
+    <button mat-icon-button class="header-action-btn" aria-label="Notificações"
+            matTooltip="Em breve" disabled>
+      <mat-icon>notifications_none</mat-icon>
+    </button>
+
+    <button mat-icon-button class="avatar-btn" [matMenuTriggerFor]="menuPerfil"
+            aria-label="Menu da conta">
+      @if (user()?.foto_url) {
+        <img [src]="user()!.foto_url" [alt]="user()!.nome" class="avatar-img">
+      } @else {
+        <div class="avatar-fallback">{{ iniciais() }}</div>
+      }
+    </button>
+
+    <mat-menu #menuPerfil="matMenu" xPosition="before" class="menu-perfil">
+      <div class="menu-header" (click)="$event.stopPropagation()">
+        <div class="menu-nome">{{ user()?.nome }}</div>
+        <div class="menu-plano">Plano {{ user()?.plano }}</div>
+      </div>
+      <mat-divider />
+      <button mat-menu-item routerLink="/dashboard/configuracoes">
+        <mat-icon>settings</mat-icon>
+        <span>Configurações da conta</span>
+      </button>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Sair</span>
+      </button>
+    </mat-menu>
   </div>
 </header>

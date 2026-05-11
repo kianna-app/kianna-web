@@ -1,13 +1,5 @@
 @use 'styles/variables' as v;
 
-.cfg-form { display: flex; flex-direction: column; gap: 16px; max-width: 640px; }
-
-h2 {
-  font-size: 14px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .04em; color: v.$kianna-slate-600; margin: 16px 0 0;
-}
-
-.cfg-help { font-size: 13px; color: v.$kianna-slate-500; margin: 0 0 8px; }
 .full-width { width: 100%; }
 
 .links-list { display: flex; flex-direction: column; gap: 8px; }
@@ -23,5 +15,3 @@ h2 {
     gap: 4px;
   }
 }
-
-.cfg-actions { display: flex; justify-content: flex-end; margin-top: 16px; }

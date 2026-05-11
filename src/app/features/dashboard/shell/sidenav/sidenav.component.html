@@ -9,6 +9,7 @@
       <a [routerLink]="item.rota" routerLinkActive="ativo"
          [routerLinkActiveOptions]="item.exactMatch ? {exact: true} : {exact: false}"
          [matTooltip]="item.implementadoEm ? 'Disponível em breve' : ''"
+         (click)="navegarItem()"
          class="menu-item" [class.disabled]="item.implementadoEm">
         <mat-icon>{{ item.icone }}</mat-icon>
         <span>{{ item.label }}</span>

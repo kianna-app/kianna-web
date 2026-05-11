@@ -1,10 +1,24 @@
 <div class="agenda-page">
   <div class="page-header">
     <h1>Agenda</h1>
-    @if (store.carregando()) {
-      <mat-spinner diameter="20"></mat-spinner>
+  </div>
+
+  <div class="calendar-wrapper">
+    <full-calendar #calendar [options]="calendarOptions()" class="calendar" />
+
+    <!-- Spinner overlay SÓ na primeira carga (quando agendamentos vazio E carregando) -->
+    @if (store.carregando() && store.agendamentos().length === 0) {
+      <div class="agenda-loading">
+        <mat-spinner diameter="32"></mat-spinner>
+        <p>Carregando agenda...</p>
+      </div>
     }
   </div>
 
-  <full-calendar #calendar [options]="calendarOptions()" class="calendar" />
+  @if (store.erro()) {
+    <div class="agenda-erro">
+      <mat-icon>warning</mat-icon>
+      <span>{{ store.erro() }}</span>
+    </div>
+  }
 </div>

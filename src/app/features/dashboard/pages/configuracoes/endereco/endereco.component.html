@@ -1,54 +1,60 @@
-<form [formGroup]="form" class="cfg-form" (ngSubmit)="salvar()">
-  <h2>Endereço de atendimento</h2>
-  <p class="cfg-help">Endereço onde você atende. Aparece na sua página pública pra clientes que escolherem modalidade Presencial.</p>
+<form [formGroup]="form" class="cfg-tabs-form" (ngSubmit)="salvar()">
 
-  <div class="row-cep">
-    <mat-form-field appearance="outline" class="cep-field">
-      <mat-label>CEP</mat-label>
-      <input matInput formControlName="cep" maxlength="9" (blur)="buscarCep()" placeholder="00000-000">
-      @if (buscandoCep()) {
-        <mat-hint>Buscando...</mat-hint>
-      }
-    </mat-form-field>
-  </div>
+  <!-- ── Card: Endereço de atendimento ─────────────────── -->
+  <mat-card class="cfg-card">
+    <h3 class="cfg-card-titulo">Endereço de atendimento</h3>
+    <p class="cfg-card-desc">Aparece na sua página pública para clientes que escolherem modalidade Presencial</p>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Rua</mat-label>
-    <input matInput formControlName="rua">
-  </mat-form-field>
+    <div class="cfg-card-form">
+      <div class="row-cep">
+        <mat-form-field appearance="outline" class="cep-field">
+          <mat-label>CEP</mat-label>
+          <input matInput formControlName="cep" maxlength="9" (blur)="buscarCep()" placeholder="00000-000">
+          @if (buscandoCep()) {
+            <mat-hint>Buscando...</mat-hint>
+          }
+        </mat-form-field>
+      </div>
 
-  <div class="row-2col">
-    <mat-form-field appearance="outline">
-      <mat-label>Número</mat-label>
-      <input matInput formControlName="numero">
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Complemento</mat-label>
-      <input matInput formControlName="complemento">
-    </mat-form-field>
-  </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Rua</mat-label>
+        <input matInput formControlName="rua">
+      </mat-form-field>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Bairro</mat-label>
-    <input matInput formControlName="bairro">
-  </mat-form-field>
+      <div class="row-2col">
+        <mat-form-field appearance="outline">
+          <mat-label>Número</mat-label>
+          <input matInput formControlName="numero">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Complemento</mat-label>
+          <input matInput formControlName="complemento">
+        </mat-form-field>
+      </div>
 
-  <div class="row-2col">
-    <mat-form-field appearance="outline">
-      <mat-label>Cidade</mat-label>
-      <input matInput formControlName="cidade">
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Estado</mat-label>
-      <mat-select formControlName="estado">
-        @for (uf of estados; track uf) {
-          <mat-option [value]="uf">{{ uf }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-  </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Bairro</mat-label>
+        <input matInput formControlName="bairro">
+      </mat-form-field>
 
-  <div class="cfg-actions">
+      <div class="row-2col">
+        <mat-form-field appearance="outline">
+          <mat-label>Cidade</mat-label>
+          <input matInput formControlName="cidade">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="estado">
+            @for (uf of estados; track uf) {
+              <mat-option [value]="uf">{{ uf }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </mat-card>
+
+  <div class="cfg-actions-sticky">
     <app-loading-button type="submit" variant="flat" color="primary"
                         [loading]="salvando()" icon="save" iconPosition="start">
       Salvar endereço
