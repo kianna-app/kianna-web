@@ -1,16 +1,29 @@
-<div class="dash-shell" [class.mobile]="isMobile()">
-  @if (!isMobile()) {
+<!-- ── Mobile: drawer lateral ─────────────────────── -->
+@if (isMobile()) {
+  <mat-sidenav-container class="dash-shell mobile" autosize>
+    <mat-sidenav #drawerMobile mode="over" position="start" class="mobile-drawer">
+      <app-sidenav (itemClicked)="fecharDrawer()" />
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <app-dashboard-header (abrirMenu)="abrirDrawer()" />
+      <main class="dash-content">
+        <router-outlet />
+      </main>
+      <app-bottom-nav />
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+}
+
+<!-- ── Desktop: sidenav fixa ─────────────────────────── -->
+@if (!isMobile()) {
+  <div class="dash-shell">
     <app-sidenav />
-  }
-
-  <div class="dash-main">
-    <app-dashboard-header />
-    <main class="dash-content">
-      <router-outlet />
-    </main>
+    <div class="dash-main">
+      <app-dashboard-header />
+      <main class="dash-content">
+        <router-outlet />
+      </main>
+    </div>
   </div>
-
-  @if (isMobile()) {
-    <app-bottom-nav />
-  }
-</div>
+}

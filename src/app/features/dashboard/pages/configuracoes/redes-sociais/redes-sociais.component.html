@@ -1,59 +1,85 @@
-<form [formGroup]="form" class="cfg-form" (ngSubmit)="salvar()">
-  <h2>Redes sociais</h2>
-  <p class="cfg-help">Aparecem como ícones na sua página pública. Use a URL completa (com https://).</p>
+<form [formGroup]="form" class="cfg-tabs-form" (ngSubmit)="salvar()">
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Instagram</mat-label>
-    <mat-icon matPrefix>photo_camera</mat-icon>
-    <input matInput formControlName="instagram_url" placeholder="https://instagram.com/seuusuario">
-  </mat-form-field>
+  <!-- ── Card 1: Redes sociais ──────────────────────────── -->
+  <mat-card class="cfg-card">
+    <h3 class="cfg-card-titulo">Redes sociais</h3>
+    <p class="cfg-card-desc">Aparecem como ícones na sua página pública. Use a URL completa (com https://).</p>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Facebook</mat-label>
-    <mat-icon matPrefix>thumb_up</mat-icon>
-    <input matInput formControlName="facebook_url" placeholder="https://facebook.com/...">
-  </mat-form-field>
+    <div class="cfg-card-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Instagram</mat-label>
+        <mat-icon matPrefix>photo_camera</mat-icon>
+        <input matInput formControlName="instagram_url" placeholder="https://instagram.com/seuusuario">
+        @if (form.get('instagram_url')?.hasError('pattern')) {
+          <mat-error>Use a URL completa, começando com https://</mat-error>
+        }
+      </mat-form-field>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>X (Twitter)</mat-label>
-    <mat-icon matPrefix>chat</mat-icon>
-    <input matInput formControlName="twitter_url" placeholder="https://x.com/...">
-  </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Facebook</mat-label>
+        <mat-icon matPrefix>thumb_up</mat-icon>
+        <input matInput formControlName="facebook_url" placeholder="https://facebook.com/seunegocio">
+        @if (form.get('facebook_url')?.hasError('pattern')) {
+          <mat-error>Use a URL completa, começando com https://</mat-error>
+        }
+      </mat-form-field>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>YouTube</mat-label>
-    <mat-icon matPrefix>play_circle</mat-icon>
-    <input matInput formControlName="youtube_url" placeholder="https://youtube.com/...">
-  </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>X (Twitter)</mat-label>
+        <mat-icon matPrefix>chat</mat-icon>
+        <input matInput formControlName="twitter_url" placeholder="https://x.com/seuusuario">
+        @if (form.get('twitter_url')?.hasError('pattern')) {
+          <mat-error>Use a URL completa, começando com https://</mat-error>
+        }
+      </mat-form-field>
 
-  <h2>Links personalizados (máx. 3)</h2>
-  <p class="cfg-help">Útil pra site próprio, blog, agenda externa, lista de preços.</p>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>YouTube</mat-label>
+        <mat-icon matPrefix>play_circle</mat-icon>
+        <input matInput formControlName="youtube_url" placeholder="https://youtube.com/@seucanal">
+        @if (form.get('youtube_url')?.hasError('pattern')) {
+          <mat-error>Use a URL completa, começando com https://</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </mat-card>
 
-  <div formArrayName="links_personalizados" class="links-list">
-    @for (link of linksArray.controls; track $index; let i = $index) {
-      <div [formGroupName]="i" class="link-item">
-        <mat-form-field appearance="outline" class="link-label">
-          <mat-label>Nome do link</mat-label>
-          <input matInput formControlName="label" maxlength="30" placeholder="Ex: Meu site">
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="link-url">
-          <mat-label>URL</mat-label>
-          <input matInput formControlName="url" placeholder="https://...">
-        </mat-form-field>
-        <button mat-icon-button type="button" (click)="removerLink(i)" aria-label="Remover">
-          <mat-icon>delete_outline</mat-icon>
-        </button>
+  <!-- ── Card 2: Links personalizados ──────────────────── -->
+  <mat-card class="cfg-card">
+    <h3 class="cfg-card-titulo">Links personalizados (máx. 3)</h3>
+    <p class="cfg-card-desc">Útil pra site próprio, blog, agenda externa, lista de preços.</p>
+
+    <div class="cfg-card-form">
+      <div formArrayName="links_personalizados" class="links-list">
+        @for (link of linksArray.controls; track $index; let i = $index) {
+          <div [formGroupName]="i" class="link-item">
+            <mat-form-field appearance="outline" class="link-label">
+              <mat-label>Nome do link</mat-label>
+              <input matInput formControlName="label" maxlength="30" placeholder="Ex: Meu site">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="link-url">
+              <mat-label>URL</mat-label>
+              <input matInput formControlName="url" placeholder="https://...">
+              @if (linksArray.at(i).get('url')?.hasError('pattern')) {
+                <mat-error>Comece com https://</mat-error>
+              }
+            </mat-form-field>
+            <button mat-icon-button type="button" (click)="removerLink(i)" aria-label="Remover">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        }
       </div>
-    }
-  </div>
 
-  @if (linksArray.length < MAX_LINKS) {
-    <button mat-stroked-button type="button" (click)="adicionarLink()">
-      <mat-icon>add</mat-icon> Adicionar link
-    </button>
-  }
+      @if (linksArray.length < MAX_LINKS) {
+        <button mat-stroked-button type="button" (click)="adicionarLink()">
+          <mat-icon>add</mat-icon> Adicionar link
+        </button>
+      }
+    </div>
+  </mat-card>
 
-  <div class="cfg-actions">
+  <div class="cfg-actions-sticky">
     <app-loading-button type="submit" variant="flat" color="primary"
                         [loading]="salvando()" icon="save" iconPosition="start">
       Salvar redes

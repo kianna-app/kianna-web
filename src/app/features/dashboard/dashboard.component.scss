@@ -5,7 +5,10 @@
   min-height: 100vh;
   background: v.$kianna-slate-50;
 
-  &.mobile { padding-bottom: 68px; }
+  &.mobile {
+    height: 100vh;
+    display: block;
+  }
 }
 
 .dash-main {
@@ -19,5 +22,17 @@
   flex: 1;
   padding: 24px;
 
-  @media (max-width: 600px) { padding: 12px; }
+  @media (max-width: 600px) {
+    padding: 16px;
+    padding-bottom: 76px;
+  }
+}
+
+// ── Drawer mobile ─────────────────────────────────────
+.mobile-drawer {
+  width: 280px;
+}
+
+::ng-deep .mat-drawer-inner-container {
+  overflow: hidden !important;
 }

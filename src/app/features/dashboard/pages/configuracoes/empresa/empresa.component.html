@@ -1,44 +1,60 @@
-<form [formGroup]="form" class="cfg-form" (ngSubmit)="salvar()">
+<form [formGroup]="form" class="cfg-tabs-form" (ngSubmit)="salvar()">
 
-  <h2>Informações da empresa</h2>
+  <!-- ── Card 1: Informações da empresa ─────────────────── -->
+  <mat-card class="cfg-card">
+    <h3 class="cfg-card-titulo">Informações da empresa</h3>
+    <p class="cfg-card-desc">Como seu negócio aparece pros clientes</p>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Nome do negócio</mat-label>
-    <input matInput formControlName="nome">
-    <mat-hint>Esse nome aparece na sua página pública</mat-hint>
-  </mat-form-field>
+    <div class="cfg-card-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nome do negócio</mat-label>
+        <input matInput formControlName="nome">
+        <mat-hint>Esse nome aparece na sua página pública</mat-hint>
+      </mat-form-field>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Bio / descrição (opcional)</mat-label>
-    <textarea matInput formControlName="bio" rows="3" maxlength="200"></textarea>
-    <mat-hint>Frase curta sobre seu trabalho · máx 200 caracteres</mat-hint>
-  </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Bio / descrição (opcional)</mat-label>
+        <textarea matInput formControlName="bio" rows="3" maxlength="200"></textarea>
+        <mat-hint>Frase curta sobre seu trabalho · máx 200 caracteres</mat-hint>
+      </mat-form-field>
+    </div>
+  </mat-card>
 
-  <h2>Link da sua página</h2>
+  <!-- ── Card 2: Link da página ─────────────────────────── -->
+  <mat-card class="cfg-card">
+    <h3 class="cfg-card-titulo">Link da sua página</h3>
+    <p class="cfg-card-desc">O endereço onde seus clientes vão agendar</p>
 
-  <mat-form-field appearance="outline" class="full-width slug-field">
-    <mat-label>Link personalizado</mat-label>
-    <span matTextPrefix class="slug-prefix">kianna.com.br/&nbsp;</span>
-    <input matInput formControlName="slug" (input)="formatarSlugLive()">
-    @if (!podeAlterarSlug()) {
-      <mat-hint>
-        ⏳ Próxima alteração em {{ proximaAlteracaoEm() | date:'dd/MM/yyyy' }}
-      </mat-hint>
-    } @else {
-      <mat-hint>Pode alterar 1x por mês. O link antigo redireciona por 90 dias.</mat-hint>
-    }
-  </mat-form-field>
+    <div class="cfg-card-form">
+      <mat-form-field appearance="outline" class="full-width slug-field">
+        <mat-label>Link personalizado</mat-label>
+        <span matTextPrefix class="slug-prefix">kianna.com.br/&nbsp;</span>
+        <input matInput formControlName="slug" (input)="formatarSlugLive()">
+        @if (!podeAlterarSlug()) {
+          <mat-hint>⏳ Próxima alteração em {{ proximaAlteracaoEm() | date:'dd/MM/yyyy' }}</mat-hint>
+        } @else {
+          <mat-hint>Pode alterar 1x por mês. O link antigo redireciona por 90 dias.</mat-hint>
+        }
+      </mat-form-field>
+    </div>
+  </mat-card>
 
-  <h2>Política de cancelamento</h2>
+  <!-- ── Card 3: Política de cancelamento ────────────────── -->
+  <mat-card class="cfg-card">
+    <h3 class="cfg-card-titulo">Política de cancelamento</h3>
+    <p class="cfg-card-desc">Texto livre que aparece pro cliente na hora de agendar</p>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Sua política (opcional)</mat-label>
-    <textarea matInput formControlName="politica_cancelamento" rows="3"
-              placeholder="Ex: Cancelamentos permitidos até 24h antes do horário."></textarea>
-    <mat-hint>Texto livre que aparece pro cliente na hora de agendar</mat-hint>
-  </mat-form-field>
+    <div class="cfg-card-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Sua política (opcional)</mat-label>
+        <textarea matInput formControlName="politica_cancelamento" rows="3"
+                  placeholder="Ex: Cancelamentos permitidos até 24h antes do horário."></textarea>
+      </mat-form-field>
+    </div>
+  </mat-card>
 
-  <div class="cfg-actions">
+  <!-- ── Botão salvar ────────────────────────────────────── -->
+  <div class="cfg-actions-sticky">
     <app-loading-button
       type="submit"
       variant="flat"

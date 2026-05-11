@@ -1,8 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
@@ -19,7 +21,8 @@ import { firstValueFrom } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule, MatCardModule, MatButtonModule, MatIconModule,
-    MatSlideToggleModule, MatProgressSpinnerModule, MatTooltipModule,
+    MatFormFieldModule, MatInputModule, MatSlideToggleModule,
+    MatProgressSpinnerModule, MatTooltipModule,
   ],
   templateUrl: './servicos.component.html',
   styleUrl: './servicos.component.scss',
@@ -30,8 +33,24 @@ export class ServicosComponent implements OnInit {
   private snack   = inject(MatSnackBar);
 
   readonly MODALIDADE_LABELS = MODALIDADE_LABELS;
+  readonly busca = signal('');
+  readonly servicoExpandido = signal<string | null>(null);
+
+  readonly servicosFiltrados = computed(() => {
+    const termo = this.busca().toLowerCase().trim();
+    const todos = this.store.servicos();
+    if (!termo) return todos;
+    return todos.filter(s =>
+      s.nome.toLowerCase().includes(termo) ||
+      MODALIDADE_LABELS[s.modalidade].label.toLowerCase().includes(termo)
+    );
+  });
 
   ngOnInit(): void { this.store.carregar(); }
+
+  toggleExpandir(id: string): void {
+    this.servicoExpandido.update(atual => atual === id ? null : id);
+  }
 
   formatarPreco(v: number): string {
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -91,8 +110,7 @@ export class ServicosComponent implements OnInit {
       await this.store.toggleAtivo(servico.id, novoAtivo);
       this.snack.open(
         novoAtivo ? `"${servico.nome}" ativado` : `"${servico.nome}" desativado`,
-        'OK',
-        { duration: 2000 }
+        'OK', { duration: 2000 }
       );
     } catch {
       this.snack.open('Erro ao alterar status', 'OK', { duration: 2000 });

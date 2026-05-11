@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,8 +15,8 @@ import { currentUser, AppUser } from '@core/signals/app.signals';
   selector: 'app-cfg-redes-sociais',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatIconModule, MatButtonModule, LoadingButtonComponent,
+    CommonModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule,
+    MatInputModule, MatIconModule, MatButtonModule, LoadingButtonComponent,
   ],
   templateUrl: './redes-sociais.component.html',
   styleUrl: './redes-sociais.component.scss',

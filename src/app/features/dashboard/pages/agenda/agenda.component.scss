@@ -15,6 +15,40 @@
   h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$kianna-slate-900; }
 }
 
+.calendar-wrapper {
+  position: relative;
+}
+
+.agenda-loading {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 10;
+  border-radius: 12px;
+
+  p { font-size: 13px; color: v.$kianna-slate-600; margin: 0; }
+}
+
+.agenda-erro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 8px;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
 .calendar {
   background: #fff;
   border-radius: 12px;

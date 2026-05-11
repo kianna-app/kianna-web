@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FullCalendarModule, FullCalendarComponent } from '@fullcalendar/angular';
 import { CalendarOptions, EventInput, EventClickArg } from '@fullcalendar/core';
@@ -9,6 +9,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AgendamentosStore } from '../../state/agendamentos.store';
 import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
@@ -20,17 +21,20 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, FullCalendarModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FullCalendarModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './agenda.component.html',
   styleUrl: './agenda.component.scss',
 })
-export class AgendaComponent implements OnInit {
+export class AgendaComponent implements OnInit, OnDestroy {
   @ViewChild('calendar') calendarRef?: FullCalendarComponent;
 
   protected store = inject(AgendamentosStore);
   private bp      = inject(BreakpointService);
   private sheet   = inject(MatBottomSheet);
   private snack   = inject(MatSnackBar);
+
+  private periodoCarregado  = signal<string | null>(null);
+  private carregandoTimeout: ReturnType<typeof setTimeout> | null = null;
 
   readonly events = computed<EventInput[]>(() =>
     this.store.agendamentos().map(a => this.toEvent(a))
@@ -63,6 +67,10 @@ export class AgendaComponent implements OnInit {
     // datesSet dispara automaticamente no primeiro render
   }
 
+  ngOnDestroy(): void {
+    if (this.carregandoTimeout) clearTimeout(this.carregandoTimeout);
+  }
+
   private toEvent(a: AgendamentoComServico): EventInput {
     const inicio = new Date(a.data_hora);
     const dur = a.servico?.duracao_min ?? 60;
@@ -79,7 +87,24 @@ export class AgendaComponent implements OnInit {
   }
 
   private async aoTrocarPeriodo(inicio: Date, fim: Date): Promise<void> {
+    const chave = `${inicio.toISOString()}_${fim.toISOString()}`;
+    if (this.periodoCarregado() === chave) return;
+    this.periodoCarregado.set(chave);
+
+    if (this.carregandoTimeout) clearTimeout(this.carregandoTimeout);
+    this.carregandoTimeout = setTimeout(() => {
+      if (this.store.carregando()) {
+        this.snack.open('Conexão lenta. Tente novamente.', 'Recarregar', { duration: 5000 })
+          .onAction().subscribe(() => location.reload());
+      }
+    }, 10000);
+
     await this.store.carregarPeriodo(inicio, fim);
+
+    if (this.carregandoTimeout) {
+      clearTimeout(this.carregandoTimeout);
+      this.carregandoTimeout = null;
+    }
   }
 
   private async aoClicarEvento(arg: EventClickArg): Promise<void> {

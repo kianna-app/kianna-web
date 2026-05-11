@@ -3,14 +3,26 @@
 .dash-header {
   background: #fff;
   border-bottom: 1px solid v.$kianna-slate-200;
-  padding: 12px 24px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
-  gap: 16px;
+  height: 56px;
+  gap: 12px;
+
+  @media (min-width: 960px) {
+    padding: 12px 24px;
+    height: 64px;
+    justify-content: flex-end;
+  }
 }
 
+.btn-menu {
+  flex-shrink: 0;
+  mat-icon { color: v.$kianna-slate-700; }
+}
+
+// ── Link chip (só desktop) ─────────────────────────────
 .link-chip {
   display: flex;
   align-items: center;
@@ -19,6 +31,8 @@
   border: 1px solid v.$kianna-green-200;
   border-radius: 99px;
   padding: 4px 4px 4px 12px;
+  margin-left: auto;
+  margin-right: 16px;
 
   mat-icon {
     color: v.$kianna-green-700;
@@ -36,18 +50,42 @@
   text-overflow: ellipsis;
 }
 
-.header-greeting {
-  .greeting-text {
-    font-size: 15px;
-    color: v.$kianna-slate-700;
-    white-space: nowrap;
-    strong { color: v.$kianna-slate-900; }
-  }
+// ── Ações à direita ────────────────────────────────────
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
 }
 
-@media (max-width: 600px) {
-  .dash-header { padding: 8px 12px; height: 56px; }
-  .link-text { max-width: 100px; font-size: 12px; }
-  .header-greeting .greeting-text { font-size: 13px; }
-  .copiar-label { display: none; }
+.header-action-btn {
+  width: 40px;
+  height: 40px;
+  &[disabled] mat-icon { color: v.$kianna-slate-400; }
+}
+
+.avatar-btn {
+  width: 40px;
+  height: 40px;
+  padding: 4px !important;
+}
+
+.avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, v.$kianna-green-400, v.$kianna-green-600);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

@@ -117,6 +117,72 @@ html, body {
   a { color: #1D9E75; font-weight: 600; text-decoration: none; }
 }
 
+// ── Menu de perfil (header) ───────────────────────────────────
+.menu-perfil {
+  min-width: 220px !important;
+
+  .menu-header {
+    padding: 12px 16px 8px;
+    cursor: default;
+
+    .menu-nome {
+      font-size: 14px;
+      font-weight: 600;
+      color: vars.$kianna-slate-900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .menu-plano {
+      font-size: 12px;
+      color: vars.$kianna-slate-500;
+      text-transform: capitalize;
+      margin-top: 2px;
+    }
+  }
+}
+
+// ── Cards de configurações (reutilizado em todas as abas) ──────
+.cfg-tabs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+}
+
+.cfg-card {
+  padding: 20px !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cfg-card-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: vars.$kianna-slate-900;
+  margin: 0;
+}
+
+.cfg-card-desc {
+  font-size: 13px;
+  color: vars.$kianna-slate-500;
+  margin: 0 0 12px;
+}
+
+.cfg-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cfg-actions-sticky {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 0;
+  margin-top: 8px;
+}
+
 // ── Onboarding ────────────────────────────────────────────────
 .onboarding-wrapper {
   min-height: 100vh;
