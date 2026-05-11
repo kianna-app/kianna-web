@@ -23,9 +23,9 @@ export class SidenavComponent {
 
   @Output() itemClicked = new EventEmitter<void>();
 
-  logout(): void {
+  async logout(): Promise<void> {
     this.itemClicked.emit();
-    this.auth.signOut();
+    await this.auth.signOut();
   }
 
   navegarItem(): void {

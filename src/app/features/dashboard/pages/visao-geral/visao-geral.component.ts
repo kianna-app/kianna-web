@@ -7,6 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { EstatisticasRepository, EstatisticasDashboard } from '@core/repositories/estatisticas.repository';
+import { isAuthError } from '@core/repositories/base.repository';
+import { SessionService } from '@core/auth/session.service';
 import { currentUser } from '@core/signals/app.signals';
 import { APP } from '@core/constants/app.constants';
 
@@ -21,8 +23,9 @@ import { APP } from '@core/constants/app.constants';
   styleUrl: './visao-geral.component.scss',
 })
 export class VisaoGeralComponent implements OnInit {
-  private repo = inject(EstatisticasRepository);
-  private snack = inject(MatSnackBar);
+  private repo    = inject(EstatisticasRepository);
+  private snack   = inject(MatSnackBar);
+  private session = inject(SessionService);
 
   readonly user = currentUser;
   readonly carregando = signal(true);
@@ -44,7 +47,8 @@ export class VisaoGeralComponent implements OnInit {
     try {
       const data = await this.repo.carregarDashboard();
       this.stats.set(data);
-    } catch {
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
       this.snack.open('Erro ao carregar dados', 'OK', { duration: 3000 });
     } finally {
       this.carregando.set(false);

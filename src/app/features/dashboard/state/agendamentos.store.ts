@@ -1,10 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { AgendamentosRepository } from '@core/repositories/agendamentos.repository';
+import { isAuthError } from '@core/repositories/base.repository';
+import { SessionService } from '@core/auth/session.service';
 import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
 
 @Injectable({ providedIn: 'root' })
 export class AgendamentosStore {
-  private repo = inject(AgendamentosRepository);
+  private repo    = inject(AgendamentosRepository);
+  private session = inject(SessionService);
 
   readonly agendamentos = signal<AgendamentoComServico[]>([]);
   readonly carregando   = signal(false);
@@ -21,6 +24,7 @@ export class AgendamentosStore {
       const lista = await this.repo.listarPorPeriodo(inicio, fim);
       this.agendamentos.set(lista);
     } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
       this.erro.set(e instanceof Error ? e.message : 'Erro ao carregar agenda');
     } finally {
       this.carregando.set(false);
@@ -28,9 +32,14 @@ export class AgendamentosStore {
   }
 
   async atualizarStatus(id: string, status: StatusAgend): Promise<void> {
-    await this.repo.atualizarStatus(id, status);
-    this.agendamentos.update(arr =>
-      arr.map(a => a.id === id ? { ...a, status } : a)
-    );
+    try {
+      await this.repo.atualizarStatus(id, status);
+      this.agendamentos.update(arr =>
+        arr.map(a => a.id === id ? { ...a, status } : a)
+      );
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      throw e;
+    }
   }
 }

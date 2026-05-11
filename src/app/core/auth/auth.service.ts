@@ -2,10 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { supabase } from '@core/supabase/supabase.client';
 import { currentUser, isLoading, authInitialized, AppUser } from '@core/signals/app.signals';
+import { SessionService } from './session.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private router = inject(Router);
+  private router  = inject(Router);
+  private session = inject(SessionService);
 
   async initialize(): Promise<void> {
     isLoading.set(true);
@@ -23,8 +25,14 @@ export class AuthService {
       if (event === 'SIGNED_IN' && session?.user) {
         await this.loadUserProfile(session.user.id);
       }
+
       if (event === 'SIGNED_OUT') {
         currentUser.set(null);
+      }
+
+      // Token refresh falhou → sessão morta
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        await this.session.invalidarSessao('expirou');
       }
     });
   }
@@ -44,9 +52,7 @@ export class AuthService {
   }
 
   async signOut(): Promise<void> {
-    await supabase.auth.signOut();
-    currentUser.set(null);
-    this.router.navigate(['/auth/login']);
+    await this.session.invalidarSessao('logout');
   }
 
   async resetPassword(email: string): Promise<void> {
@@ -54,6 +60,11 @@ export class AuthService {
       redirectTo: `${window.location.origin}/auth/nova-senha`,
     });
     if (error) throw error;
+  }
+
+  async getAccessToken(): Promise<string | null> {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
   }
 
   private async loadUserProfile(userId: string): Promise<void> {
@@ -66,7 +77,6 @@ export class AuthService {
     if (data) {
       currentUser.set(data as AppUser);
     } else {
-      // Usuário autenticado mas sem linha em profissionais → onboarding pendente
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         currentUser.set({
@@ -82,10 +92,5 @@ export class AuthService {
         });
       }
     }
-  }
-
-  async getAccessToken(): Promise<string | null> {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token ?? null;
   }
 }

@@ -1,7 +1,8 @@
 <nav class="bottom-nav">
   @for (item of menu; track item.rota) {
-    <a [routerLink]="item.rota" routerLinkActive="ativo"
-       [routerLinkActiveOptions]="item.exactMatch ? {exact: true} : {exact: false}"
+    <a [routerLink]="item.rota"
+       routerLinkActive="ativo"
+       [routerLinkActiveOptions]="item.exact ? { exact: true } : {}"
        class="bn-item">
       <mat-icon>{{ item.icone }}</mat-icon>
       <span>{{ item.label }}</span>
