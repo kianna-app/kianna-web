@@ -59,6 +59,16 @@
           <span class="kpi-label">cancelados no mês</span>
         </div>
       </mat-card>
+
+      @if (s.totalPendentes > 0) {
+        <mat-card class="kpi-card kpi-pendentes" routerLink="/dashboard/agenda">
+          <mat-icon class="kpi-icone">pending_actions</mat-icon>
+          <div class="kpi-conteudo">
+            <span class="kpi-numero">{{ s.totalPendentes }}</span>
+            <span class="kpi-label">{{ s.totalPendentes === 1 ? 'pendente' : 'pendentes' }} — confirmar</span>
+          </div>
+        </mat-card>
+      }
     </div>
 
     <!-- ── Próximos agendamentos ────────────────────── -->

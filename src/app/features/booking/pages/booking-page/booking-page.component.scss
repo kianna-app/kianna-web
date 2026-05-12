@@ -1,0 +1,96 @@
+:host {
+  --booking-bg: #ffffff;
+  --booking-surface: #f8f9fa;
+  --booking-border: #e9ecef;
+  --booking-text: #212529;
+  --booking-muted: #6c757d;
+  --booking-primary: #1D9E75;
+  --booking-primary-light: #e8f5f0;
+  --booking-chip-selected-bg: #1D9E75;
+  --booking-chip-selected-text: #fff;
+  --booking-chip-disabled: #dee2e6;
+  --booking-radius: 8px;
+  --booking-radius-lg: 12px;
+
+  display: block;
+  min-height: 100dvh;
+  background: var(--booking-bg);
+  font-family: 'Inter', 'Roboto', sans-serif;
+  color: var(--booking-text);
+}
+
+.booking-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px 80px;
+}
+
+.global-loading {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--booking-border);
+    border-top-color: var(--booking-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.estado-vazio {
+  text-align: center;
+  padding: 48px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  .estado-icon {
+    font-size: 48px;
+  }
+
+  .estado-titulo {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--booking-text);
+  }
+
+  .estado-desc {
+    font-size: 14px;
+    color: var(--booking-muted);
+    margin: 0;
+    max-width: 280px;
+  }
+}
+
+.btn-wpp {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 12px 24px;
+  background: #25D366;
+  color: #fff;
+  border-radius: var(--booking-radius);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.btn-secundario {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 12px 24px;
+  border: 1.5px solid var(--booking-primary);
+  color: var(--booking-primary);
+  border-radius: var(--booking-radius);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}

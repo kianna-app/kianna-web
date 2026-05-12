@@ -17,6 +17,10 @@ export class AgendamentosStore {
     this.agendamentos().filter(a => a.status === 'confirmado')
   );
 
+  readonly pendentes = computed(() =>
+    this.agendamentos().filter(a => a.status === 'pendente')
+  );
+
   async carregarPeriodo(inicio: Date, fim: Date): Promise<void> {
     this.carregando.set(true);
     this.erro.set(null);

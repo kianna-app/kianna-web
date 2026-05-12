@@ -1,0 +1,94 @@
+<div class="booking-container">
+
+  <app-professional-header [profissional]="booking.profissional()" />
+
+  @if (booking.loading()) {
+    <div class="global-loading">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  @switch (booking.step()) {
+
+    @case ('servico') {
+      <app-service-selector
+        [servicos]="booking.servicos()"
+        (selecionou)="booking.selecionarServico($event)"
+      />
+    }
+
+    @case ('data') {
+      <app-date-selector
+        [diasComSlots]="booking.diasComSlots()"
+        (selecionou)="booking.selecionarData($event)"
+        (voltou)="booking.voltar()"
+      />
+    }
+
+    @case ('horario') {
+      <app-time-selector
+        [slots]="booking.slotsParaDia()"
+        [data]="booking.dataSelecionada()"
+        (selecionou)="booking.selecionarHorario($event)"
+        (voltou)="booking.voltar()"
+      />
+    }
+
+    @case ('dados') {
+      <app-client-form
+        (confirmou)="booking.irParaResumo($event)"
+        (voltou)="booking.voltar()"
+      />
+    }
+
+    @case ('resumo') {
+      <app-booking-summary
+        [profissional]="booking.profissional()"
+        [servico]="booking.servicoSelecionado()"
+        [dataHora]="booking.horarioSelecionado()"
+        [cliente]="{ nome: booking.clienteNome(), wpp: booking.clienteWpp() }"
+        [loading]="booking.loading()"
+        [erro]="booking.erro()"
+        (confirmou)="booking.confirmarAgendamento()"
+        (voltou)="booking.voltar()"
+      />
+    }
+
+    @case ('confirmado') {
+      <app-booking-confirmation
+        [profissional]="booking.profissional()"
+        [servico]="booking.servicoSelecionado()"
+        [dataHora]="booking.horarioSelecionado()"
+        [clienteNome]="booking.clienteNome()"
+      />
+    }
+
+    @case ('lotado') {
+      <div class="estado-vazio">
+        <span class="estado-icon">😔</span>
+        <p class="estado-titulo">Sem horários disponíveis</p>
+        <p class="estado-desc">Este profissional atingiu o limite de agendamentos do mês.</p>
+        @if (booking.profissional()?.whatsapp) {
+          <a
+            class="btn-wpp"
+            [href]="'https://wa.me/55' + booking.profissional()!.whatsapp.replace(/\D/g, '')"
+            target="_blank"
+          >
+            Entrar em contato pelo WhatsApp
+          </a>
+        }
+      </div>
+    }
+
+    @case ('not-found') {
+      <div class="estado-vazio">
+        <span class="estado-icon">🔍</span>
+        <p class="estado-titulo">Profissional não encontrado</p>
+        <p class="estado-desc">O link que você acessou não existe ou foi alterado.</p>
+        <a routerLink="/" class="btn-secundario">Conhecer o Kianna</a>
+      </div>
+    }
+
+  }
+
+</div>

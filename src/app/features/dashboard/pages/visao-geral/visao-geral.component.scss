@@ -87,6 +87,11 @@
 .kpi-hoje .kpi-icone        { color: v.$kianna-green-600; }
 .kpi-mes .kpi-icone         { color: #3B82F6; }
 .kpi-cancelados .kpi-icone  { color: v.$status-cancelado; }
+.kpi-pendentes {
+  cursor: pointer;
+  .kpi-icone { color: #D97706; }
+  &:hover { border-color: #D97706; }
+}
 
 .kpi-conteudo { display: flex; flex-direction: column; }
 

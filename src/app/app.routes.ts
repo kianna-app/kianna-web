@@ -57,6 +57,14 @@ export const routes: Routes = [
         .then(m => m.dashboardRoutes),
   },
 
+  // ── Página pública de agendamento (/:slug) — deve ficar antes do ** ──
+  {
+    path: ':slug',
+    loadComponent: () =>
+      import('./features/booking/pages/booking-page/booking-page.component')
+        .then(m => m.BookingPageComponent),
+  },
+
   // ── 404 ──────────────────────────────────────────────────────
   {
     path: '**',

@@ -9,6 +9,7 @@ export interface EstatisticasDashboard {
   doDia: number;
   cancelamentosDoMes: number;
   taxaOcupacao: number;
+  totalPendentes: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -61,12 +62,21 @@ export class EstatisticasRepository {
       .lte('data_hora', fimMes.toISOString());
     if (e4) throw e4;
 
+    const { count: pendentes, error: e5 } = await supabase
+      .from('agendamentos')
+      .select('*', { count: 'exact', head: true })
+      .eq('profissional_id', profissional_id)
+      .eq('status', 'pendente')
+      .gte('data_hora', agora.toISOString());
+    if (e5) throw e5;
+
     return {
       proximosAgendamentos: (proximos ?? []) as unknown as AgendamentoComServico[],
       totalDoMes: totalMes ?? 0,
       doDia: doDia ?? 0,
       cancelamentosDoMes: cancelados ?? 0,
       taxaOcupacao: 0,
+      totalPendentes: pendentes ?? 0,
     };
   }
 }
