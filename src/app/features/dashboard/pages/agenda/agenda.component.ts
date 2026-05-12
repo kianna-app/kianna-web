@@ -1,142 +1,110 @@
-import { Component, OnInit, OnDestroy, ViewChild, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FullCalendarModule, FullCalendarComponent } from '@fullcalendar/angular';
-import { CalendarOptions, EventInput, EventClickArg } from '@fullcalendar/core';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import listPlugin from '@fullcalendar/list';
-import interactionPlugin from '@fullcalendar/interaction';
-import ptBrLocale from '@fullcalendar/core/locales/pt-br';
-import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AgendamentosStore } from '../../state/agendamentos.store';
-import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
-import { STATUS_CORES } from '@core/constants/app.constants';
-import { BreakpointService } from '@core/services/breakpoint.service';
-import { AgendamentoSheetComponent, SheetData, SheetResult } from './agendamento-sheet/agendamento-sheet.component';
-import { firstValueFrom } from 'rxjs';
+import { Component, inject, signal, computed, OnInit } from '@angular/core'
+import { CommonModule } from '@angular/common'
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
+import { AgendamentosStore } from '../../state/agendamentos.store'
+import { MODALIDADE_LABELS } from '@core/types/database.types'
+import { WeekStripComponent } from './components/week-strip/week-strip.component'
+import { ResumoBandComponent } from './components/resumo-band/resumo-band.component'
+import { ApptCardComponent, AgendamentoView } from './components/appt-card/appt-card.component'
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, FullCalendarModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, MatProgressSpinnerModule, WeekStripComponent, ResumoBandComponent, ApptCardComponent],
   templateUrl: './agenda.component.html',
   styleUrl: './agenda.component.scss',
 })
-export class AgendaComponent implements OnInit, OnDestroy {
-  @ViewChild('calendar') calendarRef?: FullCalendarComponent;
+export class AgendaComponent implements OnInit {
+  protected agendamentosStore = inject(AgendamentosStore)
 
-  protected store = inject(AgendamentosStore);
-  private bp      = inject(BreakpointService);
-  private sheet   = inject(MatBottomSheet);
-  private snack   = inject(MatSnackBar);
+  diaSelecionado = signal<Date>(new Date())
 
-  private periodoCarregado  = signal<string | null>(null);
-  private carregandoTimeout: ReturnType<typeof setTimeout> | null = null;
+  semana = computed(() => this.gerarSemana())
 
-  readonly events = computed<EventInput[]>(() =>
-    this.store.agendamentos().map(a => this.toEvent(a))
-  );
+  agendamentosDoDia = computed<AgendamentoView[]>(() => {
+    const diaSel = this.diaSelecionado().toDateString()
+    return this.agendamentosStore.agendamentos()
+      .filter(a => new Date(a.data_hora).toDateString() === diaSel)
+      .sort((a, b) => a.data_hora.localeCompare(b.data_hora))
+      .map(a => {
+        const svc = a.servico
+        const inicio = new Date(a.data_hora)
+        const fim = svc ? new Date(inicio.getTime() + svc.duracao_min * 60000) : inicio
+        return {
+          id:          a.id,
+          inicio:      inicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          fim:         fim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          status:      a.status,
+          clienteNome: a.cliente_nome,
+          servicoNome: svc?.nome ?? '—',
+          duracao:     svc ? `${svc.duracao_min} min` : '',
+          modalidade:  svc ? (MODALIDADE_LABELS[svc.modalidade]?.label ?? svc.modalidade) : '',
+          data_hora:   a.data_hora,
+        }
+      })
+  })
 
-  readonly calendarOptions = computed<CalendarOptions>(() => ({
-    plugins: [timeGridPlugin, dayGridPlugin, listPlugin, interactionPlugin],
-    initialView: this.bp.isMobile() ? 'listWeek' : 'timeGridWeek',
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: this.bp.isMobile() ? 'listWeek,timeGridDay' : 'timeGridDay,timeGridWeek,listWeek',
-    },
-    locale: ptBrLocale,
-    firstDay: 1,
-    slotMinTime: '06:00:00',
-    slotMaxTime: '23:00:00',
-    allDaySlot: false,
-    nowIndicator: true,
-    height: 'auto',
-    expandRows: true,
-    editable: false,
-    eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false },
-    events: this.events(),
-    eventClick: (arg) => this.aoClicarEvento(arg),
-    datesSet: (info) => this.aoTrocarPeriodo(info.start, info.end),
-  }));
-
-  ngOnInit(): void {
-    // datesSet dispara automaticamente no primeiro render
-  }
-
-  ngOnDestroy(): void {
-    if (this.carregandoTimeout) clearTimeout(this.carregandoTimeout);
-  }
-
-  private toEvent(a: AgendamentoComServico): EventInput {
-    const inicio = new Date(a.data_hora);
-    const dur = a.servico?.duracao_min ?? 60;
-    const fim = new Date(inicio.getTime() + dur * 60_000);
+  resumo = computed(() => {
+    const ags = this.agendamentosDoDia()
     return {
-      id:              a.id,
-      title:           a.cliente_nome,
-      start:           inicio,
-      end:             fim,
-      backgroundColor: STATUS_CORES[a.status],
-      borderColor:     STATUS_CORES[a.status],
-      extendedProps:   { agendamento: a },
-    };
+      total:       ags.length,
+      confirmados: ags.filter(a => a.status === 'confirmado').length,
+      pendentes:   ags.filter(a => a.status === 'pendente').length,
+      concluidos:  ags.filter(a => a.status === 'concluido').length,
+    }
+  })
+
+  ocupacaoPorDia = computed(() => {
+    const map = new Map<string, number>()
+    this.agendamentosStore.agendamentos()
+      .filter(a => a.status !== 'cancelado')
+      .forEach(a => {
+        const k = new Date(a.data_hora).toDateString()
+        map.set(k, (map.get(k) ?? 0) + 1)
+      })
+    return map
+  })
+
+  async ngOnInit() {
+    const hoje = new Date()
+    const inicio = new Date(hoje)
+    inicio.setDate(hoje.getDate() - hoje.getDay())
+    inicio.setHours(0, 0, 0, 0)
+    const fim = new Date(inicio)
+    fim.setDate(inicio.getDate() + 7)
+    await this.agendamentosStore.carregarPeriodo(inicio, fim)
   }
 
-  private async aoTrocarPeriodo(inicio: Date, fim: Date): Promise<void> {
-    const chave = `${inicio.toISOString()}_${fim.toISOString()}`;
-    if (this.periodoCarregado() === chave) return;
-    this.periodoCarregado.set(chave);
-
-    if (this.carregandoTimeout) clearTimeout(this.carregandoTimeout);
-    this.carregandoTimeout = setTimeout(() => {
-      if (this.store.carregando()) {
-        this.snack.open('Conexão lenta. Tente novamente.', 'Recarregar', { duration: 5000 })
-          .onAction().subscribe(() => location.reload());
+  private gerarSemana() {
+    const hoje = new Date()
+    const diasLetras = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(hoje)
+      d.setDate(hoje.getDate() - hoje.getDay() + i)
+      const k = d.toDateString()
+      const ocupacao = Math.min(this.ocupacaoPorDia().get(k) ?? 0, 3)
+      return {
+        data:        d,
+        letra:       diasLetras[d.getDay()],
+        numero:      d.getDate(),
+        hoje:        d.toDateString() === hoje.toDateString(),
+        selecionado: d.toDateString() === this.diaSelecionado().toDateString(),
+        ocupacao,
       }
-    }, 10000);
-
-    await this.store.carregarPeriodo(inicio, fim);
-
-    if (this.carregandoTimeout) {
-      clearTimeout(this.carregandoTimeout);
-      this.carregandoTimeout = null;
-    }
+    })
   }
 
-  private async aoClicarEvento(arg: EventClickArg): Promise<void> {
-    const agendamento = arg.event.extendedProps['agendamento'] as AgendamentoComServico;
-    const ref = this.sheet.open<AgendamentoSheetComponent, SheetData, SheetResult>(
-      AgendamentoSheetComponent, { data: { agendamento } }
-    );
-    const r = await firstValueFrom(ref.afterDismissed());
-    if (!r) return;
+  get mesLabel(): string {
+    return this.diaSelecionado().toLocaleDateString('pt-BR', { month: 'long' })
+  }
 
-    const novoStatus: StatusAgend =
-      r.acao === 'confirmar' ? 'confirmado' :
-      r.acao === 'reabrir'   ? 'pendente'   : 'cancelado';
+  get anoLabel(): string {
+    return this.diaSelecionado().getFullYear().toString()
+  }
 
-    try {
-      await this.store.atualizarStatus(agendamento.id, novoStatus);
-
-      const fcEvent = this.calendarRef?.getApi().getEventById(agendamento.id);
-      if (fcEvent) {
-        fcEvent.setProp('backgroundColor', STATUS_CORES[novoStatus]);
-        fcEvent.setProp('borderColor', STATUS_CORES[novoStatus]);
-        fcEvent.setExtendedProp('agendamento', { ...agendamento, status: novoStatus });
-      }
-
-      const labels = {
-        confirmado: 'Agendamento confirmado',
-        cancelado:  'Agendamento cancelado',
-        pendente:   'Agendamento reaberto',
-      } as const;
-      this.snack.open(labels[novoStatus], 'OK', { duration: 2500 });
-    } catch (e: unknown) {
-      this.snack.open(e instanceof Error ? e.message : 'Erro ao atualizar', 'OK', { duration: 3000 });
-    }
+  get diaSelecionadoLabel(): string {
+    return this.diaSelecionado().toLocaleDateString('pt-BR', {
+      weekday: 'long', day: 'numeric', month: 'long',
+    })
   }
 }

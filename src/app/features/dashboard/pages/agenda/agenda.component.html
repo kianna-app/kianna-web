@@ -1,24 +1,49 @@
-<div class="agenda-page">
-  <div class="page-header">
-    <h1>Agenda</h1>
+<div class="agenda-wrap">
+
+  <!-- Linha mês + filtro -->
+  <div class="month-row">
+    <div class="month-label">
+      <span class="month-name">{{ mesLabel | titlecase }}</span>
+      <span class="month-year">{{ anoLabel }}</span>
+    </div>
+    <button class="filter-btn" aria-label="Filtrar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="#0B0F19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6h16 M7 12h10 M10 18h4" />
+      </svg>
+      Filtrar
+    </button>
   </div>
 
-  <div class="calendar-wrapper">
-    <full-calendar #calendar [options]="calendarOptions()" class="calendar" />
+  <!-- Strip de dias da semana -->
+  <app-week-strip
+    [dias]="semana()"
+    (selecionar)="diaSelecionado.set($event)">
+  </app-week-strip>
 
-    <!-- Spinner overlay SÓ na primeira carga (quando agendamentos vazio E carregando) -->
-    @if (store.carregando() && store.agendamentos().length === 0) {
-      <div class="agenda-loading">
-        <mat-spinner diameter="32"></mat-spinner>
-        <p>Carregando agenda...</p>
+  <!-- Faixa de resumo -->
+  <app-resumo-band [resumo]="resumo()" />
+
+  <!-- Lista de agendamentos -->
+  <div class="list-wrap">
+    <div class="list-head">
+      <span class="list-title">{{ diaSelecionadoLabel | titlecase }}</span>
+      <span class="list-count">{{ agendamentosDoDia().length }} agendamento(s)</span>
+    </div>
+
+    @if (agendamentosStore.carregando()) {
+      <div class="list-loading">
+        <mat-spinner diameter="28" />
       </div>
+    } @else if (!agendamentosDoDia().length) {
+      <div class="list-vazio">
+        <p>Nenhum agendamento neste dia.</p>
+      </div>
+    } @else {
+      @for (ag of agendamentosDoDia(); track ag.id) {
+        <app-appt-card [agendamento]="ag" />
+      }
     }
   </div>
 
-  @if (store.erro()) {
-    <div class="agenda-erro">
-      <mat-icon>warning</mat-icon>
-      <span>{{ store.erro() }}</span>
-    </div>
-  }
 </div>

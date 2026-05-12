@@ -1,0 +1,401 @@
+KIANNA — FIXES E MELHORIAS DASHBOARD (visão-geral + serviços)
+Branch: fix/dashboard-ux
+========================================
+
+
+=== BLOCO A — ERROS CRÍTICOS ===
+
+--- A1: Tela branca no carregamento inicial + loading eterno ---
+CAUSA PROVÁVEL: auth.initialize() demora ou falha silenciosamente antes de definir currentUser.
+O loading eterno em Serviços/Horários/Agenda indica queries travando no Supabase (confirmado pelo
+erro "Thread killed by timeout manager" — connection pool esgotado no plano free).
+
+AÇÃO 1 — app.component.ts ou auth.service.ts (initialize):
+  Adicionar logs no fluxo de inicialização:
+    console.log('[App] iniciando auth...')
+    // após getSession:
+    console.log('[App] sessão obtida:', session ? 'sim' : 'nenhuma', '| user:', session?.user?.id)
+    // após onAuthStateChange:
+    console.log('[AuthState]', event, '| user:', session?.user?.id ?? 'null')
+
+AÇÃO 2 — auth.service.ts: adicionar timeout de segurança na inicialização:
+  // Se após 8s ainda não resolveu, redirecionar para login
+  async initialize(): Promise<void> {
+    const timeout = new Promise<void>((_, reject) =>
+      setTimeout(() => reject(new Error('auth timeout')), 8000)
+    )
+    try {
+      await Promise.race([this.loadSession(), timeout])
+    } catch (e) {
+      console.error('[Auth] timeout ou erro na inicialização:', e)
+      this.sessionService.invalidarSessao('Erro ao carregar sessão. Faça login novamente.')
+    }
+  }
+
+AÇÃO 3 — base.repository.ts: logar TODAS as queries com tempo:
+  // Wrapper para queries (adicionar nos métodos críticos):
+  private async query<T>(label: string, fn: () => Promise<T>): Promise<T> {
+    const t = Date.now()
+    console.log(`[DB] ${label} iniciando...`)
+    try {
+      const result = await fn()
+      console.log(`[DB] ${label} ok (${Date.now()-t}ms)`)
+      return result
+    } catch (e) {
+      console.error(`[DB] ${label} ERRO (${Date.now()-t}ms):`, e)
+      throw e
+    }
+  }
+  // Usar: return this.query('getServicos', () => this.supabase.from(...))
+
+AÇÃO 4 — Índices no Supabase (rodar no SQL Editor — reduz timeout):
+  CREATE INDEX IF NOT EXISTS idx_agendamentos_profissional_status_data
+    ON agendamentos(profissional_id, status, data_hora);
+  CREATE INDEX IF NOT EXISTS idx_servicos_profissional_ativo
+    ON servicos(profissional_id, ativo);
+  CREATE INDEX IF NOT EXISTS idx_disponibilidades_profissional
+    ON disponibilidades(profissional_id);
+
+AÇÃO 5 — supabase.client.ts: garantir configuração correta:
+  createClient(url, key, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false
+    },
+    db: { schema: 'public' },
+    global: {
+      fetch: (url, opts) => {
+        const controller = new AbortController()
+        const id = setTimeout(() => controller.abort(), 15000) // 15s timeout
+        return fetch(url, { ...opts, signal: controller.signal })
+          .finally(() => clearTimeout(id))
+      }
+    }
+  })
+
+AÇÃO 6 — Verificar no painel Supabase:
+  Settings → Usage: checar se está próximo do limite de conexões (free = ~60)
+  Settings → Database → Connection pooling: ativar PgBouncer se disponível no plano
+
+
+--- A2: Página Serviços mostra "3 de 3 no plano atual" mas lista vazia + loading eterno ---
+OBSERVAÇÃO NA IMAGEM: contador mostra "3 de 3" mas os cards não carregaram (spinner visível).
+Isso confirma que o contador (KPI) carregou mas a query principal de listagem travou.
+
+AÇÃO 1 — servicos.store.ts: adicionar tratamento de timeout e estado de erro:
+  // Adicionar signal de erro:
+  readonly erro = signal<string | null>(null)
+
+  async carregar(): Promise<void> {
+    this.loading.set(true)
+    this.erro.set(null)
+    try {
+      const data = await this.repo.getServicos()
+      this.servicos.set(data)
+    } catch (e: any) {
+      console.error('[ServicosStore] erro ao carregar:', e)
+      if (e?.message?.includes('abort') || e?.code === 'PGRST301') {
+        this.erro.set('Tempo esgotado ao carregar serviços. Tente recarregar a página.')
+      } else if (this.repo.isAuthError(e)) {
+        // já tratado pelo sessionService
+      } else {
+        this.erro.set('Erro ao carregar serviços.')
+      }
+    } finally {
+      this.loading.set(false)
+    }
+  }
+
+AÇÃO 2 — servicos.component.html: mostrar erro com botão de retry:
+  @if (store.erro()) {
+    <div class="erro-container">
+      <p>{{ store.erro() }}</p>
+      <button mat-stroked-button (click)="store.carregar()">Tentar novamente</button>
+    </div>
+  }
+
+  // Aplicar mesmo padrão em: horarios.store.ts, agendamentos.store.ts, estatisticas.repository.ts
+
+
+=== BLOCO B — MELHORIAS VISUAIS DASHBOARD ===
+
+--- B1: KPIs — substituir cards por barra minimalista ---
+ARQUIVO: features/dashboard/pages/visao-geral/visao-geral.component.html + .scss
+
+REMOVER: os 4 cards atuais de KPI (mat-card com ícone, título, valor)
+
+ADICIONAR: barra horizontal com 4 métricas separadas por divisor vertical
+
+HTML:
+  <div class="kpi-bar">
+    <div class="kpi-item">
+      <span class="kpi-valor">{{ stats.agendamentosHoje }}</span>
+      <span class="kpi-label">Hoje</span>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">
+      <span class="kpi-valor">{{ stats.agendamentosMes }}</span>
+      <span class="kpi-label">No mês</span>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">
+      <span class="kpi-valor kpi-warn">{{ stats.pendentes }}</span>
+      <span class="kpi-label">Pendentes</span>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item">
+      <span class="kpi-valor kpi-muted">{{ stats.cancelados }}</span>
+      <span class="kpi-label">Cancelados</span>
+    </div>
+  </div>
+
+SCSS:
+  .kpi-bar {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 16px 0;
+    margin-bottom: 24px;
+  }
+  .kpi-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .kpi-valor {
+    font-size: 22px;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1;
+    &.kpi-warn { color: #F59E0B; }
+    &.kpi-muted { color: #adb5bd; }
+  }
+  .kpi-label {
+    font-size: 11px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .kpi-divider {
+    width: 1px;
+    height: 36px;
+    background: #e9ecef;
+  }
+
+
+--- B2: Duas colunas — Pendentes e Agendamentos hoje ---
+ARQUIVO: features/dashboard/pages/visao-geral/visao-geral.component.html + .scss
+
+ADICIONAR após a kpi-bar (e remover/mover qualquer lista de agendamentos existente):
+
+HTML:
+  <div class="agenda-columns">
+
+    <!-- Coluna Pendentes -->
+    <div class="agenda-col">
+      <div class="col-header">
+        <span class="col-titulo">Pendentes</span>
+        @if (pendentes().length) {
+          <span class="col-badge">{{ pendentes().length }}</span>
+        }
+      </div>
+      @if (!pendentes().length) {
+        <p class="col-vazio">Nenhum agendamento pendente</p>
+      }
+      @for (ag of pendentes(); track ag.id) {
+        <div class="ag-card">
+          <div class="ag-info">
+            <span class="ag-nome">{{ ag.cliente_nome }}</span>
+            <span class="ag-detalhe">{{ ag.servico_nome }} · {{ ag.data_hora | date:'dd/MM HH:mm' }}</span>
+          </div>
+          <div class="ag-acoes">
+            <button class="btn-confirmar" (click)="confirmar(ag.id)" [disabled]="ag.loading">
+              @if (ag.loading) { <mat-spinner diameter="14" /> } @else { Confirmar }
+            </button>
+            <button class="btn-cancelar" (click)="cancelar(ag.id)">✕</button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Coluna Agendamentos hoje -->
+    <div class="agenda-col">
+      <div class="col-header">
+        <span class="col-titulo">Hoje</span>
+        @if (agendamentosHoje().length) {
+          <span class="col-badge col-badge-green">{{ agendamentosHoje().length }}</span>
+        }
+      </div>
+      @if (!agendamentosHoje().length) {
+        <p class="col-vazio">Nenhum agendamento hoje</p>
+      }
+      @for (ag of agendamentosHoje(); track ag.id) {
+        <div class="ag-card">
+          <div class="ag-hora">{{ ag.data_hora | date:'HH:mm' }}</div>
+          <div class="ag-info">
+            <span class="ag-nome">{{ ag.cliente_nome }}</span>
+            <span class="ag-detalhe">{{ ag.servico_nome }}</span>
+          </div>
+          <span class="ag-status" [class]="'status-' + ag.status">{{ ag.status }}</span>
+        </div>
+      }
+    </div>
+
+  </div>
+
+SCSS:
+  .agenda-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    @media (max-width: 600px) { grid-template-columns: 1fr; }
+  }
+  .agenda-col {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .col-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .col-titulo {
+    font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; color: #495057;
+  }
+  .col-badge {
+    background: #F59E0B; color: #fff;
+    font-size: 11px; font-weight: 700;
+    padding: 1px 7px; border-radius: 99px;
+    &.col-badge-green { background: #1D9E75; }
+  }
+  .col-vazio {
+    font-size: 13px; color: #adb5bd; text-align: center; padding: 20px 0;
+  }
+  .ag-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f3f5;
+    &:last-child { border-bottom: none; }
+  }
+  .ag-hora {
+    font-size: 13px; font-weight: 700; color: #1D9E75;
+    min-width: 40px;
+  }
+  .ag-info {
+    flex: 1; display: flex; flex-direction: column; gap: 1px;
+  }
+  .ag-nome { font-size: 14px; font-weight: 600; color: #212529; }
+  .ag-detalhe { font-size: 12px; color: #6c757d; }
+  .ag-acoes { display: flex; gap: 6px; align-items: center; }
+  .btn-confirmar {
+    font-size: 12px; font-weight: 600;
+    background: #1D9E75; color: #fff;
+    border: none; border-radius: 6px;
+    padding: 5px 10px; cursor: pointer;
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+  .btn-cancelar {
+    font-size: 12px; color: #adb5bd;
+    background: none; border: none; cursor: pointer;
+    padding: 4px 6px;
+    &:hover { color: #dc3545; }
+  }
+  .ag-status {
+    font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 600;
+    &.status-confirmado { background: #e8f5f0; color: #1D9E75; }
+    &.status-pendente   { background: #fff8e1; color: #F59E0B; }
+    &.status-cancelado  { background: #fdecea; color: #dc3545; }
+  }
+
+LÓGICA — visao-geral.component.ts:
+  // Adicionar computed signals:
+  readonly pendentes = computed(() =>
+    this.agendamentosStore.agendamentos().filter(a => a.status === 'pendente')
+  )
+  readonly agendamentosHoje = computed(() => {
+    const hoje = new Date().toDateString()
+    return this.agendamentosStore.agendamentos().filter(a =>
+      new Date(a.data_hora).toDateString() === hoje &&
+      a.status !== 'cancelado'
+    )
+  })
+
+  // Método confirmar (atualiza store e muda status localmente):
+  async confirmar(id: string): Promise<void> {
+    // marcar loading no item
+    try {
+      await this.agendamentosRepo.atualizarStatus(id, 'confirmado')
+      // atualizar item no store localmente (sem recarregar tudo):
+      this.agendamentosStore.atualizarStatusLocal(id, 'confirmado')
+    } catch (e) {
+      console.error('[VisaoGeral] erro ao confirmar:', e)
+    }
+  }
+
+  async cancelar(id: string): Promise<void> {
+    try {
+      await this.agendamentosRepo.atualizarStatus(id, 'cancelado')
+      this.agendamentosStore.atualizarStatusLocal(id, 'cancelado')
+    } catch (e) {
+      console.error('[VisaoGeral] erro ao cancelar:', e)
+    }
+  }
+
+  // agendamentos.store.ts — adicionar método:
+  atualizarStatusLocal(id: string, status: string): void {
+    this.agendamentos.update(lista =>
+      lista.map(a => a.id === id ? { ...a, status } : a)
+    )
+  }
+
+  // agendamentos.repository.ts — garantir método (ver fix anterior A3):
+  async atualizarStatus(id: string, status: 'confirmado' | 'cancelado'): Promise<void> {
+    const profId = await this.profissionalIdOrThrow()
+    const { error } = await this.supabase
+      .from('agendamentos')
+      .update({ status })
+      .eq('id', id)
+      .eq('profissional_id', profId)
+    if (error) throw error
+  }
+
+  // NOTA: agendamentos precisam ter servico_nome para exibição.
+  // Se a query atual não faz join com servicos, atualizar:
+  // .select('*, servicos(nome)') e mapear servico_nome = servicos.nome
+
+
+--- B3: Remover link público do header ---
+ARQUIVO: features/dashboard/shell/header/header.component.html
+AÇÃO: localizar e remover o bloco que renderiza o link kianna.com.br/slug no header
+  (manter apenas na Visão Geral onde já existe em destaque)
+
+
+=== ORDEM DE EXECUÇÃO ===
+
+1. A1 — Logs de auth + timeout de inicialização + fetch timeout no cliente Supabase
+2. A1-AÇÃO4 — Índices no banco (SQL Editor Supabase)
+3. A2 — Tratamento de erro + retry nos stores (Serviços, Horários, Agenda)
+4. B1 — KPI barra minimalista
+5. B2 — Duas colunas Pendentes / Hoje + lógica de confirmar/cancelar
+6. B3 — Remover link do header
+
+
+=== VERIFICAÇÕES PÓS-FIX ===
+
+[ ] Console não mostra tela branca — logs de auth aparecem na inicialização
+[ ] Após 8s sem sessão → redirect para login com mensagem
+[ ] Timeout de query lenta → mensagem de erro + botão "Tentar novamente" visível
+[ ] KPI barra aparece com 4 métricas em linha
+[ ] Coluna Pendentes lista agendamentos com status 'pendente'
+[ ] Botão Confirmar muda status para 'confirmado' e item some da coluna Pendentes
+[ ] Coluna Hoje lista agendamentos do dia (confirmados + pendentes)
+[ ] Em mobile as colunas empilham verticalmente
+[ ] Link público não aparece mais no header
+[ ] Índices criados no Supabase sem erro
