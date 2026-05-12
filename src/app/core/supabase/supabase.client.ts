@@ -10,5 +10,14 @@ export const supabase: SupabaseClient = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: false,
     },
+    db: { schema: 'public' },
+    global: {
+      fetch: (url, opts) => {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 15000);
+        return fetch(url, { ...opts, signal: controller.signal })
+          .finally(() => clearTimeout(id));
+      },
+    },
   }
 );

@@ -34,77 +34,87 @@
       <mat-spinner diameter="32"></mat-spinner>
     </div>
   } @else if (stats(); as s) {
-    <!-- ── Cards de KPIs ────────────────────────────── -->
-    <div class="kpi-grid">
-      <mat-card class="kpi-card kpi-hoje">
-        <mat-icon class="kpi-icone">today</mat-icon>
-        <div class="kpi-conteudo">
-          <span class="kpi-numero">{{ s.doDia }}</span>
-          <span class="kpi-label">{{ s.doDia === 1 ? 'agendamento' : 'agendamentos' }} hoje</span>
-        </div>
-      </mat-card>
 
-      <mat-card class="kpi-card kpi-mes">
-        <mat-icon class="kpi-icone">event_available</mat-icon>
-        <div class="kpi-conteudo">
-          <span class="kpi-numero">{{ s.totalDoMes }}</span>
-          <span class="kpi-label">no mês atual</span>
-        </div>
-      </mat-card>
-
-      <mat-card class="kpi-card kpi-cancelados">
-        <mat-icon class="kpi-icone">cancel</mat-icon>
-        <div class="kpi-conteudo">
-          <span class="kpi-numero">{{ s.cancelamentosDoMes }}</span>
-          <span class="kpi-label">cancelados no mês</span>
-        </div>
-      </mat-card>
-
-      @if (s.totalPendentes > 0) {
-        <mat-card class="kpi-card kpi-pendentes" routerLink="/dashboard/agenda">
-          <mat-icon class="kpi-icone">pending_actions</mat-icon>
-          <div class="kpi-conteudo">
-            <span class="kpi-numero">{{ s.totalPendentes }}</span>
-            <span class="kpi-label">{{ s.totalPendentes === 1 ? 'pendente' : 'pendentes' }} — confirmar</span>
-          </div>
-        </mat-card>
-      }
+    <!-- ── KPI barra minimalista ──────────────────── -->
+    <div class="kpi-bar">
+      <div class="kpi-item">
+        <span class="kpi-valor">{{ s.doDia }}</span>
+        <span class="kpi-label">Hoje</span>
+      </div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-item">
+        <span class="kpi-valor">{{ s.totalDoMes }}</span>
+        <span class="kpi-label">No mês</span>
+      </div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-item">
+        <span class="kpi-valor kpi-warn">{{ s.totalPendentes }}</span>
+        <span class="kpi-label">Pendentes</span>
+      </div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-item">
+        <span class="kpi-valor kpi-muted">{{ s.cancelamentosDoMes }}</span>
+        <span class="kpi-label">Cancelados</span>
+      </div>
     </div>
 
-    <!-- ── Próximos agendamentos ────────────────────── -->
-    <section class="vg-section">
-      <div class="section-header">
-        <h2>Próximos agendamentos</h2>
-        <a routerLink="/dashboard/agenda" class="section-link">
-          Ver agenda completa <mat-icon>arrow_forward</mat-icon>
-        </a>
-      </div>
+    <!-- ── Duas colunas: Pendentes / Hoje ────────── -->
+    <div class="agenda-columns">
 
-      @if (s.proximosAgendamentos.length === 0) {
-        <mat-card class="empty-card">
-          <mat-icon>event_busy</mat-icon>
-          <h3>Nenhum agendamento próximo</h3>
-          <p>Compartilhe seu link pra começar a receber!</p>
-        </mat-card>
-      } @else {
-        <div class="proximos-list">
-          @for (a of s.proximosAgendamentos; track a.id) {
-            <mat-card class="prox-card" [attr.data-status]="a.status">
-              <div class="prox-data">
-                <span class="prox-dia">{{ a.data_hora | date:'dd' }}</span>
-                <span class="prox-mes">{{ a.data_hora | date:'MMM':'':'pt-BR' }}</span>
-              </div>
-              <div class="prox-info">
-                <strong>{{ a.cliente_nome }}</strong>
-                <span class="prox-meta">
-                  {{ a.servico?.nome ?? 'Serviço' }} · {{ a.data_hora | date:'HH:mm' }}
-                </span>
-              </div>
-              <span class="prox-status">{{ a.status }}</span>
-            </mat-card>
+      <!-- Coluna Pendentes -->
+      <div class="agenda-col">
+        <div class="col-header">
+          <span class="col-titulo">Pendentes</span>
+          @if (pendentes().length) {
+            <span class="col-badge">{{ pendentes().length }}</span>
           }
         </div>
-      }
-    </section>
+        @if (!pendentes().length) {
+          <p class="col-vazio">Nenhum agendamento pendente</p>
+        }
+        @for (ag of pendentes(); track ag.id) {
+          <div class="ag-card">
+            <div class="ag-info">
+              <span class="ag-nome">{{ ag.cliente_nome }}</span>
+              <span class="ag-detalhe">{{ ag.servico?.nome ?? 'Serviço' }} · {{ ag.data_hora | date:'dd/MM HH:mm' }}</span>
+            </div>
+            <div class="ag-acoes">
+              <button class="btn-confirmar" (click)="confirmar(ag.id)" [disabled]="processando().has(ag.id)">
+                @if (processando().has(ag.id)) {
+                  <mat-spinner diameter="14" />
+                } @else {
+                  Confirmar
+                }
+              </button>
+              <button class="btn-cancelar" (click)="cancelar(ag.id)" [disabled]="processando().has(ag.id)">✕</button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Coluna Agendamentos hoje -->
+      <div class="agenda-col">
+        <div class="col-header">
+          <span class="col-titulo">Hoje</span>
+          @if (agendamentosHoje().length) {
+            <span class="col-badge col-badge-green">{{ agendamentosHoje().length }}</span>
+          }
+        </div>
+        @if (!agendamentosHoje().length) {
+          <p class="col-vazio">Nenhum agendamento hoje</p>
+        }
+        @for (ag of agendamentosHoje(); track ag.id) {
+          <div class="ag-card">
+            <div class="ag-hora">{{ ag.data_hora | date:'HH:mm' }}</div>
+            <div class="ag-info">
+              <span class="ag-nome">{{ ag.cliente_nome }}</span>
+              <span class="ag-detalhe">{{ ag.servico?.nome ?? 'Serviço' }}</span>
+            </div>
+            <span class="ag-status" [class]="'status-' + ag.status">{{ ag.status }}</span>
+          </div>
+        }
+      </div>
+
+    </div>
   }
 </div>

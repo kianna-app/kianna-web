@@ -11,17 +11,32 @@ export class AuthService {
 
   async initialize(): Promise<void> {
     isLoading.set(true);
-    try {
+    console.log('[App] iniciando auth...');
+
+    const loadSession = async (): Promise<void> => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('[App] sessão obtida:', session ? 'sim' : 'nenhuma', '| user:', session?.user?.id);
       if (session?.user) {
         await this.loadUserProfile(session.user.id);
       }
+    };
+
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('auth timeout')), 8000)
+    );
+
+    try {
+      await Promise.race([loadSession(), timeout]);
+    } catch (e) {
+      console.error('[Auth] timeout ou erro na inicialização:', e);
+      await this.session.invalidarSessao('erro');
     } finally {
       isLoading.set(false);
       authInitialized.set(true);
     }
 
     supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[AuthState]', event, '| user:', session?.user?.id ?? 'null');
       if (event === 'SIGNED_IN' && session?.user) {
         await this.loadUserProfile(session.user.id);
       }
@@ -30,7 +45,6 @@ export class AuthService {
         currentUser.set(null);
       }
 
-      // Token refresh falhou → sessão morta
       if (event === 'TOKEN_REFRESHED' && !session) {
         await this.session.invalidarSessao('expirou');
       }

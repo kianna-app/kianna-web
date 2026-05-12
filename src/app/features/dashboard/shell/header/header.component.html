@@ -6,18 +6,6 @@
     </button>
   }
 
-  <!-- ── Centro: link público (só desktop) ─────────────── -->
-  @if (!isMobile()) {
-    <div class="link-chip">
-      <mat-icon>link</mat-icon>
-      <span class="link-text">{{ linkPublico }}</span>
-      <button mat-button color="primary" (click)="copiarLink()">
-        <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
-        {{ copiado() ? 'Copiado' : 'Copiar' }}
-      </button>
-    </div>
-  }
-
   <!-- ── Direita: ícones de ação ────────────────────────── -->
   <div class="header-actions">
     <button mat-icon-button class="header-action-btn" aria-label="Notificações"

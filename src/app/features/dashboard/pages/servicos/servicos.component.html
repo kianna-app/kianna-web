@@ -31,6 +31,13 @@
 
   @if (store.carregando()) {
     <div class="loading-state"><mat-spinner diameter="40"></mat-spinner></div>
+  } @else if (store.erro()) {
+    <div class="empty-state">
+      <mat-icon>wifi_off</mat-icon>
+      <h3>Erro ao carregar serviços</h3>
+      <p>{{ store.erro() }}</p>
+      <button mat-stroked-button (click)="store.carregar()">Tentar novamente</button>
+    </div>
   } @else if (store.servicos().length === 0) {
     <div class="empty-state">
       <mat-icon>cut</mat-icon>

@@ -29,7 +29,12 @@ export class AgendamentosStore {
       this.agendamentos.set(lista);
     } catch (e: unknown) {
       if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
-      this.erro.set(e instanceof Error ? e.message : 'Erro ao carregar agenda');
+      const msg = (e instanceof Error ? e.message : '').toLowerCase();
+      if (msg.includes('abort') || msg.includes('failed to fetch')) {
+        this.erro.set('Tempo esgotado ao carregar agenda. Tente recarregar a página.');
+      } else {
+        this.erro.set(e instanceof Error ? e.message : 'Erro ao carregar agenda.');
+      }
     } finally {
       this.carregando.set(false);
     }
