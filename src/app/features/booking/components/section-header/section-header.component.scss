@@ -1,0 +1,49 @@
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0 12px;
+  gap: 8px;
+
+  .titulo {
+    font-size: 16px;
+    font-weight: 700;
+    color: #212529;
+    flex: 1;
+  }
+
+  .section-header-resumo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+
+    .check {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #1D9E75;
+    }
+
+    .resumo {
+      font-size: 13px;
+      color: #6c757d;
+      max-width: 120px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .alterar {
+      background: none;
+      border: none;
+      color: #1D9E75;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 4px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+}

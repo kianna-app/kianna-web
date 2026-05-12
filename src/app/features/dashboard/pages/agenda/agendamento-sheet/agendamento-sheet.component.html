@@ -54,12 +54,12 @@
 
   <div class="sheet-actions">
     @if (podeConfirmar) {
-      <button mat-raised-button color="primary" (click)="acao('confirmar')">
+      <button class="btn-confirmar" (click)="acao('confirmar')">
         <mat-icon>check_circle</mat-icon> Confirmar agendamento
       </button>
     }
     @if (podeReabrir) {
-      <button mat-raised-button color="primary" (click)="acao('reabrir')">
+      <button class="btn-confirmar btn-confirmar--reabrir" (click)="acao('reabrir')">
         <mat-icon>restart_alt</mat-icon> Reabrir agendamento
       </button>
     }

@@ -138,11 +138,41 @@ export class BookingService {
       } else {
         this.erro.set('Não foi possível confirmar o agendamento. Tente novamente.');
       }
-    } catch {
-      this.erro.set('Erro ao conectar. Verifique sua conexão e tente novamente.');
+    } catch (e: unknown) {
+      const err = e as Record<string, unknown> | null;
+      console.error('[BookingService] erro ao criar agendamento:', e);
+      const msg =
+        err?.['code'] === '42501'
+          ? 'Erro de permissão. Contate o suporte.'
+          : err?.['message']?.toString().includes('conflict') || err?.['code'] === '23505'
+          ? 'Este horário acabou de ser reservado. Escolha outro.'
+          : 'Erro ao conectar. Verifique sua conexão e tente novamente.';
+      this.erro.set(msg);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  stepDesbloqueado(step: BookingStep): boolean {
+    const ordem: BookingStep[] = ['servico', 'data', 'horario', 'dados', 'resumo', 'confirmado'];
+    const idxAtual = ordem.indexOf(this.step());
+    const idxAlvo  = ordem.indexOf(step);
+    if (idxAtual === -1 || idxAlvo === -1) return false;
+    return idxAtual >= idxAlvo;
+  }
+
+  reabrirStep(step: BookingStep): void {
+    if (step === 'servico') {
+      this.servicoSelecionado.set(null);
+      this.dataSelecionada.set(null);
+      this.horarioSelecionado.set(null);
+    } else if (step === 'data') {
+      this.dataSelecionada.set(null);
+      this.horarioSelecionado.set(null);
+    } else if (step === 'horario') {
+      this.horarioSelecionado.set(null);
+    }
+    this.step.set(step);
   }
 
   voltar(): void {

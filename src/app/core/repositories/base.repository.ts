@@ -15,6 +15,8 @@ export function isAuthError(error: unknown): boolean {
   const msg  = ((e['message'] as string) ?? '').toLowerCase();
   const code = e['code'] ?? e['status'];
 
+  console.error('[Repository] erro:', code, e['message'], e['status']);
+
   return (
     code === 401 ||
     code === 'PGRST301' ||

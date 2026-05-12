@@ -1,0 +1,12 @@
+<div class="section-header">
+  <span class="titulo">{{ titulo }}</span>
+  @if (concluida) {
+    <div class="section-header-resumo">
+      <mat-icon class="check">check_circle</mat-icon>
+      @if (resumo) {
+        <span class="resumo">{{ resumo }}</span>
+      }
+      <button class="alterar" (click)="editar.emit()">Alterar</button>
+    </div>
+  }
+</div>

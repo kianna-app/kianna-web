@@ -8,87 +8,144 @@
     </div>
   }
 
-  @switch (booking.step()) {
+  @if (booking.step() === 'lotado') {
+    <div class="estado-vazio">
+      <span class="estado-icon">😔</span>
+      <p class="estado-titulo">Sem horários disponíveis</p>
+      <p class="estado-desc">Este profissional atingiu o limite de agendamentos do mês.</p>
+      @if (booking.profissional()?.whatsapp) {
+        <a
+          class="btn-wpp"
+          [href]="'https://wa.me/55' + booking.profissional()!.whatsapp.replace(/\D/g, '')"
+          target="_blank"
+        >
+          Entrar em contato pelo WhatsApp
+        </a>
+      }
+    </div>
+  }
 
-    @case ('servico') {
-      <app-service-selector
-        [servicos]="booking.servicos()"
-        (selecionou)="booking.selecionarServico($event)"
+  @if (booking.step() === 'not-found') {
+    <div class="estado-vazio">
+      <span class="estado-icon">🔍</span>
+      <p class="estado-titulo">Profissional não encontrado</p>
+      <p class="estado-desc">O link que você acessou não existe ou foi alterado.</p>
+      <a routerLink="/" class="btn-secundario">Conhecer o Kianna</a>
+    </div>
+  }
+
+  @if (booking.stepDesbloqueado('servico') && booking.step() !== 'lotado' && booking.step() !== 'not-found') {
+
+    <!-- Seção 1: Serviço -->
+    <section class="booking-section">
+      <app-section-header
+        titulo="Serviço"
+        [concluida]="!!booking.servicoSelecionado()"
+        [resumo]="booking.servicoSelecionado()?.nome ?? null"
+        (editar)="booking.reabrirStep('servico')"
       />
-    }
+      @if (booking.step() === 'servico') {
+        <div class="section-body">
+          <app-service-selector
+            [servicos]="booking.servicos()"
+            (selecionou)="onSelecionouServico($event)"
+          />
+        </div>
+      }
+    </section>
 
-    @case ('data') {
-      <app-date-selector
-        [diasComSlots]="booking.diasComSlots()"
-        (selecionou)="booking.selecionarData($event)"
-        (voltou)="booking.voltar()"
-      />
-    }
-
-    @case ('horario') {
-      <app-time-selector
-        [slots]="booking.slotsParaDia()"
-        [data]="booking.dataSelecionada()"
-        (selecionou)="booking.selecionarHorario($event)"
-        (voltou)="booking.voltar()"
-      />
-    }
-
-    @case ('dados') {
-      <app-client-form
-        (confirmou)="booking.irParaResumo($event)"
-        (voltou)="booking.voltar()"
-      />
-    }
-
-    @case ('resumo') {
-      <app-booking-summary
-        [profissional]="booking.profissional()"
-        [servico]="booking.servicoSelecionado()"
-        [dataHora]="booking.horarioSelecionado()"
-        [cliente]="{ nome: booking.clienteNome(), wpp: booking.clienteWpp() }"
-        [loading]="booking.loading()"
-        [erro]="booking.erro()"
-        (confirmou)="booking.confirmarAgendamento()"
-        (voltou)="booking.voltar()"
-      />
-    }
-
-    @case ('confirmado') {
-      <app-booking-confirmation
-        [profissional]="booking.profissional()"
-        [servico]="booking.servicoSelecionado()"
-        [dataHora]="booking.horarioSelecionado()"
-        [clienteNome]="booking.clienteNome()"
-      />
-    }
-
-    @case ('lotado') {
-      <div class="estado-vazio">
-        <span class="estado-icon">😔</span>
-        <p class="estado-titulo">Sem horários disponíveis</p>
-        <p class="estado-desc">Este profissional atingiu o limite de agendamentos do mês.</p>
-        @if (booking.profissional()?.whatsapp) {
-          <a
-            class="btn-wpp"
-            [href]="'https://wa.me/55' + booking.profissional()!.whatsapp.replace(/\D/g, '')"
-            target="_blank"
-          >
-            Entrar em contato pelo WhatsApp
-          </a>
+    <!-- Seção 2: Data -->
+    @if (booking.stepDesbloqueado('data')) {
+      <section #secData class="booking-section">
+        <app-section-header
+          titulo="Data"
+          [concluida]="!!booking.dataSelecionada()"
+          [resumo]="booking.dataSelecionada() ? (booking.dataSelecionada()! | date:'EEE, dd/MM':'':'pt-BR') : null"
+          (editar)="booking.reabrirStep('data')"
+        />
+        @if (booking.step() === 'data') {
+          <div class="section-body">
+            <app-date-selector
+              [diasComSlots]="booking.diasComSlots()"
+              (selecionou)="onSelecionouData($event)"
+              (voltou)="booking.voltar()"
+            />
+          </div>
         }
-      </div>
+      </section>
     }
 
-    @case ('not-found') {
-      <div class="estado-vazio">
-        <span class="estado-icon">🔍</span>
-        <p class="estado-titulo">Profissional não encontrado</p>
-        <p class="estado-desc">O link que você acessou não existe ou foi alterado.</p>
-        <a routerLink="/" class="btn-secundario">Conhecer o Kianna</a>
-      </div>
+    <!-- Seção 3: Horário -->
+    @if (booking.stepDesbloqueado('horario')) {
+      <section #secHorario class="booking-section">
+        <app-section-header
+          titulo="Horário"
+          [concluida]="!!booking.horarioSelecionado()"
+          [resumo]="booking.horarioSelecionado() ? (booking.horarioSelecionado()! | date:'HH:mm') : null"
+          (editar)="booking.reabrirStep('horario')"
+        />
+        @if (booking.step() === 'horario') {
+          <div class="section-body">
+            <app-time-selector
+              [slots]="booking.slotsParaDia()"
+              [data]="booking.dataSelecionada()"
+              (selecionou)="onSelecionouHorario($event)"
+              (voltou)="booking.voltar()"
+            />
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Seção 4: Dados do cliente -->
+    @if (booking.stepDesbloqueado('dados')) {
+      <section #secDados class="booking-section">
+        <app-section-header
+          titulo="Seus dados"
+          [concluida]="booking.step() === 'resumo' || booking.step() === 'confirmado'"
+        />
+        @if (booking.step() === 'dados') {
+          <div class="section-body">
+            <app-client-form
+              (confirmou)="onConfirmouDados($event)"
+              (voltou)="booking.voltar()"
+            />
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Seção 5: Resumo / Confirmação -->
+    @if (booking.step() === 'resumo' || booking.step() === 'confirmado') {
+      <section #secResumo class="booking-section">
+        @if (booking.step() === 'resumo') {
+          <app-booking-summary
+            [profissional]="booking.profissional()"
+            [servico]="booking.servicoSelecionado()"
+            [dataHora]="booking.horarioSelecionado()"
+            [cliente]="{ nome: booking.clienteNome(), wpp: booking.clienteWpp() }"
+            [loading]="booking.loading()"
+            [erro]="booking.erro()"
+            (confirmou)="booking.confirmarAgendamento()"
+            (voltou)="booking.voltar()"
+          />
+        }
+        @if (booking.step() === 'confirmado') {
+          <app-booking-confirmation
+            [profissional]="booking.profissional()"
+            [servico]="booking.servicoSelecionado()"
+            [dataHora]="booking.horarioSelecionado()"
+            [clienteNome]="booking.clienteNome()"
+          />
+        }
+      </section>
     }
 
   }
 
 </div>
+
+<!-- FAB scroll to top -->
+<button class="fab-top" [class.visivel]="mostrarFab()" (click)="scrollTop()" aria-label="Voltar ao topo">
+  <mat-icon>keyboard_arrow_up</mat-icon>
+</button>

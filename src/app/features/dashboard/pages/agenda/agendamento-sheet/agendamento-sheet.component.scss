@@ -69,3 +69,29 @@ h2 { font-size: 18px; margin: 0 0 4px; color: v.$kianna-slate-900; }
 
   button { width: 100%; justify-content: center; }
 }
+
+.btn-confirmar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
+  background: #1D9E75;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+
+  &:hover { background: #178a64; }
+
+  &--reabrir {
+    background: #3B82F6;
+    &:hover { background: #2563EB; }
+  }
+}

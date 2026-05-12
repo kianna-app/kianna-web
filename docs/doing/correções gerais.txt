@@ -1,0 +1,91 @@
+> Analise com calma estes erros, obervações e melhorias.
+> Pergunte se encontra ambiguidades e erros.
+> Elabore uma task card de correções e melhorias se necessário sepradas.
+> Pense em economizar tokens de saída, gere um texto em fomarto .txt, eveitando muitos caracteres desnecessário para o claude code executar.
+> Seja prático e profissional.
+
+
+Erros:*
+  Erro 1:
+  -Qual a diferença em digitar no nagevador:
+  > https://kianna.com.br/  --> Aqui ele não redireciona e aparece uma mensagem da Hostinger, como se não houvesse um site.
+  > http://www.kianna.com.br/ --> Digitando aqui o site abre normalmente.
+  >   neste contexto o app recomenda acessar o link https://kianna.com.br/studio-ana, porém ocorre um erro e é necessário digitar, https://www.kianna.com.br/studio-ana para acessar.
+
+  Erro outros:
+  - Após um tempo inativo do sistema, ao clicar em qualquer página que requer a busca de dados no banco, o app fica com o loading ativo, buscando os dados, e não finaliza, como se a sessão tivesse expirado. Observação: O tempo esperado é curto certa de 5 a 10 minutos apenas.
+  - Quando erro está ocorrendo ao clicar na página perfil carrega normalmente.
+  - Adicionar logs para tentarmos identificar esse proble.ASerá problema no Supabase, como verificar seus limite no paindel deles?
+
+  - O botão Confirmar agendamento na visão do administrator nos detalhes de agendamento, não está confirmando, ao clicar neles, nada acontece.
+
+
+  Erro Confirmar agendamento.
+  - Ao clicar em 'Confirmar agendamento' na página publica o cliente recebeu uma mensagem "Não foi possível confirmar o agendamento. Tente novamente". Erro erro está genérico, além disso investigue porque não possível, houve algum conflito de horário algo que empeça o agendamento?
+    - Sobre este erro, vi no Supabase que ocorreu o erro 401 em POST : /rest/v1/agendamentos.
+      - POST | 401 | https://........supabase.co/rest/v1/agendamentos?select=id | Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Mobile Safari/537.36
+      -
+  - Erro no supabase:
+    Issue View public.agendamentos_publicos is defined with the SECURITY DEFINER property
+      Description
+      Detects views defined with the SECURITY DEFINER property. These views enforce Postgres permissions and row level security policies (RLS) of the view creator, rather than that of the querying user
+
+  - Erro wncontrado no log do PostgREST:
+    - "Warp server error: Thread killed by timeout manager"
+
+  - Outro erro encontrado no log do Postgres no Supabase:
+    {
+  "event_message": "new row violates row-level security policy for table \"agendamentos\"",
+  "id": "24e4ab51-db81-4fbc-bfac-6fc8935298ea",
+  "metadata": [
+    {
+      "file": null,
+      "host": "db-ocjsscsfggzwkgitzqlk",
+      "metadata": [],
+      "parsed": [
+        {
+          "application_name": "postgrest",
+          "backend_type": "client backend",
+          "command_tag": "SELECT",
+          "connection_from": "::1:53837",
+          "context": null,
+          "database_name": "postgres",
+          "detail": null,
+          "error_severity": "ERROR",
+          "hint": null,
+          "internal_query": null,
+          "internal_query_pos": null,
+          "leader_pid": null,
+          "location": null,
+          "process_id": 467797,
+          "query": "WITH pgrst_source AS (INSERT INTO \"public\".\"agendamentos\"(\"cliente_nome\", \"cliente_wpp\", \"data_hora\", \"profissional_id\", \"servico_id\", \"status\") SELECT \"pgrst_body\".\"cliente_nome\", \"pgrst_body\".\"cliente_wpp\", \"pgrst_body\".\"data_hora\", \"pgrst_body\".\"profissional_id\", \"pgrst_body\".\"servico_id\", \"pgrst_body\".\"status\" FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"cliente_nome\", \"cliente_wpp\", \"data_hora\", \"profissional_id\", \"servico_id\", \"status\" FROM json_to_record(pgrst_payload.json_data) AS _(\"cliente_nome\" text, \"cliente_wpp\" text, \"data_hora\" timestamp with time zone, \"profissional_id\" uuid, \"servico_id\" uuid, \"status\" text) ) pgrst_body  RETURNING \"public\".\"agendamentos\".\"id\") SELECT '' AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, array[]::text[] AS header, coalesce(json_agg(_postgrest_t)->0, 'null') AS body, nullif(current_setting('response.headers', true), '') AS response_headers, nullif(current_setting('response.status', true), '') AS response_status, '' AS response_inserted FROM (SELECT \"agendamentos\".\"id\" FROM \"pgrst_source\" AS \"agendamentos\"   ) _postgrest_t",
+          "query_id": -5951455904745140000,
+          "query_pos": null,
+          "session_id": "6a027ca9.72355",
+          "session_line_num": 4,
+          "session_start_time": "2026-05-12 01:04:41 UTC",
+          "sql_state_code": "42501",
+          "timestamp": "2026-05-12 01:04:41.852 UTC",
+          "transaction_id": 0,
+          "user_name": "authenticator",
+          "virtual_transaction_id": "25/1911"
+        }
+      ],
+      "parsed_from": null,
+      "project": null,
+      "source_type": null
+    }
+  ],
+  "timestamp": 1778547881852000
+}
+
+
+Melhorias*
+  - Adicionar mensagem no final dos Serviços informando que esgotou a quantidade de serviços gratuítos.
+  - Página de serviços: Adicionar um botão para o usuário poder contratar mais serviços.
+  - Na página Publica, exemplo https://www.kianna.com.br/studio-ana
+    - As opções de Escola o Serviço, Escolha a data, escolha o horário e Seus dados, todo devem ficar em uma única página e não como está hoje, avançando ao ser escolhido uma opção.
+    - O que der ser feito é ao ser escolhido um ícone rolar a página para baixo ao invés de avançar, assim, não será preciso o botão voltar, apenas um botão de "subir a rolagem".
+    - O botão de "subir a rolagem" deve ser um botão flutuante e deve aparecer apenas quando o usuário rolar a página para baixo.
+  - A parte de Confirmar Agendamento está ok, manter dessa forma.
+  - O botão Confirmar agendamento na visão do administrator nos detalhes de agendamento, está com o designer fora do padrão, deixar igual ao botão "Confirmar agendamento" da página pública que o cliente usa para agendar seus serviços.

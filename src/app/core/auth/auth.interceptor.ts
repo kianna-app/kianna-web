@@ -13,7 +13,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return from(authService.getAccessToken()).pipe(
     switchMap(token => {
-      if (!token) return next(req);
+      if (!token) {
+        console.warn('[AuthInterceptor] sem token para:', req.url);
+        return next(req);
+      }
+      console.log('[AuthInterceptor] adicionando Bearer | expira em:', (token as any)?.exp ?? '?', '| agora:', Math.floor(Date.now() / 1000));
       return next(req.clone({
         setHeaders: { Authorization: `Bearer ${token}` }
       }));
