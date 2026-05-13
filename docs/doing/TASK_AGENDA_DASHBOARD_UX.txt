@@ -1,0 +1,663 @@
+KIANNA — AGENDA, DASHBOARD, MENU E PADRONIZAÇÃO DE BOTÕES
+Branch: feat/agenda-dashboard-ux
+========================================
+
+
+=== BLOCO A — PÁGINA AGENDA (refatoração) ===
+
+--- A1: Remover botão Filtrar ---
+ARQUIVO: features/dashboard/pages/agenda/agenda.component.html
+AÇÃO: remover o bloco .month-row inteiro que contém o filter-btn
+Substituir pelo bloco de navegação de semana (ver A2)
+
+
+--- A2: Navegação entre semanas ---
+ARQUIVO: agenda.component.ts
+
+Substituir semana = computed(() => this.gerarSemana()) por semana com offset:
+
+  semanaOffset = signal(0)  // 0 = semana atual, -1 = anterior, 1 = próxima
+
+  semana = computed(() => this.gerarSemana(this.semanaOffset()))
+
+  semanaAnterior() { this.semanaOffset.update(v => v - 1) }
+  proximaSemana()  { this.semanaOffset.update(v => v + 1) }
+
+  private gerarSemana(offset = 0) {
+    const hoje = new Date()
+    const diasLetras = ['D','S','T','Q','Q','S','S']
+    const baseDate = new Date(hoje)
+    baseDate.setDate(hoje.getDate() - hoje.getDay() + offset * 7)
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(baseDate)
+      d.setDate(baseDate.getDate() + i)
+      const k = d.toDateString()
+      const ocupacao = Math.min(this.ocupacaoPorDia().get(k) ?? 0, 3)
+      return {
+        data: d, letra: diasLetras[d.getDay()],
+        numero: d.getDate(), hoje: d.toDateString() === hoje.toDateString(),
+        selecionado: d.toDateString() === this.diaSelecionado().toDateString(),
+        ocupacao,
+      }
+    })
+  }
+
+  // Label do mês/ano da semana visível
+  get mesLabel(): string {
+    const dias = this.semana()
+    const meio = dias[3].data  // quarta-feira da semana
+    return meio.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  }
+
+ARQUIVO: agenda.component.html
+Substituir .month-row por:
+
+  <div class="month-row">
+    <button class="nav-btn" (click)="semanaAnterior()" aria-label="Semana anterior">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <span class="month-name">{{ mesLabel | titlecase }}</span>
+    <button class="nav-btn" (click)="proximaSemana()" aria-label="Próxima semana">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+    <button class="ver-mes-btn" (click)="mostrarCalendario.set(true)">Ver mês</button>
+  </div>
+
+SCSS adições em agenda.component.scss:
+  .month-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 16px 18px 8px;
+  }
+  .month-name { flex: 1; font-size: 17px; font-weight: 600;
+                letter-spacing: -0.2px; color: var(--text-1); text-align: center; }
+  .nav-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border-soft); background: var(--bg-card);
+    display: grid; place-items: center; cursor: pointer;
+    color: var(--text-2); box-shadow: var(--shadow-1);
+    &:hover { background: var(--c-primary-bg); color: var(--c-primary); }
+  }
+  .ver-mes-btn {
+    font: 500 12px 'Inter'; color: var(--c-primary);
+    background: var(--c-primary-bg); border: none;
+    border-radius: 99px; padding: 5px 12px; cursor: pointer;
+  }
+
+
+--- A3: Filtro por status na resumo-band ---
+ARQUIVO: agenda.component.ts
+Adicionar signal de filtro:
+  filtroStatus = signal<string | null>(null)
+
+  agendamentosFiltrados = computed(() => {
+    const f = this.filtroStatus()
+    return f
+      ? this.agendamentosDoDia().filter(a => a.status === f)
+      : this.agendamentosDoDia()
+  })
+
+  toggleFiltro(status: string) {
+    this.filtroStatus.set(this.filtroStatus() === status ? null : status)
+  }
+
+ARQUIVO: resumo-band.component.ts
+Adicionar @Input() filtroAtivo e @Output() filtrar:
+  @Input()  filtroAtivo: string | null = null
+  @Output() filtrar = new EventEmitter<string>()
+
+  // Em cada célula, adicionar [class.ativo]="filtroAtivo === 'confirmado'" etc
+  // e (click)="filtrar.emit('confirmado')"
+
+SCSS em resumo-band:
+  .cell { cursor: pointer; border-radius: 8px; padding: 6px 4px; transition: background .15s; }
+  .cell:hover { background: #f1f3f5; }
+  .cell.ativo  { background: var(--c-primary-bg); }
+  // cada status tem .ativo com sua cor de fundo respectiva:
+  .cell.ativo-confirmado { background: var(--c-primary-bg); }
+  .cell.ativo-pendente   { background: var(--c-amber-bg); }
+  .cell.ativo-concluido  { background: var(--c-green-bg); }
+
+No template da agenda, passar o filtro e ouvir o evento:
+  <app-resumo-band [resumo]="resumo()" [filtroAtivo]="filtroStatus()"
+    (filtrar)="toggleFiltro($event)" />
+  // Usar agendamentosFiltrados() no @for em vez de agendamentosDoDia()
+
+
+--- A4: Calendário mensal (overlay) ---
+ARQUIVO: agenda.component.ts
+  mostrarCalendario = signal(false)
+
+  selecionarDiaDoCalendario(data: Date) {
+    this.diaSelecionado.set(data)
+    // Ajustar semanaOffset para a semana do dia selecionado
+    const hoje = new Date()
+    const diff  = Math.floor(
+      (data.getTime() - new Date(hoje.setDate(hoje.getDate() - hoje.getDay())).getTime())
+      / (7 * 24 * 60 * 60 * 1000)
+    )
+    this.semanaOffset.set(diff)
+    this.mostrarCalendario.set(false)
+  }
+
+ARQUIVO: agenda.component.html — adicionar overlay:
+  @if (mostrarCalendario()) {
+    <div class="cal-overlay" (click)="mostrarCalendario.set(false)">
+      <div class="cal-panel" (click)="$event.stopPropagation()">
+        <app-month-calendar
+          [agendamentos]="agendamentosStore.agendamentos()"
+          [diaSelecionado]="diaSelecionado()"
+          (diaClicado)="selecionarDiaDoCalendario($event)"
+          (fechar)="mostrarCalendario.set(false)" />
+      </div>
+    </div>
+  }
+
+NOVO COMPONENTE: components/month-calendar/month-calendar.component.ts
+  // Renderiza grade de dias do mês
+  // Inputs: agendamentos[], diaSelecionado: Date
+  // Outputs: diaClicado: Date, fechar: void
+  // Cada célula mostra: número do dia + dot verde se tem agendamento
+  // Dia selecionado: fundo #1D9E75
+  // Dia hoje: borda #1D9E75
+  // Header: "< Mês Ano >" para navegar entre meses
+  // Botão X para fechar
+  // SCSS: largura 320px, centralizado, border-radius 16px, sombra
+
+  SCSS overlay:
+  .cal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+  }
+  .cal-panel {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden; width: 320px;
+  }
+
+
+--- A5: Gerenciamento de agendamentos (CRUD completo) ---
+
+NOVO COMPONENTE: components/agendamento-form-dialog/
+  // mat-dialog com formulário de criação/edição
+  // Campos:
+  //   - cliente_nome (text, required)
+  //   - cliente_wpp (tel, máscara whatsapp)
+  //   - servico_id (mat-select, lista de servicos ativos)
+  //   - data_hora (mat-datepicker + mat-select de horário disponível)
+  //   - status (mat-select: pendente|confirmado|concluido|cancelado)
+  //   - observacoes (textarea, opcional)
+  // Botões: Salvar (verde) | Cancelar (sem cor)
+  // Se edição: mostrar botão Excluir (vermelho, separado à esquerda)
+
+ARQUIVO: agendamentos.repository.ts — adicionar métodos:
+
+  async criar(payload: {
+    profissional_id: string; servico_id: string; cliente_nome: string
+    cliente_wpp: string; data_hora: string; status: string; observacoes?: string
+  }): Promise<{ id: string }> {
+    const { data, error } = await this.supabase
+      .from('agendamentos').insert(payload).select('id').single()
+    if (error) throw error
+    return data
+  }
+
+  async atualizar(id: string, payload: Partial<{
+    servico_id: string; cliente_nome: string; cliente_wpp: string
+    data_hora: string; status: string; observacoes: string
+  }>): Promise<void> {
+    const profId = await this.profissionalIdOrThrow()
+    const { error } = await this.supabase
+      .from('agendamentos').update(payload)
+      .eq('id', id).eq('profissional_id', profId)
+    if (error) throw error
+  }
+
+  async excluir(id: string): Promise<void> {
+    const profId = await this.profissionalIdOrThrow()
+    const { error } = await this.supabase
+      .from('agendamentos').delete()
+      .eq('id', id).eq('profissional_id', profId)
+    if (error) throw error
+  }
+
+ARQUIVO: agendamentos.store.ts — adicionar:
+  async criar(payload: any)               { /* chama repo.criar, atualiza lista */ }
+  async atualizar(id: string, p: any)     { /* chama repo.atualizar, atualizarStatusLocal */ }
+  async excluir(id: string)               { /* chama repo.excluir, filtra da lista */ }
+
+ARQUIVO: appt-card.component.ts — adicionar botão de edição:
+  @Output() editar = new EventEmitter<void>()
+  // Adicionar no footer do card:
+  <button class="edit-btn" (click)="editar.emit()">
+    <svg>/* ícone lápis */</svg>
+  </button>
+
+  .edit-btn {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    color: var(--text-4); padding: 4px;
+    &:hover { color: var(--c-primary); }
+  }
+
+ARQUIVO: agenda.component.ts — métodos:
+  abrirNovo() {
+    const ref = this.dialog.open(AgendamentoFormDialogComponent, {
+      data: { modo: 'criar', diaSelecionado: this.diaSelecionado() }
+    })
+    ref.afterClosed().subscribe(result => {
+      if (result) this.agendamentosStore.carregar()
+    })
+  }
+
+  abrirEdicao(ag: AgendamentoView) {
+    const ref = this.dialog.open(AgendamentoFormDialogComponent, {
+      data: { modo: 'editar', agendamento: ag }
+    })
+    ref.afterClosed().subscribe(result => {
+      if (result) this.agendamentosStore.carregar()
+    })
+  }
+
+ARQUIVO: agenda.component.html — botão FAB novo agendamento:
+  <button class="fab-novo" (click)="abrirNovo()" aria-label="Novo agendamento">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14 M5 12h14"/>
+    </svg>
+  </button>
+
+  .fab-novo {
+    position: fixed; bottom: 88px; right: 24px;
+    width: 52px; height: 52px; border-radius: 26px;
+    background: #1D9E75; border: none; cursor: pointer;
+    display: grid; place-items: center;
+    box-shadow: 0 8px 24px rgba(29,158,117,0.4);
+    z-index: 100;
+  }
+  // Em desktop (sidenav aberto): right deve compensar a largura do sidenav
+  // Adicionar classe .com-sidenav quando sidenav está aberto
+
+
+=== BLOCO B — DASHBOARD (visão geral) ===
+
+--- B1: Mover bloco de agenda para a visão geral ---
+CONTEXTO: a visão geral (visao-geral.component) já mostra link de agendamento no topo.
+Abaixo do card de link, adicionar a visualização de agenda do dia de hoje.
+
+ARQUIVO: visao-geral.component.ts
+  // Injetar AgendamentosStore e ServicosStore (já injetados ou adicionar)
+  // Copiar lógica de agendamentosDoDia, resumo, semana do AgendaComponent
+  // PORÉM: na visão geral, semana é fixa (sem offset, sem navegação entre semanas)
+  // O usuário pode trocar o dia selecionado mas não navega de semana
+  // Ao clicar em "Ver agenda completa" → navega para /dashboard/agenda
+
+ARQUIVO: visao-geral.component.html — após o card do link de agendamento:
+
+  <!-- Mini-agenda embutida -->
+  <div class="mini-agenda">
+
+    <div class="mini-agenda-header">
+      <span class="mini-titulo">Agenda</span>
+      <a routerLink="/dashboard/agenda" class="ver-tudo">Ver tudo</a>
+    </div>
+
+    <!-- Strip de 7 dias (componente reutilizável já criado) -->
+    <app-week-strip [dias]="semana()" (selecionar)="diaSelecionado.set($event)" />
+
+    <!-- Resumo band -->
+    <app-resumo-band [resumo]="resumo()" [filtroAtivo]="filtroStatus()"
+      (filtrar)="toggleFiltro($event)" />
+
+    <!-- Lista resumida (máx 5 itens) -->
+    @for (ag of agendamentosFiltrados().slice(0,5); track ag.id) {
+      <app-appt-card [agendamento]="ag" (editar)="abrirEdicao(ag)" />
+    }
+    @if (agendamentosFiltrados().length > 5) {
+      <a routerLink="/dashboard/agenda" class="ver-mais-link">
+        Ver mais {{ agendamentosFiltrados().length - 5 }} agendamento(s)
+      </a>
+    }
+    @if (!agendamentosStore.loading() && !agendamentosFiltrados().length) {
+      <p class="vazio-mini">Nenhum agendamento neste dia.</p>
+    }
+
+  </div>
+
+SCSS no visao-geral.component.scss:
+  .mini-agenda { margin-top: 20px; }
+  .mini-agenda-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4px 8px;
+  }
+  .mini-titulo { font: 600 16px 'Inter'; color: #212529; }
+  .ver-tudo    { font: 500 13px 'Inter'; color: #1D9E75; text-decoration: none; }
+  .ver-mais-link {
+    display: block; text-align: center; padding: 12px;
+    font: 500 13px 'Inter'; color: #1D9E75; text-decoration: none;
+  }
+  .vazio-mini { text-align: center; padding: 20px 0;
+                font: 400 13px 'Inter'; color: #adb5bd; }
+
+REMOVER da visão geral: os cards/colunas de pendentes e agendamentos hoje
+criados no fix anterior (fixes-dashboard-ux.txt bloco B2) — a mini-agenda
+substitui essa seção com informação mais rica.
+MANTER: apenas a kpi-bar (bloco B1 do fix anterior).
+
+
+=== BLOCO C — MENU LATERAL (sidenav) ===
+
+--- C1: Novo visual clean com divisórias ---
+ARQUIVO: features/dashboard/shell/sidenav/sidenav.component.ts + .html + .scss
+
+REMOVER: cor de fundo escura (#1a2332 ou similar)
+APLICAR: fundo branco com borda direita sutil
+
+SCSS sidenav.component.scss:
+  :host {
+    display: flex; flex-direction: column;
+    height: 100%; background: #fff;
+    border-right: 1px solid #e9ecef;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Logo */
+  .sidenav-logo {
+    padding: 20px 20px 16px;
+    font: 700 20px 'Inter'; color: #212529;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #f1f3f5;
+  }
+  .sidenav-logo .emoji { font-size: 22px; }
+
+  /* Seções com label */
+  .nav-section { padding: 16px 12px 4px; }
+  .nav-section-label {
+    font: 600 10px 'Inter'; color: #adb5bd;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 0 8px; margin-bottom: 4px;
+  }
+
+  /* Itens */
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer;
+    text-decoration: none; color: #495057;
+    font: 500 14px 'Inter'; transition: all .15s;
+    &:hover { background: #f8f9fa; color: #212529; }
+  }
+  .nav-item.active {
+    background: #E8F5F0; color: #1D9E75;
+    font-weight: 600;
+    mat-icon, .nav-icon { color: #1D9E75; }
+  }
+  .nav-icon { font-size: 18px; width: 18px; color: #868e96; }
+
+  /* Footer do sidenav */
+  .sidenav-footer {
+    margin-top: auto; padding: 16px;
+    border-top: 1px solid #f1f3f5;
+  }
+  .user-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; border-radius: 8px; cursor: pointer;
+    &:hover { background: #f8f9fa; }
+  }
+  .user-name  { font: 600 13px 'Inter'; color: #212529; }
+  .user-plano { font: 400 11px 'Inter'; color: #adb5bd; }
+
+HTML sidenav.component.html — estrutura com seções e divisórias:
+
+  <div class="sidenav-logo">
+    <span class="emoji">✨</span> Kianna
+  </div>
+
+  <!-- Painel -->
+  <nav class="nav-section">
+    <div class="nav-section-label">Painel</div>
+    <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+      <mat-icon class="nav-icon">dashboard</mat-icon> Visão Geral
+    </a>
+    <a class="nav-item" routerLink="/dashboard/agenda" routerLinkActive="active">
+      <mat-icon class="nav-icon">calendar_today</mat-icon> Agenda
+    </a>
+  </nav>
+
+  <!-- Agendamento -->
+  <nav class="nav-section">
+    <div class="nav-section-label">Agendamento</div>
+    <a class="nav-item" routerLink="/dashboard/servicos" routerLinkActive="active">
+      <mat-icon class="nav-icon">content_cut</mat-icon> Serviços
+    </a>
+    <a class="nav-item" routerLink="/dashboard/horarios" routerLinkActive="active">
+      <mat-icon class="nav-icon">schedule</mat-icon> Horários
+    </a>
+    <!-- Em breve: -->
+    <span class="nav-item disabled">
+      <mat-icon class="nav-icon">people</mat-icon> Clientes
+      <span class="em-breve-badge">Em breve</span>
+    </span>
+  </nav>
+
+  <!-- Configurações -->
+  <nav class="nav-section">
+    <div class="nav-section-label">Configurações</div>
+    <a class="nav-item" routerLink="/dashboard/configuracoes" routerLinkActive="active">
+      <mat-icon class="nav-icon">settings</mat-icon> Config.
+    </a>
+    <span class="nav-item disabled">
+      <mat-icon class="nav-icon">bar_chart</mat-icon> Relatório
+      <span class="em-breve-badge">Em breve</span>
+    </span>
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidenav-footer">
+    <div class="user-row" (click)="irParaPerfil()">
+      <div class="avatar-circle">{{ iniciais }}</div>
+      <div>
+        <div class="user-name">{{ nomeUsuario }}</div>
+        <div class="user-plano">{{ labelPlano }}</div>
+      </div>
+    </div>
+  </div>
+
+SCSS adições:
+  .nav-item.disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+  .em-breve-badge {
+    margin-left: auto; font: 500 10px 'Inter';
+    background: #f1f3f5; color: #868e96;
+    padding: 2px 6px; border-radius: 99px;
+  }
+  .avatar-circle {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #1D9E75; color: #fff;
+    display: grid; place-items: center;
+    font: 600 12px 'Inter';
+  }
+
+--- C2: Corrigir drawer duplo no mobile ---
+ARQUIVO: features/dashboard/dashboard.component.ts + .html
+
+PROBLEMA: parece haver dois mat-sidenav empilhados (um claro sobre um escuro).
+DIAGNÓSTICO: verificar se o dashboard.component.html tem dois <mat-sidenav> ou
+se o sidenav tem fundo e o mat-sidenav também tem background definido no tema.
+
+AÇÃO:
+  1. No dashboard.component.html, garantir que existe apenas UM <mat-sidenav>
+  2. No tema Angular Material (styles.scss ou kianna-theme.scss), remover qualquer
+     override de background em mat-sidenav que use cor escura
+  3. No sidenav.component.scss, o :host já define background: #fff
+  4. Adicionar no dashboard.component.scss:
+       mat-sidenav { background: transparent !important; box-shadow: none; }
+       // O background vem do :host do sidenav.component
+  5. Em mobile, o mat-drawer-backdrop deve ter opacity: 0.4 (padrão Material, ok)
+
+
+=== BLOCO D — PADRONIZAÇÃO DE BOTÕES (global) ===
+
+--- D1: Criar classes de botão padrão no styles.scss global ---
+
+Adicionar após os tokens existentes:
+
+/* =============================================
+   KIANNA — PADRÃO DE BOTÕES
+   ============================================= */
+
+/* Positivo: salvar, confirmar, criar, enviar, copiar */
+.btn-primary {
+  background: #1D9E75 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 10px 20px !important;
+  font: 600 14px 'Inter', sans-serif !important;
+  cursor: pointer;
+  transition: background .15s, box-shadow .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+  &:hover:not(:disabled) { background: #178a65 !important; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+/* Destrutivo: excluir */
+.btn-danger {
+  background: #fff !important;
+  color: #dc3545 !important;
+  border: 1.5px solid #dc3545 !important;
+  border-radius: 10px !important;
+  padding: 10px 20px !important;
+  font: 600 14px 'Inter', sans-serif !important;
+  cursor: pointer;
+  transition: all .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+  &:hover:not(:disabled) { background: #fdecea !important; }
+}
+
+/* Neutro: editar, cancelar ação, voltar */
+.btn-ghost {
+  background: transparent !important;
+  color: #495057 !important;
+  border: 1.5px solid #dee2e6 !important;
+  border-radius: 10px !important;
+  padding: 10px 20px !important;
+  font: 500 14px 'Inter', sans-serif !important;
+  cursor: pointer;
+  transition: all .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+  &:hover:not(:disabled) { background: #f8f9fa !important; border-color: #adb5bd !important; }
+}
+
+/* Tamanho pequeno (uso em cards, tabelas) */
+.btn-sm { padding: 6px 12px !important; font-size: 12px !important; border-radius: 8px !important; }
+
+/* Tamanho grande (CTAs principais) */
+.btn-lg { padding: 13px 28px !important; font-size: 15px !important; border-radius: 12px !important; }
+
+/* Ícone apenas (sem texto) */
+.btn-icon {
+  width: 36px; height: 36px; padding: 0 !important;
+  display: grid; place-items: center;
+  border-radius: 8px !important;
+}
+
+
+--- D2: Aplicar classes nos componentes existentes ---
+Varrer os arquivos abaixo e substituir os botões pelos padrões acima:
+
+SERVIÇOS (servicos.component.html):
+  Botão "Novo serviço"          → .btn-primary
+  Botão "Salvar" (form)         → .btn-primary
+  Botão "Excluir" (card)        → .btn-danger .btn-sm
+  Botão "Editar" (card)         → .btn-ghost .btn-sm
+  Botão "Cancelar" (form)       → .btn-ghost
+
+HORÁRIOS (horarios.component.html):
+  Botão "Salvar"                → .btn-primary
+  Botão "Cancelar"              → .btn-ghost
+
+CONFIGURAÇÕES (configuracoes.component.html):
+  Botão "Salvar" (cada aba)     → .btn-primary
+  Botão "Cancelar"              → .btn-ghost
+
+BOOKING (página pública):
+  Botão "Confirmar agendamento" → .btn-primary .btn-lg
+  Botão "Voltar"                → .btn-ghost
+
+DIALOG de agendamento (novo, bloco A5):
+  Botão "Salvar"                → .btn-primary
+  Botão "Excluir"               → .btn-danger (alinhado à esquerda)
+  Botão "Cancelar"              → .btn-ghost
+
+
+=== BLOCO E — MENSAGEM DE ERRO AO EXCLUIR SERVIÇO ===
+
+ARQUIVO: servicos.component.ts (ou onde está o handler de exclusão)
+AÇÃO: interceptar erro de foreign key constraint e exibir mensagem clara:
+
+  async excluirServico(id: string): Promise<void> {
+    try {
+      await this.servicosRepo.excluir(id)
+      this.servicosStore.removerLocal(id)
+      this.snackBar.open('Serviço removido.', '', { duration: 3000 })
+    } catch (e: any) {
+      // Postgres FK violation: código 23503
+      if (e?.code === '23503' || e?.message?.includes('foreign key')) {
+        this.snackBar.open(
+          'Não é possível excluir este serviço pois ele possui agendamentos vinculados. ' +
+          'Cancele ou conclua os agendamentos antes de excluir.',
+          'Entendi',
+          { duration: 8000, panelClass: 'snack-warn' }
+        )
+      } else {
+        this.snackBar.open('Erro ao excluir serviço. Tente novamente.', '', { duration: 4000 })
+        console.error('[Serviços] erro ao excluir:', e)
+      }
+    }
+  }
+
+SCSS global (styles.scss):
+  .snack-warn .mdc-snackbar__surface { background: #fff3cd !important; }
+  .snack-warn .mat-mdc-snack-bar-label { color: #5d4037 !important; }
+
+
+=== ORDEM DE EXECUÇÃO ===
+
+1. C2  — Corrigir drawer duplo (visual urgente)
+2. C1  — Novo menu lateral clean
+3. D1  — Classes de botão global
+4. D2  — Aplicar classes nos componentes
+5. E   — Mensagem erro excluir serviço
+6. A1  — Remover botão Filtrar
+7. A2  — Navegação entre semanas
+8. A3  — Filtro por status na band
+9. A4  — Calendário mensal overlay
+10. A5 — CRUD de agendamentos (form dialog + FAB)
+11. B1 — Mini-agenda na visão geral
+
+
+=== CHECKLIST DE ACEITAÇÃO ===
+
+[ ] Menu lateral branco com seções e divisórias (Painel / Agendamento / Configurações)
+[ ] Item ativo: fundo verde claro, texto e ícone verde #1D9E75
+[ ] Apenas um drawer visível no mobile (sem sobreposição)
+[ ] Botão Filtrar removido da agenda
+[ ] Setas < > para navegar semanas anteriores e próximas
+[ ] Botão "Ver mês" abre overlay com calendário mensal
+[ ] Clicar num dia do calendário navega para aquele dia na lista
+[ ] Clicar em Total/Confirmados/Pendentes/Concluídos filtra a lista
+[ ] Clicar novamente remove o filtro
+[ ] FAB verde abre dialog de novo agendamento
+[ ] Ícone de edição no card abre dialog com dados preenchidos
+[ ] Excluir agendamento remove da lista
+[ ] Marcar como concluído atualiza o status e a cor do card
+[ ] Mini-agenda aparece na visão geral abaixo do link de agendamento
+[ ] Colunas Pendentes/Hoje removidas da visão geral
+[ ] Botões positivos: verde #1D9E75, border-radius 10px
+[ ] Botões excluir: borda vermelha, fundo branco
+[ ] Botões editar/cancelar: ghost (borda cinza)
+[ ] Erro ao excluir serviço com agendamento: mensagem clara e específica
+[ ] Sem erros no console

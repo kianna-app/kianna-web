@@ -9,7 +9,7 @@
         no plano atual
       </p>
     </div>
-    <button mat-flat-button color="primary" (click)="abrirDialogNovo()"
+    <button class="btn-primary" (click)="abrirDialogNovo()"
             [disabled]="store.atingiuLimite()">
       <mat-icon>add</mat-icon> Novo serviço
     </button>
@@ -43,7 +43,7 @@
       <mat-icon>cut</mat-icon>
       <h3>Nenhum serviço cadastrado</h3>
       <p>Adicione seus serviços para começar a receber agendamentos</p>
-      <button mat-flat-button color="primary" (click)="abrirDialogNovo()">
+      <button class="btn-primary" (click)="abrirDialogNovo()">
         <mat-icon>add</mat-icon> Adicionar primeiro serviço
       </button>
     </div>
@@ -100,10 +100,10 @@
               </div>
 
               <div class="card-actions">
-                <button mat-stroked-button (click)="abrirDialogEdicao(s); $event.stopPropagation()">
+                <button class="btn-ghost btn-sm" (click)="abrirDialogEdicao(s); $event.stopPropagation()">
                   <mat-icon>edit</mat-icon> Editar
                 </button>
-                <button mat-stroked-button color="warn" (click)="excluir(s); $event.stopPropagation()">
+                <button class="btn-danger btn-sm" (click)="excluir(s); $event.stopPropagation()">
                   <mat-icon>delete_outline</mat-icon> Excluir
                 </button>
               </div>

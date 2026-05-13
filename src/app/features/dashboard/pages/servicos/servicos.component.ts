@@ -131,8 +131,18 @@ export class ServicosComponent implements OnInit {
     try {
       await this.store.excluir(servico.id);
       this.snack.open('Serviço excluído', 'OK', { duration: 2000 });
-    } catch {
-      this.snack.open('Erro ao excluir', 'OK', { duration: 2000 });
+    } catch (e: any) {
+      if (e?.code === '23503' || e?.message?.includes('foreign key')) {
+        this.snack.open(
+          'Não é possível excluir este serviço pois ele possui agendamentos vinculados. ' +
+          'Cancele ou conclua os agendamentos antes de excluir.',
+          'Entendi',
+          { duration: 8000, panelClass: 'snack-warn' }
+        );
+      } else {
+        this.snack.open('Erro ao excluir serviço. Tente novamente.', 'OK', { duration: 3000 });
+        console.error('[Serviços] erro ao excluir:', e);
+      }
     }
   }
 }

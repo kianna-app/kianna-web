@@ -358,3 +358,62 @@ html, body {
   padding-top: 16px;
   border-top: 1px solid vars.$kianna-slate-100;
 }
+
+// =============================================
+// KIANNA — PADRÃO DE BOTÕES
+// =============================================
+
+.btn-primary {
+  background: #1D9E75 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 10px 20px !important;
+  font: 600 14px 'Inter', sans-serif !important;
+  cursor: pointer;
+  transition: background .15s, box-shadow .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+  &:hover:not(:disabled) { background: #178a65 !important; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.btn-danger {
+  background: #fff !important;
+  color: #dc3545 !important;
+  border: 1.5px solid #dc3545 !important;
+  border-radius: 10px !important;
+  padding: 10px 20px !important;
+  font: 600 14px 'Inter', sans-serif !important;
+  cursor: pointer;
+  transition: all .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+  &:hover:not(:disabled) { background: #fdecea !important; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.btn-ghost {
+  background: transparent !important;
+  color: #495057 !important;
+  border: 1.5px solid #dee2e6 !important;
+  border-radius: 10px !important;
+  padding: 10px 20px !important;
+  font: 500 14px 'Inter', sans-serif !important;
+  cursor: pointer;
+  transition: all .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+  &:hover:not(:disabled) { background: #f8f9fa !important; border-color: #adb5bd !important; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.btn-sm { padding: 6px 12px !important; font-size: 12px !important; border-radius: 8px !important; }
+.btn-lg { padding: 13px 28px !important; font-size: 15px !important; border-radius: 12px !important; }
+
+.btn-icon {
+  width: 36px; height: 36px; padding: 0 !important;
+  display: grid; place-items: center;
+  border-radius: 8px !important;
+}
+
+// Snackbar de aviso (cor âmbar)
+.snack-warn .mdc-snackbar__surface { background: #fff3cd !important; }
+.snack-warn .mat-mdc-snack-bar-label { color: #5d4037 !important; }

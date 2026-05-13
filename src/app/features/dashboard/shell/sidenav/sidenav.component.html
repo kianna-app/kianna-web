@@ -1,36 +1,73 @@
-<aside class="sidenav">
-  <div class="sidenav-logo">
-    <span class="logo-icon">{{ APP.EMOJI }}</span>
-    <span class="logo-text">{{ APP.NOME }}</span>
-  </div>
+<div class="sidenav-logo">
+  <span class="logo-emoji">{{ APP.EMOJI }}</span>
+  <span class="logo-text">{{ APP.NOME }}</span>
+</div>
 
-  <nav class="sidenav-menu">
-    @for (item of menu; track item.rota) {
-      <a [routerLink]="item.rota" routerLinkActive="ativo"
-         [routerLinkActiveOptions]="item.exactMatch ? {exact: true} : {exact: false}"
-         [matTooltip]="item.implementadoEm ? 'Disponível em breve' : ''"
-         (click)="navegarItem()"
-         class="menu-item" [class.disabled]="item.implementadoEm">
-        <mat-icon>{{ item.icone }}</mat-icon>
-        <span>{{ item.label }}</span>
-      </a>
-    }
-  </nav>
+<!-- Painel -->
+<nav class="nav-section">
+  <div class="nav-section-label">Painel</div>
+  <a class="nav-item" routerLink="/dashboard" routerLinkActive="active"
+     [routerLinkActiveOptions]="{exact:true}" (click)="navegarItem()">
+    <mat-icon class="nav-icon">dashboard</mat-icon>
+    <span>Visão Geral</span>
+  </a>
+  <a class="nav-item" routerLink="/dashboard/agenda" routerLinkActive="active"
+     (click)="navegarItem()">
+    <mat-icon class="nav-icon">calendar_today</mat-icon>
+    <span>Agenda</span>
+  </a>
+</nav>
 
-  <div class="sidenav-footer">
-    <div class="user-card">
-      @if (user()?.foto_url) {
-        <img [src]="user()!.foto_url!" [alt]="user()!.nome" class="user-avatar">
-      } @else {
-        <div class="user-avatar fallback"><mat-icon>person</mat-icon></div>
-      }
-      <div class="user-info">
-        <div class="user-nome">{{ user()?.nome }}</div>
-        <div class="user-plano">Plano {{ user()?.plano }}</div>
-      </div>
+<!-- Agendamento -->
+<nav class="nav-section">
+  <div class="nav-section-label">Agendamento</div>
+  <a class="nav-item" routerLink="/dashboard/servicos" routerLinkActive="active"
+     (click)="navegarItem()">
+    <mat-icon class="nav-icon">content_cut</mat-icon>
+    <span>Serviços</span>
+  </a>
+  <a class="nav-item" routerLink="/dashboard/horarios" routerLinkActive="active"
+     (click)="navegarItem()">
+    <mat-icon class="nav-icon">schedule</mat-icon>
+    <span>Horários</span>
+  </a>
+  <span class="nav-item disabled">
+    <mat-icon class="nav-icon">people</mat-icon>
+    <span>Clientes</span>
+    <span class="em-breve-badge">Em breve</span>
+  </span>
+</nav>
+
+<!-- Configurações -->
+<nav class="nav-section">
+  <div class="nav-section-label">Configurações</div>
+  <a class="nav-item" routerLink="/dashboard/configuracoes" routerLinkActive="active"
+     (click)="navegarItem()">
+    <mat-icon class="nav-icon">settings</mat-icon>
+    <span>Config.</span>
+  </a>
+  <a class="nav-item" routerLink="/dashboard/perfil" routerLinkActive="active"
+     (click)="navegarItem()">
+    <mat-icon class="nav-icon">person</mat-icon>
+    <span>Perfil</span>
+  </a>
+  <span class="nav-item disabled">
+    <mat-icon class="nav-icon">bar_chart</mat-icon>
+    <span>Relatório</span>
+    <span class="em-breve-badge">Em breve</span>
+  </span>
+</nav>
+
+<!-- Footer -->
+<div class="sidenav-footer">
+  <div class="user-row">
+    <div class="avatar-circle">{{ user()?.nome?.charAt(0)?.toUpperCase() ?? '?' }}</div>
+    <div class="user-details">
+      <div class="user-name">{{ user()?.nome }}</div>
+      <div class="user-plano">Plano {{ user()?.plano }}</div>
     </div>
     <button class="logout-btn" (click)="logout()" matTooltip="Sair">
       <mat-icon>logout</mat-icon>
     </button>
   </div>
-</aside>
+</div>

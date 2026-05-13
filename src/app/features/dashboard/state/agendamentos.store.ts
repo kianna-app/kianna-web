@@ -2,7 +2,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { AgendamentosRepository } from '@core/repositories/agendamentos.repository';
 import { isAuthError } from '@core/repositories/base.repository';
 import { SessionService } from '@core/auth/session.service';
-import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
+import { AgendamentoComServico, StatusAgend, Agendamento } from '@core/types/database.types';
+import { currentUser } from '@core/signals/app.signals';
 
 @Injectable({ providedIn: 'root' })
 export class AgendamentosStore {
@@ -46,6 +47,45 @@ export class AgendamentosStore {
       this.agendamentos.update(arr =>
         arr.map(a => a.id === id ? { ...a, status } : a)
       );
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      throw e;
+    }
+  }
+
+  async criar(payload: {
+    servico_id: string; cliente_nome: string; cliente_wpp: string;
+    data_hora: string; status: string; observacoes?: string;
+  }): Promise<void> {
+    try {
+      const user = currentUser();
+      if (!user?.id) throw new Error('Não autenticado');
+      await this.repo.criar({ ...payload, profissional_id: user.id });
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      throw e;
+    }
+  }
+
+  async atualizar(id: string, payload: Partial<{
+    servico_id: string; cliente_nome: string; cliente_wpp: string;
+    data_hora: string; status: string; observacoes: string;
+  }>): Promise<void> {
+    try {
+      await this.repo.atualizar(id, payload);
+      this.agendamentos.update(arr =>
+        arr.map(a => a.id === id ? { ...a, ...payload } as AgendamentoComServico : a)
+      );
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      throw e;
+    }
+  }
+
+  async excluir(id: string): Promise<void> {
+    try {
+      await this.repo.excluir(id);
+      this.agendamentos.update(arr => arr.filter(a => a.id !== id));
     } catch (e: unknown) {
       if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
       throw e;

@@ -16,11 +16,11 @@
         <p class="lp-help">Compartilhe este link no Instagram, WhatsApp, cartão de visita. É por aqui que seus clientes agendam.</p>
       </div>
       <div class="lp-actions">
-        <button mat-flat-button color="primary" (click)="copiarLink()">
+        <button class="btn-primary btn-sm" (click)="copiarLink()">
           <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
           {{ copiado() ? 'Copiado!' : 'Copiar link' }}
         </button>
-        <button mat-stroked-button (click)="abrirLink()">
+        <button class="btn-ghost btn-sm" (click)="abrirLink()">
           <mat-icon>open_in_new</mat-icon>
           Visualizar
         </button>
@@ -58,62 +58,36 @@
       </div>
     </div>
 
-    <!-- ── Duas colunas: Pendentes / Hoje ────────── -->
-    <div class="agenda-columns">
+    <!-- ── Mini-agenda ────────────────────────────── -->
+    <div class="mini-agenda">
 
-      <!-- Coluna Pendentes -->
-      <div class="agenda-col">
-        <div class="col-header">
-          <span class="col-titulo">Pendentes</span>
-          @if (pendentes().length) {
-            <span class="col-badge">{{ pendentes().length }}</span>
-          }
-        </div>
-        @if (!pendentes().length) {
-          <p class="col-vazio">Nenhum agendamento pendente</p>
-        }
-        @for (ag of pendentes(); track ag.id) {
-          <div class="ag-card">
-            <div class="ag-info">
-              <span class="ag-nome">{{ ag.cliente_nome }}</span>
-              <span class="ag-detalhe">{{ ag.servico?.nome ?? 'Serviço' }} · {{ ag.data_hora | date:'dd/MM HH:mm' }}</span>
-            </div>
-            <div class="ag-acoes">
-              <button class="btn-confirmar" (click)="confirmar(ag.id)" [disabled]="processando().has(ag.id)">
-                @if (processando().has(ag.id)) {
-                  <mat-spinner diameter="14" />
-                } @else {
-                  Confirmar
-                }
-              </button>
-              <button class="btn-cancelar" (click)="cancelar(ag.id)" [disabled]="processando().has(ag.id)">✕</button>
-            </div>
-          </div>
-        }
+      <div class="mini-agenda-header">
+        <span class="mini-titulo">Agenda</span>
+        <a routerLink="/dashboard/agenda" class="ver-tudo">Ver tudo</a>
       </div>
 
-      <!-- Coluna Agendamentos hoje -->
-      <div class="agenda-col">
-        <div class="col-header">
-          <span class="col-titulo">Hoje</span>
-          @if (agendamentosHoje().length) {
-            <span class="col-badge col-badge-green">{{ agendamentosHoje().length }}</span>
-          }
-        </div>
-        @if (!agendamentosHoje().length) {
-          <p class="col-vazio">Nenhum agendamento hoje</p>
+      <app-week-strip [dias]="semana()" (selecionar)="diaSelecionado.set($event)" />
+
+      <app-resumo-band
+        [resumo]="resumo()"
+        [filtroAtivo]="filtroStatus()"
+        (filtrar)="toggleFiltro($event)" />
+
+      @if (agendamentosStore.carregando()) {
+        <div class="mini-loading"><mat-spinner diameter="24" /></div>
+      } @else {
+        @for (ag of agendamentosFiltrados().slice(0, 5); track ag.id) {
+          <app-appt-card [agendamento]="ag" (editar)="abrirEdicao(ag)" />
         }
-        @for (ag of agendamentosHoje(); track ag.id) {
-          <div class="ag-card">
-            <div class="ag-hora">{{ ag.data_hora | date:'HH:mm' }}</div>
-            <div class="ag-info">
-              <span class="ag-nome">{{ ag.cliente_nome }}</span>
-              <span class="ag-detalhe">{{ ag.servico?.nome ?? 'Serviço' }}</span>
-            </div>
-            <span class="ag-status" [class]="'status-' + ag.status">{{ ag.status }}</span>
-          </div>
+        @if (agendamentosFiltrados().length > 5) {
+          <a routerLink="/dashboard/agenda" class="ver-mais-link">
+            Ver mais {{ agendamentosFiltrados().length - 5 }} agendamento(s)
+          </a>
         }
-      </div>
+        @if (!agendamentosStore.carregando() && !agendamentosFiltrados().length) {
+          <p class="vazio-mini">Nenhum agendamento neste dia.</p>
+        }
+      }
 
     </div>
   }

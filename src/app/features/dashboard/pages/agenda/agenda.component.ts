@@ -1,25 +1,36 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core'
-import { CommonModule } from '@angular/common'
+import { CommonModule, TitleCasePipe } from '@angular/common'
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
+import { MatDialog } from '@angular/material/dialog'
 import { AgendamentosStore } from '../../state/agendamentos.store'
 import { MODALIDADE_LABELS } from '@core/types/database.types'
 import { WeekStripComponent } from './components/week-strip/week-strip.component'
 import { ResumoBandComponent } from './components/resumo-band/resumo-band.component'
 import { ApptCardComponent, AgendamentoView } from './components/appt-card/appt-card.component'
+import { MonthCalendarComponent } from './components/month-calendar/month-calendar.component'
+import { AgendamentoFormDialogComponent, AgendamentoFormDialogData } from './components/agendamento-form-dialog/agendamento-form-dialog.component'
+import { firstValueFrom } from 'rxjs'
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, MatProgressSpinnerModule, WeekStripComponent, ResumoBandComponent, ApptCardComponent],
+  imports: [
+    CommonModule, TitleCasePipe, MatProgressSpinnerModule,
+    WeekStripComponent, ResumoBandComponent, ApptCardComponent, MonthCalendarComponent,
+  ],
   templateUrl: './agenda.component.html',
   styleUrl: './agenda.component.scss',
 })
 export class AgendaComponent implements OnInit {
   protected agendamentosStore = inject(AgendamentosStore)
+  private dialog = inject(MatDialog)
 
-  diaSelecionado = signal<Date>(new Date())
+  diaSelecionado    = signal<Date>(new Date())
+  semanaOffset      = signal(0)
+  filtroStatus      = signal<string | null>(null)
+  mostrarCalendario = signal(false)
 
-  semana = computed(() => this.gerarSemana())
+  semana = computed(() => this.gerarSemana(this.semanaOffset()))
 
   agendamentosDoDia = computed<AgendamentoView[]>(() => {
     const diaSel = this.diaSelecionado().toDateString()
@@ -27,9 +38,9 @@ export class AgendaComponent implements OnInit {
       .filter(a => new Date(a.data_hora).toDateString() === diaSel)
       .sort((a, b) => a.data_hora.localeCompare(b.data_hora))
       .map(a => {
-        const svc = a.servico
+        const svc   = a.servico
         const inicio = new Date(a.data_hora)
-        const fim = svc ? new Date(inicio.getTime() + svc.duracao_min * 60000) : inicio
+        const fim    = svc ? new Date(inicio.getTime() + svc.duracao_min * 60000) : inicio
         return {
           id:          a.id,
           inicio:      inicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -40,8 +51,19 @@ export class AgendaComponent implements OnInit {
           duracao:     svc ? `${svc.duracao_min} min` : '',
           modalidade:  svc ? (MODALIDADE_LABELS[svc.modalidade]?.label ?? svc.modalidade) : '',
           data_hora:   a.data_hora,
-        }
+          // extras para edição
+          servico_id:  a.servico_id ?? undefined,
+          cliente_wpp: (a as any).cliente_wpp,
+          observacoes: (a as any).observacoes,
+        } as AgendamentoView & { servico_id?: string; cliente_wpp?: string; observacoes?: string }
       })
+  })
+
+  agendamentosFiltrados = computed(() => {
+    const f = this.filtroStatus()
+    return f
+      ? this.agendamentosDoDia().filter(a => a.status === f)
+      : this.agendamentosDoDia()
   })
 
   resumo = computed(() => {
@@ -66,22 +88,88 @@ export class AgendaComponent implements OnInit {
   })
 
   async ngOnInit() {
+    await this.carregarPeriodoVisivel()
+  }
+
+  semanaAnterior() {
+    this.semanaOffset.update(v => v - 1)
+    this.carregarPeriodoVisivel()
+  }
+
+  proximaSemana() {
+    this.semanaOffset.update(v => v + 1)
+    this.carregarPeriodoVisivel()
+  }
+
+  toggleFiltro(status: string) {
+    this.filtroStatus.set(this.filtroStatus() === status ? null : status)
+  }
+
+  selecionarDiaDoCalendario(data: Date) {
+    this.diaSelecionado.set(data)
     const hoje = new Date()
-    const inicio = new Date(hoje)
-    inicio.setDate(hoje.getDate() - hoje.getDay())
-    inicio.setHours(0, 0, 0, 0)
-    const fim = new Date(inicio)
-    fim.setDate(inicio.getDate() + 7)
+    const inicioSemanaAtual = new Date(hoje)
+    inicioSemanaAtual.setDate(hoje.getDate() - hoje.getDay())
+    inicioSemanaAtual.setHours(0, 0, 0, 0)
+
+    const inicioSemanaData = new Date(data)
+    inicioSemanaData.setDate(data.getDate() - data.getDay())
+    inicioSemanaData.setHours(0, 0, 0, 0)
+
+    const diff = Math.round(
+      (inicioSemanaData.getTime() - inicioSemanaAtual.getTime()) / (7 * 24 * 60 * 60 * 1000)
+    )
+    this.semanaOffset.set(diff)
+    this.mostrarCalendario.set(false)
+    this.carregarPeriodoVisivel()
+  }
+
+  async abrirNovo() {
+    const ref = this.dialog.open<AgendamentoFormDialogComponent, AgendamentoFormDialogData>(
+      AgendamentoFormDialogComponent,
+      { data: { modo: 'criar', diaSelecionado: this.diaSelecionado() } }
+    )
+    const result = await firstValueFrom(ref.afterClosed())
+    if (result) await this.carregarPeriodoVisivel()
+  }
+
+  async abrirEdicao(ag: AgendamentoView) {
+    const ref = this.dialog.open<AgendamentoFormDialogComponent, AgendamentoFormDialogData>(
+      AgendamentoFormDialogComponent,
+      { data: { modo: 'editar', agendamento: ag as any } }
+    )
+    const result = await firstValueFrom(ref.afterClosed())
+    if (result) await this.carregarPeriodoVisivel()
+  }
+
+  get mesLabel(): string {
+    const dias = this.semana()
+    const meio = dias[3].data
+    return meio.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  }
+
+  get diaSelecionadoLabel(): string {
+    return this.diaSelecionado().toLocaleDateString('pt-BR', {
+      weekday: 'long', day: 'numeric', month: 'long',
+    })
+  }
+
+  private async carregarPeriodoVisivel() {
+    const dias   = this.semana()
+    const inicio = new Date(dias[0].data); inicio.setHours(0, 0, 0, 0)
+    const fim    = new Date(dias[6].data); fim.setHours(23, 59, 59, 999)
     await this.agendamentosStore.carregarPeriodo(inicio, fim)
   }
 
-  private gerarSemana() {
-    const hoje = new Date()
+  private gerarSemana(offset = 0) {
+    const hoje       = new Date()
     const diasLetras = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
+    const base       = new Date(hoje)
+    base.setDate(hoje.getDate() - hoje.getDay() + offset * 7)
     return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(hoje)
-      d.setDate(hoje.getDate() - hoje.getDay() + i)
-      const k = d.toDateString()
+      const d = new Date(base)
+      d.setDate(base.getDate() + i)
+      const k        = d.toDateString()
       const ocupacao = Math.min(this.ocupacaoPorDia().get(k) ?? 0, 3)
       return {
         data:        d,
@@ -91,20 +179,6 @@ export class AgendaComponent implements OnInit {
         selecionado: d.toDateString() === this.diaSelecionado().toDateString(),
         ocupacao,
       }
-    })
-  }
-
-  get mesLabel(): string {
-    return this.diaSelecionado().toLocaleDateString('pt-BR', { month: 'long' })
-  }
-
-  get anoLabel(): string {
-    return this.diaSelecionado().getFullYear().toString()
-  }
-
-  get diaSelecionadoLabel(): string {
-    return this.diaSelecionado().toLocaleDateString('pt-BR', {
-      weekday: 'long', day: 'numeric', month: 'long',
     })
   }
 }

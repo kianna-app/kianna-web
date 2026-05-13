@@ -39,19 +39,48 @@
 }
 
 .month-row {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; gap: 8px;
   padding: 16px 18px 8px;
 }
-.month-label { display: flex; align-items: center; gap: 6px; }
-.month-name  { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; color: var(--text-1); }
-.month-year  { font-size: 15px; color: var(--text-4); font-weight: 500; }
+.month-name {
+  flex: 1; font-size: 17px; font-weight: 600;
+  letter-spacing: -0.2px; color: var(--text-1); text-align: center;
+}
+.nav-btn {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--border-soft); background: var(--bg-card);
+  display: grid; place-items: center; cursor: pointer;
+  color: var(--text-2); box-shadow: var(--shadow-1);
+  &:hover { background: var(--c-primary-bg); color: var(--c-primary); }
+}
+.ver-mes-btn {
+  font: 500 12px 'Inter'; color: var(--c-primary);
+  background: var(--c-primary-bg); border: none;
+  border-radius: 99px; padding: 5px 12px; cursor: pointer;
+  white-space: nowrap;
+}
 
-.filter-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--bg-card); border: 1px solid var(--border-soft);
-  border-radius: var(--r-sm); padding: 6px 10px;
-  font: 500 12px 'Inter', sans-serif; color: var(--text-1);
-  box-shadow: var(--shadow-1); cursor: pointer;
+// ── FAB novo agendamento ──────────────────────────────
+.fab-novo {
+  position: fixed; bottom: 88px; right: 24px;
+  width: 52px; height: 52px; border-radius: 26px;
+  background: #1D9E75; border: none; cursor: pointer;
+  display: grid; place-items: center;
+  box-shadow: 0 8px 24px rgba(29,158,117,0.4);
+  z-index: 100;
+  transition: background .15s, box-shadow .15s;
+  &:hover { background: #178a65; box-shadow: 0 10px 28px rgba(29,158,117,0.5); }
+}
+
+// ── Overlay calendário mensal ──────────────────────────
+.cal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 200; display: flex; align-items: center; justify-content: center;
+}
+.cal-panel {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
 }
 
 .list-wrap {

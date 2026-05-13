@@ -1,9 +1,40 @@
 @use 'styles/variables' as v;
 
+// Fornece as CSS vars usadas pelos sub-componentes (week-strip, resumo-band, appt-card)
+:host {
+  --c-primary:      #1D9E75;
+  --c-primary-bg:   #E8F5F0;
+  --c-primary-text: #0F5C44;
+  --c-primary-chip: #C3E8DA;
+  --c-amber:        #E8A33A;
+  --c-amber-bg:     #FBF3E4;
+  --c-amber-text:   #8A5A12;
+  --c-amber-chip:   #F4E2C0;
+  --c-rose:         #E26172;
+  --c-rose-bg:      #FBEDEF;
+  --c-rose-text:    #9C2A3B;
+  --c-rose-chip:    #F4D2D8;
+  --c-green:        #3FB58A;
+  --c-green-bg:     #E8F6EF;
+  --c-green-text:   #1F7A55;
+  --c-green-chip:   #CFEBDC;
+  --bg-card:        #FFFFFF;
+  --border-soft:    #ECEEF2;
+  --text-1:         #0B0F19;
+  --text-2:         #5B6577;
+  --text-3:         #7C8597;
+  --text-4:         #9099AB;
+  --r-sm: 12px; --r-md: 16px; --r-lg: 18px; --r-pill: 9999px;
+  --shadow-1: 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-active: 0 8px 18px rgba(29,158,117,0.35), 0 2px 4px rgba(29,158,117,0.18);
+  display: block;
+  font-family: 'Inter', sans-serif;
+}
+
 .vg-page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .vg-header {
@@ -104,122 +135,46 @@
   background: #e9ecef;
 }
 
-// ── Duas colunas Pendentes / Hoje ───────────────────
-.agenda-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+// ── Mini-agenda ──────────────────────────────────────
+.mini-agenda { margin-top: 4px; }
 
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
-}
-
-.agenda-col {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 10px;
-  padding: 16px;
-}
-
-.col-header {
+.mini-agenda-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  justify-content: space-between;
+  padding: 0 4px 8px;
 }
 
-.col-titulo {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #495057;
+.mini-titulo { font: 600 16px 'Inter'; color: #212529; }
+
+.ver-tudo {
+  font: 500 13px 'Inter';
+  color: #1D9E75;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
 }
 
-.col-badge {
-  background: #F59E0B;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 99px;
-
-  &.col-badge-green { background: #1D9E75; }
+.ver-mais-link {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  font: 500 13px 'Inter';
+  color: #1D9E75;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
 }
 
-.col-vazio {
-  font-size: 13px;
-  color: #adb5bd;
+.vazio-mini {
   text-align: center;
   padding: 20px 0;
-}
-
-.ag-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid #f1f3f5;
-
-  &:last-child { border-bottom: none; }
-}
-
-.ag-hora {
-  font-size: 13px;
-  font-weight: 700;
-  color: #1D9E75;
-  min-width: 40px;
-}
-
-.ag-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.ag-nome   { font-size: 14px; font-weight: 600; color: #212529; }
-.ag-detalhe { font-size: 12px; color: #6c757d; }
-
-.ag-acoes { display: flex; gap: 6px; align-items: center; }
-
-.btn-confirmar {
-  font-size: 12px;
-  font-weight: 600;
-  background: #1D9E75;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 10px;
-  cursor: pointer;
-  min-width: 76px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
-}
-
-.btn-cancelar {
-  font-size: 12px;
+  font: 400 13px 'Inter';
   color: #adb5bd;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 6px;
-
-  &:hover { color: #dc3545; }
-  &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
-.ag-status {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-weight: 600;
-
-  &.status-confirmado { background: #e8f5f0; color: #1D9E75; }
-  &.status-pendente   { background: #fff8e1; color: #F59E0B; }
-  &.status-cancelado  { background: #fdecea; color: #dc3545; }
+.mini-loading {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
 }
 
 // ── Loading ─────────────────────────────────────────

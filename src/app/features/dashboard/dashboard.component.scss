@@ -31,8 +31,16 @@
 // ── Drawer mobile ─────────────────────────────────────
 .mobile-drawer {
   width: 280px;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 ::ng-deep .mat-drawer-inner-container {
   overflow: hidden !important;
+}
+
+// Remove background do mat-sidenav padrão do Material (deixa o :host do sidenav.component agir)
+::ng-deep mat-sidenav,
+::ng-deep .mat-sidenav {
+  background: transparent !important;
 }

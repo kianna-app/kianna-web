@@ -32,6 +32,35 @@ export class AgendamentosRepository {
     return data as Agendamento;
   }
 
+  async criar(payload: {
+    profissional_id: string; servico_id: string; cliente_nome: string;
+    cliente_wpp: string; data_hora: string; status: string; observacoes?: string;
+  }): Promise<{ id: string }> {
+    const { data, error } = await supabase
+      .from('agendamentos').insert(payload).select('id').single();
+    if (error) throw error;
+    return data as { id: string };
+  }
+
+  async atualizar(id: string, payload: Partial<{
+    servico_id: string; cliente_nome: string; cliente_wpp: string;
+    data_hora: string; status: string; observacoes: string;
+  }>): Promise<void> {
+    const profissional_id = profissionalIdOrThrow();
+    const { error } = await supabase
+      .from('agendamentos').update(payload)
+      .eq('id', id).eq('profissional_id', profissional_id);
+    if (error) throw error;
+  }
+
+  async excluir(id: string): Promise<void> {
+    const profissional_id = profissionalIdOrThrow();
+    const { error } = await supabase
+      .from('agendamentos').delete()
+      .eq('id', id).eq('profissional_id', profissional_id);
+    if (error) throw error;
+  }
+
   async contarDoMesAtual(): Promise<number> {
     const profissional_id = profissionalIdOrThrow();
     const inicio = new Date();

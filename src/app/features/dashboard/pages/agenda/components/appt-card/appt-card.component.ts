@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core'
+import { Component, Input, Output, EventEmitter } from '@angular/core'
 import { CommonModule } from '@angular/common'
 
 type StatusAg = 'confirmado' | 'pendente' | 'cancelado' | 'concluido'
@@ -42,7 +42,16 @@ export interface AgendamentoView {
           {{ agendamento.clienteNome }}
         </div>
         <div class="desc">{{ agendamento.servicoNome }}</div>
-        <div class="meta">{{ agendamento.duracao }}{{ agendamento.modalidade ? ' · ' + agendamento.modalidade : '' }}</div>
+        <div class="footer">
+          <div class="meta">{{ agendamento.duracao }}{{ agendamento.modalidade ? ' · ' + agendamento.modalidade : '' }}</div>
+          <button class="edit-btn" (click)="editar.emit()" aria-label="Editar agendamento">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -59,10 +68,17 @@ export interface AgendamentoView {
     .titulo { font:600 15px 'Inter'; color:var(--text-1); letter-spacing:-.2px; }
     .titulo.cancelado { text-decoration:line-through; text-decoration-color:rgba(11,15,25,.35); }
     .desc { font:400 13px 'Inter'; color:var(--text-2); margin-top:3px; }
-    .meta { font:500 11.5px 'Inter'; color:var(--text-3); margin-top:8px; }
+    .footer { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+    .meta { font:500 11.5px 'Inter'; color:var(--text-3); }
+    .edit-btn {
+      background:none; border:none; cursor:pointer; color:var(--text-4);
+      padding:4px; display:flex; align-items:center;
+      &:hover { color:var(--c-primary); }
+    }
   `]
 })
 export class ApptCardComponent {
   @Input({ required: true }) agendamento!: AgendamentoView
+  @Output() editar = new EventEmitter<void>()
   get s(): StatusStyle { return STATUS_MAP[this.agendamento.status] }
 }
