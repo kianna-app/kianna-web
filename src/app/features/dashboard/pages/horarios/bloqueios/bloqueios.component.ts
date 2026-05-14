@@ -21,7 +21,7 @@ import { firstValueFrom } from 'rxjs';
           <h3 class="titulo">Bloqueios de agenda</h3>
           <p class="subtitulo">Bloqueie dias ou períodos específicos em que você não atenderá</p>
         </div>
-        <button mat-flat-button color="primary" class="btn-adicionar" (click)="abrirDialog()">
+        <button class="btn-primary btn-lg" (click)="abrirDialog()">
           <mat-icon>add</mat-icon>
           Adicionar bloqueio
         </button>
@@ -31,7 +31,7 @@ import { firstValueFrom } from 'rxjs';
         <div class="loading-center"><mat-spinner diameter="32" /></div>
       } @else if (store.bloqueios().length === 0) {
         <div class="vazio">
-          <mat-icon>event_available</mat-icon>
+          <mat-icon>event</mat-icon>
           <p>Nenhum bloqueio configurado</p>
         </div>
       } @else {
@@ -61,7 +61,7 @@ import { firstValueFrom } from 'rxjs';
     </div>
   `,
   styles: [`
-    .bloqueios-wrap { padding: 16px 0; }
+    .bloqueios-wrap { padding: 24px; }
 
     .bloqueios-header {
       display: flex; align-items: flex-start; justify-content: space-between;
@@ -75,7 +75,8 @@ import { firstValueFrom } from 'rxjs';
 
     .vazio {
       text-align: center; padding: 32px 16px; color: var(--text-3);
-      mat-icon { font-size: 36px; color: var(--border-soft); display: block; margin-bottom: 8px; }
+      mat-icon { font-size: 26px; color: var(--border-soft);
+        margin-bottom: 8px; }
       p { font: 400 14px 'Inter'; margin: 0; }
     }
 
@@ -85,7 +86,8 @@ import { firstValueFrom } from 'rxjs';
       display: flex; align-items: center; justify-content: space-between;
       padding: 12px 14px;
       background: var(--bg-card); border: 1px solid var(--border-soft);
-      border-radius: var(--r-md); gap: 12px;
+      border-radius: 8px;
+      background-color: #dddada;
     }
     .bloqueio-info { display: flex; flex-direction: column; gap: 2px; }
     .bloqueio-data   { font: 600 13px 'Inter'; color: var(--text-1); }

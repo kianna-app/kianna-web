@@ -33,11 +33,11 @@ type Aba = typeof ABAS[number];
     </div>
   `,
   styles: [`
-    .cfg-page { display: flex; flex-direction: column; gap: 16px; }
+    .cfg-page { display: flex; flex-direction: column; gap: 8px; }
     h1 { font-size: 24px; font-weight: 700; margin: 0; color: #0F172A; }
-    .cfg-sub { font-size: 13px; color: #64748B; margin: 0 0 16px; }
+    .cfg-sub { font-size: 13px; color: #64748B; margin: 0 0 8px; }
     .cfg-tabs { background: #fff; border-radius: 12px; padding: 8px; }
-    ::ng-deep .mat-mdc-tab-body-content { padding: 24px 16px; }
+    ::ng-deep .mat-mdc-tab-body-content { padding: 0px; padding-top: 24px; }
   `],
 })
 export class ConfiguracoesComponent {

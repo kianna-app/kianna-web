@@ -1,11 +1,10 @@
 <form [formGroup]="form" class="cfg-tabs-form" (ngSubmit)="salvar()">
 
   <!-- ── Card 1: Informações da empresa ─────────────────── -->
-  <mat-card class="cfg-card">
     <h3 class="cfg-card-titulo">Informações da empresa</h3>
     <p class="cfg-card-desc">Como seu negócio aparece pros clientes</p>
 
-    <div class="cfg-card-form">
+    <div class="card">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Nome do negócio</mat-label>
         <input matInput formControlName="nome">
@@ -18,14 +17,14 @@
         <mat-hint>Frase curta sobre seu trabalho · máx 200 caracteres</mat-hint>
       </mat-form-field>
     </div>
-  </mat-card>
+
+    <hr class="divider">
 
   <!-- ── Card 2: Link da página ─────────────────────────── -->
-  <mat-card class="cfg-card">
     <h3 class="cfg-card-titulo">Link da sua página</h3>
     <p class="cfg-card-desc">O endereço onde seus clientes vão agendar</p>
 
-    <div class="cfg-card-form">
+    <div class="card">
       <mat-form-field appearance="outline" class="full-width slug-field">
         <mat-label>Link personalizado</mat-label>
         <span matTextPrefix class="slug-prefix">kianna.com.br/&nbsp;</span>
@@ -37,21 +36,20 @@
         }
       </mat-form-field>
     </div>
-  </mat-card>
+
+    <hr>
 
   <!-- ── Card 3: Política de cancelamento ────────────────── -->
-  <mat-card class="cfg-card">
     <h3 class="cfg-card-titulo">Política de cancelamento</h3>
     <p class="cfg-card-desc">Texto livre que aparece pro cliente na hora de agendar</p>
 
-    <div class="cfg-card-form">
+    <div class="card">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Sua política (opcional)</mat-label>
         <textarea matInput formControlName="politica_cancelamento" rows="3"
                   placeholder="Ex: Cancelamentos permitidos até 24h antes do horário."></textarea>
       </mat-form-field>
     </div>
-  </mat-card>
 
   <!-- ── Botão salvar ────────────────────────────────────── -->
   <div class="cfg-actions-sticky">

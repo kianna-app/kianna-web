@@ -1,12 +1,8 @@
 <div class="agenda-wrap">
-
   <!-- Cabeçalho com ações -->
   <div class="agenda-toolbar">
-    <button class="btn-novo" (click)="abrirNovo()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 5v14 M5 12h14"/>
-      </svg>
+    <button class="btn-primary btn-sm" (click)="abrirNovo()">
+      <mat-icon> add </mat-icon>
       <span>Novo agendamento</span>
     </button>
   </div>
@@ -14,26 +10,39 @@
   <!-- Navegação de semana -->
   <div class="month-row">
     <button class="nav-btn" (click)="semanaAnterior()" aria-label="Semana anterior">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 18l-6-6 6-6"/>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M15 18l-6-6 6-6" />
       </svg>
     </button>
     <span class="month-name">{{ mesLabel | titlecase }}</span>
     <button class="nav-btn" (click)="proximaSemana()" aria-label="Próxima semana">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 18l6-6-6-6"/>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 18l6-6-6-6" />
       </svg>
     </button>
     <button class="ver-mes-btn" (click)="mostrarCalendario.set(true)">Ver mês</button>
   </div>
 
   <!-- Strip de dias da semana -->
-  <app-week-strip
-    [dias]="semana()"
-    (selecionar)="diaSelecionado.set($event)">
-  </app-week-strip>
+  <app-week-strip [dias]="semana()" (selecionar)="diaSelecionado.set($event)"> </app-week-strip>
 
   <!-- Lista de agendamentos -->
   <div class="list-wrap">
@@ -65,9 +74,9 @@
           [agendamentos]="agendamentosStore.agendamentos()"
           [diaSelecionado]="diaSelecionado()"
           (diaClicado)="selecionarDiaDoCalendario($event)"
-          (fechar)="mostrarCalendario.set(false)" />
+          (fechar)="mostrarCalendario.set(false)"
+        />
       </div>
     </div>
   }
-
 </div>

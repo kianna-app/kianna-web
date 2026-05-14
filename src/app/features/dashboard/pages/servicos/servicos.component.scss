@@ -20,6 +20,13 @@
 .busca-field {
   width: 100%;
   max-width: 480px;
+  border-radius: 8px;
+  background: v.$kianna-slate-50;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
 }
 
 .loading-state, .empty-state {

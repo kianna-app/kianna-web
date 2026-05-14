@@ -33,7 +33,7 @@ interface DiaConfig {
     CommonModule, FormsModule, MatCardModule, MatSlideToggleModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    MatTabsModule, LoadingButtonComponent, BloqueiosComponent,
+    MatTabsModule,  BloqueiosComponent,
   ],
   templateUrl: './horarios.component.html',
   styleUrl: './horarios.component.scss',

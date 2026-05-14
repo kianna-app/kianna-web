@@ -18,11 +18,19 @@
             <h2>{{ u.nome }}</h2>
             <span class="especialidade-badge">{{ u.especialidade ?? 'Profissional' }}</span>
           </div>
-        </div>
+              </div>
 
         <mat-divider />
 
         <div class="info-list">
+          <div class="info-item">
+            <mat-icon>email</mat-icon>
+            <div>
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ u.email }}</span>
+            </div>
+          </div>
+
           <div class="info-item">
             <mat-icon>badge</mat-icon>
             <div>

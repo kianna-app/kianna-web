@@ -7,3 +7,13 @@
   font-size: 14px;
   font-family: 'Fira Code', monospace;
 }
+
+
+.card{
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-1);
+  margin-bottom: 24px;
+
+}

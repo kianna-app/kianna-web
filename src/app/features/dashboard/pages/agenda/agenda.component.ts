@@ -10,6 +10,7 @@ import { ApptCardComponent, AgendamentoView } from './components/appt-card/appt-
 import { MonthCalendarComponent } from './components/month-calendar/month-calendar.component'
 import { AgendamentoFormDialogComponent, AgendamentoFormDialogData } from './components/agendamento-form-dialog/agendamento-form-dialog.component'
 import { firstValueFrom } from 'rxjs'
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: 'app-agenda',
@@ -17,7 +18,8 @@ import { firstValueFrom } from 'rxjs'
   imports: [
     CommonModule, TitleCasePipe, MatProgressSpinnerModule,
     WeekStripComponent, ApptCardComponent, MonthCalendarComponent,
-  ],
+    MatIcon
+],
   templateUrl: './agenda.component.html',
   styleUrl: './agenda.component.scss',
 })

@@ -1,7 +1,7 @@
 <form [formGroup]="form" class="cfg-tabs-form" (ngSubmit)="salvar()">
 
   <!-- ── Card: Endereço de atendimento ─────────────────── -->
-  <mat-card class="cfg-card">
+  <div class="card">
     <h3 class="cfg-card-titulo">Endereço de atendimento</h3>
     <p class="cfg-card-desc">Aparece na sua página pública para clientes que escolherem modalidade Presencial</p>
 
@@ -52,7 +52,7 @@
         </mat-form-field>
       </div>
     </div>
-  </mat-card>
+  </div>
 
   <div class="cfg-actions-sticky">
     <app-loading-button type="submit" variant="flat" color="primary"

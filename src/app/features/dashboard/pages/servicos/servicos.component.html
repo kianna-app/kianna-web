@@ -53,7 +53,7 @@
       <h3>Nenhum serviço encontrado</h3>
       <p>Tente buscar por outro termo</p>
     </div>
-  } @else {
+  }  @else {
     <div class="servicos-list">
       @for (s of servicosFiltrados(); track s.id) {
         <mat-card class="servico-card" [class.inativo]="!s.ativo"
@@ -111,6 +111,18 @@
           }
         </mat-card>
       }
+    </div>
+  }
+
+
+  @if(store.atingiuLimite()) {
+    <div class="empty-state">
+      <mat-icon>lock</mat-icon>
+      <h3>Limite de serviços atingido</h3>
+      <p>Faça upgrade para um plano superior e adicione mais serviços</p>
+      <button class="btn-primary" >
+        Ver planos
+      </button>
     </div>
   }
 </div>
