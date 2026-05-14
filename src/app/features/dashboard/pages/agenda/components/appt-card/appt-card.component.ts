@@ -1,14 +1,18 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core'
 import { CommonModule } from '@angular/common'
+import { StatusAgend } from '@core/types/database.types'
 
-type StatusAg = 'confirmado' | 'pendente' | 'cancelado' | 'concluido'
+type StatusAg = StatusAgend
 interface StatusStyle { label: string; bar: string; bg: string; text: string; chipBg: string }
 
 const STATUS_MAP: Record<StatusAg, StatusStyle> = {
-  confirmado: { label: 'Confirmado', bar: 'var(--c-primary)',  bg: 'var(--c-primary-bg)',  text: 'var(--c-primary-text)',  chipBg: 'var(--c-primary-chip)'  },
-  pendente:   { label: 'Pendente',   bar: 'var(--c-amber)',    bg: 'var(--c-amber-bg)',    text: 'var(--c-amber-text)',    chipBg: 'var(--c-amber-chip)'    },
-  cancelado:  { label: 'Cancelado',  bar: 'var(--c-rose)',     bg: 'var(--c-rose-bg)',     text: 'var(--c-rose-text)',     chipBg: 'var(--c-rose-chip)'     },
-  concluido:  { label: 'Concluído',  bar: 'var(--c-green)',    bg: 'var(--c-green-bg)',    text: 'var(--c-green-text)',    chipBg: 'var(--c-green-chip)'    },
+  confirmado:    { label: 'Confirmado',    bar: 'var(--c-primary)',  bg: 'var(--c-primary-bg)',  text: 'var(--c-primary-text)',  chipBg: 'var(--c-primary-chip)'  },
+  pendente:      { label: 'Pendente',      bar: 'var(--c-amber)',    bg: 'var(--c-amber-bg)',    text: 'var(--c-amber-text)',    chipBg: 'var(--c-amber-chip)'    },
+  cancelado:     { label: 'Cancelado',     bar: 'var(--c-rose)',     bg: 'var(--c-rose-bg)',     text: 'var(--c-rose-text)',     chipBg: 'var(--c-rose-chip)'     },
+  recusado:      { label: 'Recusado',      bar: 'var(--c-rose)',     bg: 'var(--c-rose-bg)',     text: 'var(--c-rose-text)',     chipBg: 'var(--c-rose-chip)'     },
+  reagendado:    { label: 'Reagendado',    bar: '#9B59B6',           bg: '#F5EEF8',              text: '#6C3483',                chipBg: '#E8DAEF'                },
+  finalizado:    { label: 'Finalizado',    bar: 'var(--c-green)',    bg: 'var(--c-green-bg)',    text: 'var(--c-green-text)',    chipBg: 'var(--c-green-chip)'    },
+  nao_compareceu:{ label: 'Não compareceu',bar: '#7F8C8D',           bg: '#F2F3F4',              text: '#566573',                chipBg: '#D5D8DC'                },
 }
 
 export interface AgendamentoView {
@@ -38,7 +42,7 @@ export interface AgendamentoView {
             {{ s.label }}
           </span>
         </div>
-        <div class="titulo" [class.cancelado]="agendamento.status === 'cancelado'">
+        <div class="titulo" [class.riscado]="agendamento.status === 'cancelado' || agendamento.status === 'recusado' || agendamento.status === 'reagendado'">
           {{ agendamento.clienteNome }}
         </div>
         <div class="desc">{{ agendamento.servicoNome }}</div>
@@ -66,7 +70,7 @@ export interface AgendamentoView {
     .time { display:flex; align-items:center; gap:6px; font:600 12px 'Inter'; letter-spacing:.1px; }
     .chip { padding:3px 8px; border-radius:999px; font:600 11px 'Inter'; }
     .titulo { font:600 15px 'Inter'; color:var(--text-1); letter-spacing:-.2px; }
-    .titulo.cancelado { text-decoration:line-through; text-decoration-color:rgba(11,15,25,.35); }
+    .titulo.riscado { text-decoration:line-through; text-decoration-color:rgba(11,15,25,.35); }
     .desc { font:400 13px 'Inter'; color:var(--text-2); margin-top:3px; }
     .footer { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
     .meta { font:500 11.5px 'Inter'; color:var(--text-3); }
@@ -80,5 +84,5 @@ export interface AgendamentoView {
 export class ApptCardComponent {
   @Input({ required: true }) agendamento!: AgendamentoView
   @Output() editar = new EventEmitter<void>()
-  get s(): StatusStyle { return STATUS_MAP[this.agendamento.status] }
+  get s(): StatusStyle { return STATUS_MAP[this.agendamento.status] ?? STATUS_MAP['pendente'] }
 }

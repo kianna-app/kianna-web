@@ -1,5 +1,5 @@
 export type Plano       = 'gratis' | 'pro' | 'studio';
-export type StatusAgend = 'pendente' | 'confirmado' | 'cancelado' | 'concluido';
+export type StatusAgend = 'pendente' | 'confirmado' | 'recusado' | 'cancelado' | 'reagendado' | 'finalizado' | 'nao_compareceu';
 export type DiaSemana   = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 // ── Modalidades ───────────────────────────────────────────────
@@ -48,6 +48,10 @@ export interface Profissional {
   youtube_url: string | null;
   links_personalizados: LinkPersonalizado[];
   slug_alterado_em: string | null;
+
+  // ── Módulo 3 (fluxo v2) ──
+  antecedencia_minima_horas: number;
+  timezone: string;
 }
 
 export interface Servico {
@@ -69,6 +73,7 @@ export interface Disponibilidade {
   hora_inicio: string;
   hora_fim: string;
   intervalo_min: number;
+  capacidade: number;
 }
 
 export interface Agendamento {
@@ -81,12 +86,24 @@ export interface Agendamento {
   status: StatusAgend;
   lembrete_enviado: boolean;
   observacoes: string | null;
+  motivo_recusa: string | null;
+  agendamento_origem_id: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface AgendamentoComServico extends Agendamento {
   servico: Pick<Servico, 'id' | 'nome' | 'duracao_min' | 'preco' | 'modalidade'> | null;
+}
+
+export interface Bloqueio {
+  id: string;
+  profissional_id: string;
+  data: string;
+  hora_inicio: string | null;
+  hora_fim: string | null;
+  motivo: string | null;
+  created_at: string;
 }
 
 export type ServicoInput = Pick<Servico, 'nome' | 'duracao_min' | 'preco' | 'modalidade' | 'ativo'>;

@@ -9,11 +9,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HorariosStore } from '../../state/horarios.store';
 import { DiaSemana, DisponibilidadeInput } from '@core/types/database.types';
 import { DIAS_SEMANA } from '@core/constants/app.constants';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
+import { BloqueiosComponent } from './bloqueios/bloqueios.component';
 
 interface DiaConfig {
   dia: DiaSemana;
@@ -31,7 +33,7 @@ interface DiaConfig {
     CommonModule, FormsModule, MatCardModule, MatSlideToggleModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    LoadingButtonComponent,
+    MatTabsModule, LoadingButtonComponent, BloqueiosComponent,
   ],
   templateUrl: './horarios.component.html',
   styleUrl: './horarios.component.scss',

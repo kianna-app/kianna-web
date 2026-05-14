@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Disponibilidade, Servico } from '@core/types/database.types';
-import { format, addMinutes, parseISO, isAfter, isBefore, startOfDay } from 'date-fns';
+import { Disponibilidade, Servico, Bloqueio } from '@core/types/database.types';
+import { addMinutes, startOfDay } from 'date-fns';
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 export interface SlotInfo {
   hora: string;
@@ -15,35 +16,45 @@ export class SlotCalculatorService {
     data: Date,
     servico: Servico,
     disponibilidades: Disponibilidade[],
-    agendados: Array<{ data_hora: string; duracao_min: number }>,
+    agendamentosConfirmados: Array<{ data_hora: string }>,
+    bloqueios: Bloqueio[],
+    timezone: string,
+    antecedenciaMinHoras: number,
   ): SlotInfo[] {
     const diaSemana = data.getDay();
     const disp = disponibilidades.find(d => d.dia_semana === diaSemana);
     if (!disp) return [];
 
+    const diaISO = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(data);
+
+    const bloqueiosDoDia = bloqueios.filter(b => b.data === diaISO);
+    if (bloqueiosDoDia.some(b => b.hora_inicio === null)) return [];
+    const bloqueiosParciais = bloqueiosDoDia.filter(b => b.hora_inicio !== null);
+
+    const capacidade = disp.capacidade ?? 1;
     const slots: SlotInfo[] = [];
     const intervalo = disp.intervalo_min;
-    let cursor = this.parseHora(data, disp.hora_inicio);
-    const fim = this.parseHora(data, disp.hora_fim);
-    const agora = new Date();
 
-    while (
-      isBefore(addMinutes(cursor, servico.duracao_min), fim) ||
-      +addMinutes(cursor, servico.duracao_min) === +fim
-    ) {
-      const slotFim = addMinutes(cursor, servico.duracao_min);
-      const jaPassou = isBefore(cursor, agora);
+    let cursor = this.slotDate(diaISO, disp.hora_inicio, timezone);
+    const fim = this.slotDate(diaISO, disp.hora_fim, timezone);
+    const limiteAntecedencia = Date.now() + antecedenciaMinHoras * 60 * 60 * 1000;
 
-      const temConflito = agendados.some(ag => {
-        const agInicio = parseISO(ag.data_hora);
-        const agFim = addMinutes(agInicio, ag.duracao_min);
-        return isBefore(cursor, agFim) && isAfter(slotFim, agInicio);
-      });
+    while (addMinutes(cursor, servico.duracao_min).getTime() <= fim.getTime()) {
+      const slotHora = formatInTimeZone(cursor, timezone, 'HH:mm');
+      const slotISO = cursor.toISOString();
+
+      const dentroDaAntecedencia = cursor.getTime() <= limiteAntecedencia;
+      const emBloqueio = bloqueiosParciais.some(
+        b => slotHora >= b.hora_inicio! && slotHora < b.hora_fim!,
+      );
+      const confirmadosNoSlot = agendamentosConfirmados.filter(
+        a => new Date(a.data_hora).toISOString() === slotISO,
+      ).length;
 
       slots.push({
-        hora: format(cursor, 'HH:mm'),
-        dataHoraISO: cursor.toISOString(),
-        disponivel: !temConflito && !jaPassou,
+        hora: slotHora,
+        dataHoraISO: slotISO,
+        disponivel: !dentroDaAntecedencia && !emBloqueio && confirmadosNoSlot < capacidade,
       });
 
       cursor = addMinutes(cursor, intervalo);
@@ -54,8 +65,11 @@ export class SlotCalculatorService {
 
   diasComSlots(
     disponibilidades: Disponibilidade[],
-    agendados: Array<{ data_hora: string; duracao_min: number }>,
+    agendamentosConfirmados: Array<{ data_hora: string }>,
     servico: Servico,
+    bloqueios: Bloqueio[],
+    timezone: string,
+    antecedenciaMinHoras: number,
     diasAFrente = 30,
   ): Date[] {
     const hoje = startOfDay(new Date());
@@ -64,7 +78,10 @@ export class SlotCalculatorService {
     for (let i = 0; i < diasAFrente; i++) {
       const dia = new Date(hoje);
       dia.setDate(hoje.getDate() + i);
-      const slots = this.calcularSlotsParaDia(dia, servico, disponibilidades, agendados);
+      const slots = this.calcularSlotsParaDia(
+        dia, servico, disponibilidades, agendamentosConfirmados,
+        bloqueios, timezone, antecedenciaMinHoras,
+      );
       if (slots.some(s => s.disponivel)) {
         diasValidos.push(dia);
       }
@@ -73,10 +90,7 @@ export class SlotCalculatorService {
     return diasValidos;
   }
 
-  private parseHora(base: Date, horaStr: string): Date {
-    const [h, m] = horaStr.split(':').map(Number);
-    const d = new Date(base);
-    d.setHours(h, m, 0, 0);
-    return d;
+  private slotDate(diaISO: string, hora: string, timezone: string): Date {
+    return fromZonedTime(`${diaISO}T${hora}:00`, timezone);
   }
 }

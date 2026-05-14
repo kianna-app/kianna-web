@@ -8,9 +8,12 @@
 
   <!-- ── Direita: ícones de ação ────────────────────────── -->
   <div class="header-actions">
-    <button mat-icon-button class="header-action-btn" aria-label="Notificações"
-            matTooltip="Em breve" disabled>
-      <mat-icon>notifications_none</mat-icon>
+    <button mat-icon-button class="header-action-btn agenda-btn" routerLink="/dashboard/agenda"
+            aria-label="Agenda" [matTooltip]="pendentesCount() > 0 ? pendentesCount() + ' pendentes' : 'Agenda'">
+      <mat-icon>calendar_today</mat-icon>
+      @if (pendentesCount() > 0) {
+        <span class="badge-pendentes">{{ pendentesCount() > 99 ? '99+' : pendentesCount() }}</span>
+      }
     </button>
 
     <button mat-icon-button class="avatar-btn" [matMenuTriggerFor]="menuPerfil"

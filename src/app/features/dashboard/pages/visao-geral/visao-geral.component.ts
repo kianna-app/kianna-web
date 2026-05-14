@@ -116,7 +116,7 @@ export class VisaoGeralComponent implements OnInit {
       total:       ags.length,
       confirmados: ags.filter(a => a.status === 'confirmado').length,
       pendentes:   ags.filter(a => a.status === 'pendente').length,
-      concluidos:  ags.filter(a => a.status === 'concluido').length,
+      finalizados: ags.filter(a => a.status === 'finalizado').length,
     };
   });
 

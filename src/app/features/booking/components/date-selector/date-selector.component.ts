@@ -13,26 +13,40 @@ const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'o
         <h2 class="step-titulo">Escolha a data</h2>
       </div>
 
-      <div class="paginacao">
-        <button class="btn-pag" (click)="paginaAnterior()" [disabled]="paginaAtual() === 0">&#8249;</button>
-        <span class="pag-label">{{ labelPeriodo }}</span>
-        <button class="btn-pag" (click)="proximaPagina()" [disabled]="paginaAtual() >= totalPaginas - 1">&#8250;</button>
-      </div>
+      @if (diasComSlots.length === 0) {
+        <div class="sem-slots">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dee2e6" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          <p>Sem horários disponíveis</p>
+          <p class="sem-slots-sub">Verifique novamente em breve ou entre em contato pelo WhatsApp.</p>
+        </div>
+      } @else {
+        <div class="paginacao">
+          <button class="btn-pag" (click)="paginaAnterior()" [disabled]="paginaAtual() === 0">&#8249;</button>
+          <span class="pag-label">{{ labelPeriodo }}</span>
+          <button class="btn-pag" (click)="proximaPagina()" [disabled]="paginaAtual() >= totalPaginas - 1">&#8250;</button>
+        </div>
 
-      <div class="chips-grid">
-        @for (dia of diasVisiveis(); track dia.toISOString()) {
-          <button
-            class="chip chip-data"
-            [class.disabled]="!isDiaDisponivel(dia)"
-            [class.hoje]="isHoje(dia)"
-            (click)="isDiaDisponivel(dia) && selecionou.emit(dia)"
-          >
-            <span class="chip-diaSemana">{{ DIAS_CURTOS[dia.getDay()] }}</span>
-            <span class="chip-data-num">{{ dia.getDate() }}</span>
-            <span class="chip-mes">{{ MESES[dia.getMonth()] }}</span>
-          </button>
-        }
-      </div>
+        <div class="chips-grid">
+          @for (dia of diasVisiveis(); track dia.toISOString()) {
+            <button
+              class="chip chip-data"
+              [class.disabled]="!isDiaDisponivel(dia)"
+              [class.hoje]="isHoje(dia)"
+              (click)="isDiaDisponivel(dia) && selecionou.emit(dia)"
+            >
+              <span class="chip-diaSemana">{{ DIAS_CURTOS[dia.getDay()] }}</span>
+              <span class="chip-data-num">{{ dia.getDate() }}</span>
+              <span class="chip-mes">{{ MESES[dia.getMonth()] }}</span>
+            </button>
+          }
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -140,6 +154,19 @@ const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'o
       font-size: 10px;
       color: var(--booking-muted, #6c757d);
     }
+
+    .sem-slots {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--booking-muted, #6c757d);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+
+      p { margin: 0; font-size: 14px; font-weight: 500; }
+    }
+    .sem-slots-sub { font-size: 12px !important; font-weight: 400 !important; margin-top: 2px; }
   `],
 })
 export class DateSelectorComponent implements OnInit {

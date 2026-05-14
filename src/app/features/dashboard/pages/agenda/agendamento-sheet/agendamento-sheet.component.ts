@@ -25,7 +25,7 @@ export class AgendamentoSheetComponent {
 
   get a(): AgendamentoComServico { return this.data.agendamento; }
   get podeConfirmar(): boolean { return this.a.status === 'pendente'; }
-  get podeCancelar(): boolean { return this.a.status !== 'cancelado' && this.a.status !== 'concluido'; }
+  get podeCancelar(): boolean { return this.a.status === 'pendente' || this.a.status === 'confirmado'; }
   get podeReabrir(): boolean { return this.a.status === 'cancelado'; }
 
   acao(a: 'confirmar' | 'cancelar' | 'reabrir'): void { this.ref.dismiss({ acao: a }); }
@@ -38,6 +38,15 @@ export class AgendamentoSheetComponent {
   }
 
   rotulo(s: StatusAgend): string {
-    return ({ pendente: 'Pendente', confirmado: 'Confirmado', cancelado: 'Cancelado', concluido: 'Concluído' }[s]);
+    const map: Record<StatusAgend, string> = {
+      pendente:       'Pendente',
+      confirmado:     'Confirmado',
+      cancelado:      'Cancelado',
+      recusado:       'Recusado',
+      reagendado:     'Reagendado',
+      finalizado:     'Finalizado',
+      nao_compareceu: 'Não compareceu',
+    };
+    return map[s];
   }
 }

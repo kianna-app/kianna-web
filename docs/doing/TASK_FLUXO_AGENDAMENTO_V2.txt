@@ -1,0 +1,806 @@
+KIANNA — TASK: CORREÇÕES DE FLUXO DE AGENDAMENTO (Especificação Funcional MVP)
+Branch: feat/fluxo-agendamento-v2
+Gerado em: Maio/2026
+========================================
+
+CONTEXTO
+--------
+Esta task corrige e expande o fluxo de agendamento para alinhar com a
+Especificação Funcional do MVP. Cobre mudanças no banco (Supabase), nas regras
+de negócio (slot-calculator, booking.service), no painel do profissional
+(dashboard) e na página pública (/:slug).
+
+Execute os blocos na ordem indicada. Cada bloco é independente mas alguns
+têm dependências explicitadas.
+
+
+========================================
+=== BLOCO A — BANCO DE DADOS (Supabase SQL Editor) ===
+========================================
+Executar PRIMEIRO. Todos os blocos seguintes dependem destas alterações.
+
+
+--- A1: Novos status na tabela agendamentos ---
+
+O campo status atual aceita: pendente | confirmado | cancelado | concluido
+Adicionar: recusado | reagendado | finalizado | nao_compareceu
+Remover: concluido (renomear para finalizado)
+
+-- Alterar tipo do campo status (recriar como text com constraint)
+ALTER TABLE agendamentos DROP CONSTRAINT IF EXISTS agendamentos_status_check;
+
+ALTER TABLE agendamentos
+  ADD CONSTRAINT agendamentos_status_check
+  CHECK (status IN (
+    'pendente',
+    'confirmado',
+    'recusado',
+    'cancelado',
+    'reagendado',
+    'finalizado',
+    'nao_compareceu'
+  ));
+
+-- Migrar registros existentes com status 'concluido' para 'finalizado'
+UPDATE agendamentos SET status = 'finalizado' WHERE status = 'concluido';
+
+-- Adicionar campo motivo_recusa (opcional, apenas para status 'recusado')
+ALTER TABLE agendamentos ADD COLUMN IF NOT EXISTS motivo_recusa TEXT;
+
+-- Adicionar campo agendamento_origem_id para rastrear reagendamentos
+-- (quando reagendado, o novo agendamento aponta para o original)
+ALTER TABLE agendamentos ADD COLUMN IF NOT EXISTS agendamento_origem_id UUID
+  REFERENCES agendamentos(id) ON DELETE SET NULL;
+
+-- Índice para busca por origem (reagendamentos)
+CREATE INDEX IF NOT EXISTS idx_agendamentos_origem
+  ON agendamentos(agendamento_origem_id)
+  WHERE agendamento_origem_id IS NOT NULL;
+
+
+--- A2: Campo capacidade na tabela disponibilidades ---
+
+-- Capacidade por horário (default 1 = comportamento atual)
+ALTER TABLE disponibilidades ADD COLUMN IF NOT EXISTS capacidade INTEGER NOT NULL DEFAULT 1;
+
+-- Constraint: capacidade deve ser >= 1
+ALTER TABLE disponibilidades ADD CONSTRAINT disponibilidades_capacidade_check
+  CHECK (capacidade >= 1);
+
+
+--- A3: Campos de configuração na tabela profissionais ---
+
+-- Antecedência mínima em horas (default 24h)
+ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS antecedencia_minima_horas INTEGER NOT NULL DEFAULT 24;
+
+-- Timezone do profissional (default São Paulo)
+ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS timezone TEXT NOT NULL DEFAULT 'America/Sao_Paulo';
+
+-- Constraint timezone: valores válidos do IANA
+-- (não restringir via constraint — validar no frontend/backend)
+
+
+--- A4: Tabela bloqueios ---
+
+-- Bloqueios de agenda: dia inteiro ou período específico numa data específica
+CREATE TABLE IF NOT EXISTS bloqueios (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  profissional_id UUID NOT NULL REFERENCES profissionais(id) ON DELETE CASCADE,
+  data          DATE NOT NULL,                          -- data do bloqueio
+  hora_inicio   TIME,                                   -- NULL = dia inteiro
+  hora_fim      TIME,                                   -- NULL = dia inteiro
+  motivo        TEXT,                                   -- opcional
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  -- Se hora_inicio for informado, hora_fim também deve ser
+  CONSTRAINT bloqueios_horas_check CHECK (
+    (hora_inicio IS NULL AND hora_fim IS NULL) OR
+    (hora_inicio IS NOT NULL AND hora_fim IS NOT NULL AND hora_fim > hora_inicio)
+  )
+);
+
+-- Índice para busca por profissional e data
+CREATE INDEX IF NOT EXISTS idx_bloqueios_profissional_data
+  ON bloqueios(profissional_id, data);
+
+-- RLS
+ALTER TABLE bloqueios ENABLE ROW LEVEL SECURITY;
+
+-- Profissional autenticado gerencia seus próprios bloqueios
+CREATE POLICY "profissional gerencia bloqueios"
+ON bloqueios FOR ALL TO authenticated
+USING (
+  profissional_id IN (SELECT id FROM profissionais WHERE user_id = auth.uid())
+)
+WITH CHECK (
+  profissional_id IN (SELECT id FROM profissionais WHERE user_id = auth.uid())
+);
+
+-- Anon pode ver bloqueios (necessário para slot-calculator da página pública)
+CREATE POLICY "anon pode ver bloqueios"
+ON bloqueios FOR SELECT TO anon
+USING (true);
+
+
+--- A5: Atualizar view agendamentos_publicos ---
+
+-- A view deve incluir o novo campo status com os novos valores
+-- (já recriada sem SECURITY DEFINER conforme fix anterior — só verificar)
+DROP VIEW IF EXISTS agendamentos_publicos;
+
+CREATE VIEW agendamentos_publicos
+WITH (security_invoker = true)
+AS
+  SELECT id, profissional_id, servico_id, data_hora, status
+  FROM agendamentos
+  WHERE status IN ('pendente', 'confirmado');
+
+-- Política de SELECT anon já existe — verificar se ainda está ativa:
+-- SELECT policyname FROM pg_policies WHERE tablename = 'agendamentos';
+
+
+--- A6: Atualizar tipos gerados (database.types.ts) ---
+
+Após rodar o SQL, atualizar src/app/core/types/database.types.ts
+com os novos campos:
+
+  agendamentos:
+    status: 'pendente' | 'confirmado' | 'recusado' | 'cancelado' |
+            'reagendado' | 'finalizado' | 'nao_compareceu'
+    motivo_recusa: string | null
+    agendamento_origem_id: string | null
+
+  disponibilidades:
+    capacidade: number   // default 1
+
+  profissionais:
+    antecedencia_minima_horas: number   // default 24
+    timezone: string                    // default 'America/Sao_Paulo'
+
+  bloqueios: (nova tabela)
+    id: string
+    profissional_id: string
+    data: string           // 'YYYY-MM-DD'
+    hora_inicio: string | null   // 'HH:MM'
+    hora_fim: string | null      // 'HH:MM'
+    motivo: string | null
+    created_at: string
+
+
+========================================
+=== BLOCO B — REPOSITÓRIOS E SERVIÇOS (core) ===
+========================================
+Depende do Bloco A.
+
+
+--- B1: bloqueios.repository.ts (novo) ---
+
+ARQUIVO: src/app/core/repositories/bloqueios.repository.ts
+
+Métodos:
+  // Busca bloqueios de um profissional em um intervalo de datas
+  async getBloqueiosPorPeriodo(
+    profissionalId: string,
+    dataInicio: string,   // 'YYYY-MM-DD'
+    dataFim: string       // 'YYYY-MM-DD'
+  ): Promise<Bloqueio[]>
+    → .from('bloqueios')
+      .select('*')
+      .eq('profissional_id', profissionalId)
+      .gte('data', dataInicio)
+      .lte('data', dataFim)
+
+  // Cria bloqueio (autenticado)
+  async criar(payload: {
+    profissional_id: string
+    data: string
+    hora_inicio?: string
+    hora_fim?: string
+    motivo?: string
+  }): Promise<Bloqueio>
+
+  // Remove bloqueio (autenticado)
+  async excluir(id: string): Promise<void>
+
+
+--- B2: slot-calculator.service.ts — atualizar lógica ---
+
+ARQUIVO: src/app/features/booking/services/slot-calculator.service.ts
+
+ALTERAÇÕES NECESSÁRIAS:
+
+  1. TIMEZONE
+  Toda comparação de data/hora deve usar o timezone do profissional.
+  Usar Intl.DateTimeFormat ou a biblioteca date-fns-tz (verificar se já está
+  instalada; se não: npm install date-fns date-fns-tz).
+
+  Função auxiliar a adicionar:
+    private toZonedDate(isoString: string, timezone: string): Date {
+      // Converte ISO UTC para Date no timezone do profissional
+      // Usar: new Date(new Date(isoString).toLocaleString('en-US', { timeZone: timezone }))
+      // OU: fromZonedTime/toZonedTime do date-fns-tz
+    }
+
+    private nowInTimezone(timezone: string): Date {
+      return new Date(new Date().toLocaleString('en-US', { timeZone: timezone }))
+    }
+
+  2. ANTECEDÊNCIA MÍNIMA
+  Parâmetro antecedenciaMinHoras vem do profissional (profissional.antecedencia_minima_horas).
+  Slot deve ser filtrado se:
+    slotDateTime <= nowInTimezone(timezone) + antecedenciaMinHoras
+
+  Antes estava hardcoded ou não existia — parametrizar.
+
+  3. CAPACIDADE POR HORÁRIO
+  A assinatura atual recebe disponibilidades e agendamentos confirmados.
+  Alterar a lógica de bloqueio de slot:
+
+  ANTES (implícito):
+    slot bloqueado se agendamentosConfirmados.some(a => a.data_hora === slotISO)
+
+  DEPOIS:
+    const disponibilidade = // disponibilidade que gerou este slot
+    const capacidade = disponibilidade.capacidade ?? 1
+    const confirmadosNoSlot = agendamentosConfirmados.filter(
+      a => a.data_hora === slotISO
+    ).length
+    slot bloqueado se confirmadosNoSlot >= capacidade
+
+  4. BLOQUEIOS DE AGENDA
+  Adicionar parâmetro bloqueios: Bloqueio[] ao método principal.
+  Antes de gerar slots de um dia, verificar:
+
+    const bloqueiosDoDia = bloqueios.filter(b => b.data === diaISO)
+
+    // Se existe bloqueio de dia inteiro (hora_inicio === null): pular dia inteiro
+    const diaInteiroBloqueado = bloqueiosDoDia.some(b => b.hora_inicio === null)
+    if (diaInteiroBloqueado) continue
+
+    // Se existe bloqueio de período: filtrar slots que se sobrepõem
+    const bloqueiosParciais = bloqueiosDoDia.filter(b => b.hora_inicio !== null)
+    // Para cada slot, verificar se o horário cai dentro de algum bloqueio parcial:
+    const slotBloqueado = bloqueiosParciais.some(b =>
+      slotHora >= b.hora_inicio! && slotHora < b.hora_fim!
+    )
+
+  5. JANELA DE AGENDAMENTO
+  Manter 30 dias à frente (decisão arquitetural já fixada).
+
+
+--- B3: booking.repository.ts — atualizar queries ---
+
+ARQUIVO: src/app/core/repositories/booking.repository.ts
+
+  1. Ao buscar profissional por slug, incluir novos campos:
+     .select('*, antecedencia_minima_horas, timezone')
+
+  2. Ao buscar disponibilidades para cálculo de slots, incluir:
+     .select('*, capacidade')
+
+  3. Ao buscar bloqueios para a página pública:
+     Chamar bloqueios.repository.getBloqueiosPorPeriodo()
+     para o intervalo de 30 dias (hoje até hoje+30).
+
+  4. Ao buscar agendamentos para verificar ocupação:
+     Filtrar apenas status IN ('pendente', 'confirmado')
+     ATENÇÃO: status 'pendente' não bloqueia slot (não conta para capacidade)
+     Filtrar apenas status = 'confirmado' para contagem de capacidade.
+
+
+--- B4: agendamentos.repository.ts — novos métodos ---
+
+ARQUIVO: src/app/core/repositories/agendamentos.repository.ts
+
+  // Existente — estender:
+  async atualizarStatus(
+    id: string,
+    status: 'confirmado' | 'recusado' | 'cancelado' | 'finalizado' | 'nao_compareceu',
+    motivo_recusa?: string
+  ): Promise<void>
+    → Incluir motivo_recusa no update quando status === 'recusado'
+
+  // Novo: criar agendamento de reagendamento
+  async reagendar(
+    agendamentoOrigemId: string,
+    payload: {
+      profissional_id: string
+      servico_id: string
+      cliente_nome: string
+      cliente_wpp: string
+      data_hora: string
+    }
+  ): Promise<{ id: string }>
+    → Transação:
+      1. UPDATE agendamentos SET status = 'reagendado' WHERE id = agendamentoOrigemId
+      2. INSERT agendamentos { ...payload, status: 'pendente', agendamento_origem_id: agendamentoOrigemId }
+      → Supabase não tem transação nativa no cliente: fazer as duas chamadas em sequência.
+         Se o INSERT falhar, fazer ROLLBACK manual do UPDATE (atualizarStatus de volta).
+
+  // Novo: finalizar agendamentos vencidos (chamado ao abrir o painel)
+  async finalizarVencidos(profissionalId: string): Promise<void>
+    → UPDATE agendamentos
+      SET status = 'finalizado'
+      WHERE profissional_id = profissionalId
+        AND status = 'confirmado'
+        AND data_hora < now() - INTERVAL '0 minutes'
+      // Nota: a duração ideal seria data_hora + duracao_min mas JOIN com serviços
+      // torna a query complexa. Simplificação MVP: finalizar quando data_hora < now().
+      // Se quiser precisão: fazer no frontend (ver Bloco C4).
+
+  // Novo: buscar contagem de pendentes (para badge no header)
+  async contarPendentes(profissionalId: string): Promise<number>
+    → SELECT COUNT(*) FROM agendamentos
+      WHERE profissional_id = profissionalId AND status = 'pendente'
+
+
+========================================
+=== BLOCO C — DASHBOARD (painel do profissional) ===
+========================================
+Depende dos Blocos A e B.
+
+
+--- C1: Badge de pendentes no header (realtime) ---
+
+ARQUIVO: src/app/features/dashboard/shell/header/header.component.ts
+
+  1. Injetar AgendamentosStore ou criar um signal dedicado pendentesCount.
+
+  2. Ao inicializar o header, buscar contagem inicial:
+     this.pendentesCount.set(await this.agendamentosRepo.contarPendentes(profId))
+
+  3. Subscrever ao canal Supabase Realtime para atualizações em tempo real:
+
+     private subscribeToAgendamentos(profissionalId: string): void {
+       this.supabase
+         .channel('agendamentos-pendentes')
+         .on(
+           'postgres_changes',
+           {
+             event: '*',
+             schema: 'public',
+             table: 'agendamentos',
+             filter: `profissional_id=eq.${profissionalId}`
+           },
+           () => {
+             // Qualquer mudança na tabela → recontar pendentes
+             this.agendamentosRepo.contarPendentes(profissionalId)
+               .then(n => this.pendentesCount.set(n))
+           }
+         )
+         .subscribe()
+     }
+
+  4. Desinscrever no ngOnDestroy.
+
+  5. Template — adicionar badge no ícone da agenda (ou no header):
+     @if (pendentesCount() > 0) {
+       <span class="badge-pendentes">{{ pendentesCount() }}</span>
+     }
+
+  SCSS:
+     .badge-pendentes {
+       position: absolute; top: -4px; right: -4px;
+       min-width: 18px; height: 18px;
+       background: #F59E0B; color: #fff;
+       border-radius: 99px; font: 700 10px 'Inter';
+       display: grid; place-items: center;
+       padding: 0 4px;
+     }
+     // Elemento pai (ícone agenda) precisa de position: relative
+
+
+--- C2: Ações de status no dialog de agendamento ---
+
+ARQUIVO: components/agendamento-form-dialog/agendamento-form-dialog.component.ts
+
+  Substituir o select de status livre por ações explícitas com botões,
+  respeitando as transições válidas:
+
+  TRANSIÇÕES PERMITIDAS:
+    pendente    → confirmado | recusado
+    confirmado  → cancelado | reagendado | nao_compareceu
+    recusado    → (sem transição — terminal)
+    cancelado   → (sem transição — terminal)
+    reagendado  → (sem transição — terminal — novo agendamento foi criado)
+    finalizado  → nao_compareceu (correção manual)
+    nao_compareceu → (sem transição — terminal)
+
+  INTERFACE SUGERIDA:
+    // Para agendamento pendente:
+    <button class="btn-primary" (click)="confirmar()">Confirmar</button>
+    <button class="btn-danger"  (click)="abrirRecusa()">Recusar</button>
+
+    // Para agendamento confirmado:
+    <button class="btn-ghost"   (click)="reagendar()">Reagendar</button>
+    <button class="btn-danger"  (click)="cancelar()">Cancelar</button>
+    <button class="btn-ghost"   (click)="naoCompareceu()">Não compareceu</button>
+
+    // Para agendamento finalizado:
+    <button class="btn-ghost"   (click)="naoCompareceu()">Marcar não compareceu</button>
+
+  RECUSA COM MOTIVO (opcional):
+    // Ao clicar em Recusar, expandir campo de texto:
+    <textarea [(ngModel)]="motivoRecusa"
+      placeholder="Motivo da recusa (opcional)"
+      rows="2">
+    </textarea>
+    <button class="btn-danger" (click)="confirmarRecusa()">Confirmar recusa</button>
+
+  MÉTODOS NO COMPONENTE:
+
+    async confirmar(): Promise<void> {
+      await this.agendamentosRepo.atualizarStatus(this.ag.id, 'confirmado')
+      this.dialogRef.close(true)
+    }
+
+    async confirmarRecusa(): Promise<void> {
+      await this.agendamentosRepo.atualizarStatus(this.ag.id, 'recusado', this.motivoRecusa)
+      this.dialogRef.close(true)
+    }
+
+    async cancelar(): Promise<void> {
+      await this.agendamentosRepo.atualizarStatus(this.ag.id, 'cancelado')
+      this.dialogRef.close(true)
+    }
+
+    async naoCompareceu(): Promise<void> {
+      await this.agendamentosRepo.atualizarStatus(this.ag.id, 'nao_compareceu')
+      this.dialogRef.close(true)
+    }
+
+    reagendar(): void {
+      // Gerar link de reagendamento e copiar para área de transferência
+      // (o envio ao cliente é feito via WhatsApp — Módulo 4)
+      // Por ora: copiar link para clipboard e exibir snackbar
+      const link = `${APP.BASE_URL}/${this.ag.slug}?reagendar=${this.ag.id}`
+      navigator.clipboard.writeText(link)
+      this.snackBar.open('Link de reagendamento copiado!', '', { duration: 3000 })
+    }
+    // NOTA: quando Módulo 4 (WhatsApp) estiver pronto,
+    // substituir clipboard por envio automático via Z-API.
+
+
+--- C3: STATUS_MAP — atualizar cores nos componentes visuais ---
+
+ARQUIVO: src/app/features/dashboard/pages/agenda/components/appt-card/appt-card.component.ts
+
+Adicionar os novos status ao STATUS_MAP:
+
+  recusado:      { label: 'Recusado',      bar: 'var(--c-rose)',    bg: 'var(--c-rose-bg)',    text: 'var(--c-rose-text)',    chipBg: 'var(--c-rose-chip)'    }
+  reagendado:    { label: 'Reagendado',    bar: '#9B59B6',          bg: '#F5EEF8',             text: '#6C3483',               chipBg: '#E8DAEF'               }
+  finalizado:    { label: 'Finalizado',    bar: 'var(--c-green)',   bg: 'var(--c-green-bg)',   text: 'var(--c-green-text)',   chipBg: 'var(--c-green-chip)'   }
+  nao_compareceu:{ label: 'Não compareceu',bar: '#7F8C8D',          bg: '#F2F3F4',             text: '#566573',               chipBg: '#D5D8DC'               }
+
+Atualizar o tipo StatusAg:
+  type StatusAg = 'confirmado' | 'pendente' | 'cancelado' | 'recusado' |
+                  'reagendado' | 'finalizado' | 'nao_compareceu'
+
+Atualizar AgendamentoView interface:
+  status: StatusAg   // era sem 'recusado' | 'reagendado' | 'finalizado' | 'nao_compareceu'
+
+
+--- C4: Finalização automática ao abrir o painel ---
+
+ARQUIVO: src/app/features/dashboard/shell/dashboard.component.ts
+  (ou onde acontece a inicialização do dashboard)
+
+  async ngOnInit(): Promise<void> {
+    // ... inicialização existente ...
+
+    // Finalizar agendamentos confirmados vencidos
+    await this.finalizarVencidos()
+  }
+
+  private async finalizarVencidos(): Promise<void> {
+    const profId = this.currentUser()?.profissional_id
+    if (!profId) return
+
+    const agora = new Date()
+    const vencidos = this.agendamentosStore.agendamentos().filter(a => {
+      if (a.status !== 'confirmado') return false
+      const servico = this.servicosStore.servicos().find(s => s.id === a.servico_id)
+      const duracaoMin = servico?.duracao_min ?? 0
+      const fimAgendamento = new Date(new Date(a.data_hora).getTime() + duracaoMin * 60000)
+      return fimAgendamento < agora
+    })
+
+    for (const ag of vencidos) {
+      await this.agendamentosRepo.atualizarStatus(ag.id, 'finalizado')
+      this.agendamentosStore.atualizarStatusLocal(ag.id, 'finalizado')
+    }
+  }
+
+  // NOTA: executa silenciosamente, sem confirmação do profissional.
+  // Executar após carregar agendamentos e serviços.
+
+
+--- C5: Resumo-band — atualizar filtros ---
+
+ARQUIVO: resumo-band.component.ts
+
+A band atualmente mostra: Total | Confirmados | Pendentes | Concluídos
+Atualizar para:           Total | Confirmados | Pendentes | Finalizados
+
+No AgendaComponent e VisaoGeralComponent, atualizar o computed resumo():
+  return {
+    total:       ags.length,
+    confirmados: ags.filter(a => a.status === 'confirmado').length,
+    pendentes:   ags.filter(a => a.status === 'pendente').length,
+    finalizados: ags.filter(a => a.status === 'finalizado').length,
+  }
+
+
+--- C6: Tela de Bloqueios de Agenda ---
+
+ARQUIVO: nova rota /dashboard/horarios (aba adicional) OU nova página /dashboard/bloqueios
+
+RECOMENDAÇÃO: adicionar como segunda aba dentro de /dashboard/horarios,
+ao lado da configuração de disponibilidade semanal.
+
+COMPONENTE: features/dashboard/pages/horarios/bloqueios/
+  bloqueios.component.ts + .html + .scss
+
+  INTERFACE:
+    Lista de bloqueios ativos (data >= hoje), ordenada por data asc.
+    Botão "Adicionar bloqueio" → abre dialog.
+    Cada item: data, período (ou "Dia inteiro"), motivo, botão excluir.
+
+  DIALOG: adicionar-bloqueio-dialog.component.ts
+    Campos:
+      - Data (mat-datepicker, min = hoje)
+      - Tipo: radio "Dia inteiro" | "Período específico"
+      - Hora início (mat-timepicker ou mat-select com slots de 30min) — visível se "Período"
+      - Hora fim  (idem) — visível se "Período"
+      - Motivo (text, opcional)
+    Botões: Salvar (.btn-primary) | Cancelar (.btn-ghost)
+
+  STORE: adicionar bloqueios.store.ts
+    signals: bloqueios, loading, erro
+    métodos: carregar(), adicionar(), excluir()
+
+
+========================================
+=== BLOCO D — PÁGINA PÚBLICA (/:slug) ===
+========================================
+Depende dos Blocos A e B.
+
+
+--- D1: Passar antecedenciaMinHoras e timezone para slot-calculator ---
+
+ARQUIVO: src/app/features/booking/services/booking.service.ts
+
+  Ao buscar o profissional por slug, os novos campos já vêm na query (B3).
+  Passar para o slot-calculator:
+    this.slotCalculator.calcular({
+      disponibilidades: ...,
+      agendamentosConfirmados: ...,
+      bloqueios: ...,           // NOVO
+      timezone: profissional.timezone,                    // NOVO
+      antecedenciaMinHoras: profissional.antecedencia_minima_horas,  // NOVO
+      capacidade: // vem de cada disponibilidade.capacidade          // NOVO
+    })
+
+
+--- D2: Reagendamento via link público (?reagendar=ID) ---
+
+ARQUIVO: src/app/features/booking/pages/booking-page/booking-page.component.ts
+
+  1. Ao inicializar, verificar queryParam 'reagendar':
+     private route = inject(ActivatedRoute)
+
+     ngOnInit(): void {
+       const reagendarId = this.route.snapshot.queryParamMap.get('reagendar')
+       if (reagendarId) {
+         this.booking.iniciarReagendamento(reagendarId)
+       }
+     }
+
+  2. No booking.service.ts, adicionar:
+
+     async iniciarReagendamento(agendamentoId: string): Promise<void> {
+       // Buscar agendamento original para pré-selecionar serviço
+       const ag = await this.agendamentosRepo.getById(agendamentoId)
+       if (!ag) return
+
+       // Pré-selecionar serviço
+       const servico = this.servicos().find(s => s.id === ag.servico_id)
+       if (servico) this.selecionarServico(servico)
+
+       // Pular para seleção de data (step 'data')
+       this.step.set('data')
+
+       // Guardar referência ao agendamento original
+       this.agendamentoOrigemId.set(agendamentoId)
+     }
+
+     // Signal para guardar ID do agendamento sendo reagendado
+     agendamentoOrigemId = signal<string | null>(null)
+
+  3. Ao confirmar o agendamento (confirmarAgendamento()):
+     if (this.agendamentoOrigemId()) {
+       // Usar agendamentos.repository.reagendar() em vez de insert direto
+       await this.agendamentosRepo.reagendar(this.agendamentoOrigemId()!, payload)
+     } else {
+       // Fluxo normal de criação
+       await this.agendamentosRepo.criarPublico(payload)
+     }
+
+  4. Exibir banner informativo no topo da página quando em modo reagendamento:
+     @if (booking.agendamentoOrigemId()) {
+       <div class="reagendamento-banner">
+         <mat-icon>event_repeat</mat-icon>
+         Selecione a nova data e horário para o seu reagendamento.
+       </div>
+     }
+
+     SCSS:
+     .reagendamento-banner {
+       display: flex; align-items: center; gap: 8px;
+       padding: 12px 16px; margin-bottom: 16px;
+       background: #E8F5F0; border-left: 3px solid #1D9E75;
+       border-radius: 0 8px 8px 0;
+       font: 500 13px 'Inter'; color: #0F5C44;
+     }
+
+  5. Adicionar método getById no agendamentos.repository.ts (ou booking.repository.ts):
+     async getById(id: string): Promise<AgendamentoBasico | null>
+       → .from('agendamentos').select('id, servico_id, cliente_nome, cliente_wpp').eq('id', id).single()
+       // Anon pode ler (policy SELECT anon já existe para pendente/confirmado)
+
+
+--- D3: Mensagem quando sem horários disponíveis ---
+
+ARQUIVO: features/booking/components/date-selector/ e time-selector/
+
+  Quando não há slots disponíveis para nenhuma data no período de 30 dias:
+    <div class="sem-slots">
+      <mat-icon>event_busy</mat-icon>
+      <p>Sem horários disponíveis</p>
+      <p class="sem-slots-sub">Verifique novamente em breve ou entre em contato pelo WhatsApp.</p>
+    </div>
+
+  Quando uma data específica não tem horários (já pode existir — confirmar):
+    Exibir mensagem inline no seletor de horários.
+
+  SCSS:
+    .sem-slots {
+      text-align: center; padding: 32px 16px;
+      color: #6c757d;
+    }
+    .sem-slots mat-icon { font-size: 40px; color: #dee2e6; }
+    .sem-slots-sub { font-size: 12px; margin-top: 4px; }
+
+
+========================================
+=== BLOCO E — VERIFICAÇÕES E TESTES ===
+========================================
+
+
+--- E1: Verificar timezone no slot-calculator ---
+
+Testar manualmente:
+  - Criar profissional com timezone 'America/Manaus' (UTC-4)
+  - Criar profissional com timezone 'America/Sao_Paulo' (UTC-3)
+  - Verificar se os slots exibidos na página pública batem com o horário local do profissional
+  - Verificar se antecedência mínima de 24h descarta slots corretamente
+
+
+--- E2: Verificar capacidade por horário ---
+
+  - Criar disponibilidade com capacidade = 2 para segunda-feira 14h-15h com intervalo 60min
+  - Criar 1 agendamento confirmado às 14h → slot ainda deve aparecer
+  - Criar 2 agendamentos confirmados às 14h → slot deve desaparecer
+  - Agendamentos pendentes NÃO devem contar para a capacidade
+
+
+--- E3: Verificar bloqueios ---
+
+  - Criar bloqueio de dia inteiro para amanhã → dia deve sumir do date-selector
+  - Criar bloqueio 14h-16h para amanhã → slots 14h e 14h30 devem sumir, 16h deve aparecer
+  - Excluir bloqueio → slots voltam a aparecer
+
+
+--- E4: Verificar reagendamento ---
+
+  - Criar agendamento e confirmar
+  - No dashboard, clicar em Reagendar → link copiado para clipboard
+  - Abrir link no browser → banner aparece, serviço pré-selecionado, step = data
+  - Selecionar nova data/horário e confirmar → agendamento original fica com status 'reagendado', novo criado como 'pendente'
+
+
+--- E5: Verificar finalização automática ---
+
+  - Criar agendamento confirmado com data_hora no passado (ex: ontem às 10h)
+  - Abrir o dashboard → agendamento deve aparecer como 'finalizado' automaticamente
+  - Verificar no Supabase que o UPDATE foi executado
+
+
+--- E6: Verificar badge de pendentes ---
+
+  - Com agendamento pendente existente: badge aparece no header com número correto
+  - Confirmar agendamento no painel: badge decrementa em tempo real (Realtime)
+  - Novo agendamento criado pela página pública: badge incrementa em tempo real
+
+
+========================================
+=== ORDEM DE EXECUÇÃO ===
+========================================
+
+1.  A1  — Novos status na tabela agendamentos (SQL)
+2.  A2  — Campo capacidade na tabela disponibilidades (SQL)
+3.  A3  — Campos antecedencia e timezone na tabela profissionais (SQL)
+4.  A4  — Tabela bloqueios (SQL + RLS)
+5.  A5  — Atualizar view agendamentos_publicos (SQL)
+6.  A6  — Atualizar database.types.ts
+7.  B1  — bloqueios.repository.ts (novo)
+8.  B2  — slot-calculator.service.ts (timezone + capacidade + bloqueios)
+9.  B3  — booking.repository.ts (novos campos nas queries)
+10. B4  — agendamentos.repository.ts (novos métodos)
+11. C3  — STATUS_MAP atualizado (appt-card)
+12. C5  — Resumo-band atualizada
+13. C2  — Ações de status no dialog
+14. C4  — Finalização automática ao abrir painel
+15. C1  — Badge de pendentes no header (Realtime)
+16. C6  — Tela de bloqueios de agenda
+17. D1  — Slot-calculator recebe timezone + antecedência + capacidade
+18. D2  — Reagendamento via link público
+19. D3  — Mensagem sem horários disponíveis
+20. E1-E6 — Verificações e testes
+
+
+========================================
+=== CHECKLIST FINAL ===
+========================================
+
+BANCO
+[ ] 7 status existem na constraint da tabela agendamentos
+[ ] Campo motivo_recusa existe na tabela agendamentos
+[ ] Campo agendamento_origem_id existe na tabela agendamentos
+[ ] Campo capacidade existe na tabela disponibilidades (default 1)
+[ ] Campos antecedencia_minima_horas e timezone existem na tabela profissionais
+[ ] Tabela bloqueios criada com RLS correto
+[ ] View agendamentos_publicos com security_invoker = true
+
+SLOT CALCULATOR
+[ ] Slots calculados no timezone do profissional
+[ ] Slots dentro da antecedência mínima não aparecem
+[ ] Slot some quando confirmados >= capacidade
+[ ] Slots pendentes NÃO contam para a capacidade
+[ ] Dias com bloqueio total não aparecem
+[ ] Horários com bloqueio parcial não aparecem
+
+DASHBOARD
+[ ] Badge de pendentes aparece no header
+[ ] Badge atualiza em tempo real (Realtime)
+[ ] Dialog mostra botões de ação corretos para cada status
+[ ] Transições de status inválidas não são possíveis
+[ ] Recusa exibe campo de motivo (opcional)
+[ ] Reagendar copia link para clipboard
+[ ] Finalização automática ocorre ao abrir o painel
+[ ] Novos status exibem cores corretas nos cards
+[ ] Tela de bloqueios permite criar/excluir bloqueios
+[ ] Bloqueio de dia inteiro e de período específico funcionam
+
+PÁGINA PÚBLICA
+[ ] Link ?reagendar=ID pré-seleciona serviço e pula para data
+[ ] Banner de reagendamento aparece no topo
+[ ] Novo agendamento criado com agendamento_origem_id preenchido
+[ ] Agendamento original muda para status 'reagendado'
+[ ] Mensagem "Sem horários disponíveis" aparece quando não há slots
+[ ] Slots respeitam capacidade por horário
+[ ] Slots respeitam antecedência mínima configurada
+[ ] Slots respeitam timezone do profissional
+
+
+========================================
+=== DECISÕES DEIXADAS PARA PÓS-MVP ===
+========================================
+
+- Envio automático do link de reagendamento via WhatsApp (Módulo 4)
+- Notificação WhatsApp ao confirmar/recusar agendamento (Módulo 4)
+- Lembrete 24h antes (Módulo 4)
+- Confirmação de presença via WhatsApp 1/2 (Módulo 4)
+- CRM / histórico por cliente (Módulo 5)
+- Limite numérico de agendamentos por conta no plano grátis
+  (já existe lógica parcial — revisar ao implementar cobrança no Módulo 6)

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { supabase } from '@core/supabase/supabase.client';
-import { Profissional, Servico, Disponibilidade, Agendamento } from '@core/types/database.types';
+import { Profissional, Servico, Disponibilidade, Bloqueio } from '@core/types/database.types';
 
 @Injectable({ providedIn: 'root' })
 export class BookingRepository {
@@ -47,21 +47,41 @@ export class BookingRepository {
       .from('disponibilidades')
       .select('*')
       .eq('profissional_id', profissionalId);
-    return data ?? [];
+    return (data ?? []) as Disponibilidade[];
   }
 
-  async getAgendamentosNoIntervalo(
+  async getAgendamentosConfirmados(
     profissionalId: string,
     de: string,
     ate: string,
-  ): Promise<Pick<Agendamento, 'data_hora' | 'servico_id'>[]> {
+  ): Promise<Array<{ data_hora: string }>> {
     const { data } = await supabase
       .from('agendamentos_publicos')
-      .select('data_hora, servico_id')
+      .select('data_hora')
       .eq('profissional_id', profissionalId)
+      .eq('status', 'confirmado')
       .gte('data_hora', `${de}T00:00:00`)
       .lte('data_hora', `${ate}T23:59:59`);
     return data ?? [];
+  }
+
+  async getBloqueios(profissionalId: string, de: string, ate: string): Promise<Bloqueio[]> {
+    const { data } = await supabase
+      .from('bloqueios')
+      .select('*')
+      .eq('profissional_id', profissionalId)
+      .gte('data', de)
+      .lte('data', ate);
+    return (data ?? []) as Bloqueio[];
+  }
+
+  async getAgendamentoById(id: string): Promise<{ id: string; servico_id: string | null } | null> {
+    const { data } = await supabase
+      .from('agendamentos_publicos')
+      .select('id, servico_id')
+      .eq('id', id)
+      .maybeSingle();
+    return data as { id: string; servico_id: string | null } | null;
   }
 
   async contarAgendamentosNoMes(profissionalId: string): Promise<number> {
@@ -72,7 +92,7 @@ export class BookingRepository {
       .from('agendamentos')
       .select('id', { count: 'exact', head: true })
       .eq('profissional_id', profissionalId)
-      .in('status', ['pendente', 'confirmado', 'concluido'])
+      .in('status', ['pendente', 'confirmado', 'finalizado'])
       .gte('data_hora', inicioMes)
       .lte('data_hora', fimMes);
     return count ?? 0;
@@ -84,6 +104,7 @@ export class BookingRepository {
     cliente_nome: string;
     cliente_wpp: string;
     data_hora: string;
+    agendamento_origem_id?: string;
   }): Promise<{ id: string } | null> {
     const { data } = await supabase
       .from('agendamentos')

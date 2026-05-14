@@ -2,6 +2,13 @@
 
   <app-professional-header [profissional]="booking.profissional()" />
 
+  @if (booking.agendamentoOrigemId()) {
+    <div class="reagendamento-banner">
+      <mat-icon>event_repeat</mat-icon>
+      Selecione a nova data e horário para o seu reagendamento.
+    </div>
+  }
+
   @if (booking.loading()) {
     <div class="global-loading">
       <div class="spinner"></div>

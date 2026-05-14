@@ -95,6 +95,21 @@
   font-size: 14px;
 }
 
+.reagendamento-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  background: #E8F5F0;
+  border-left: 3px solid #1D9E75;
+  border-radius: 0 8px 8px 0;
+  font: 500 13px 'Inter';
+  color: #0F5C44;
+
+  mat-icon { font-size: 18px; height: 18px; width: 18px; }
+}
+
 .booking-section {
   border-top: 1px solid var(--booking-border);
   padding: 0 0 8px;

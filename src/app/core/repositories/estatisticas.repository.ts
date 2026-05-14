@@ -39,7 +39,7 @@ export class EstatisticasRepository {
       .from('agendamentos')
       .select('*', { count: 'exact', head: true })
       .eq('profissional_id', profissional_id)
-      .in('status', ['confirmado', 'concluido'])
+      .in('status', ['confirmado', 'finalizado'])
       .gte('data_hora', inicioMes.toISOString())
       .lte('data_hora', fimMes.toISOString());
     if (e2) throw e2;
@@ -48,7 +48,7 @@ export class EstatisticasRepository {
       .from('agendamentos')
       .select('*', { count: 'exact', head: true })
       .eq('profissional_id', profissional_id)
-      .in('status', ['confirmado', 'concluido'])
+      .in('status', ['confirmado', 'finalizado'])
       .gte('data_hora', inicioHoje.toISOString())
       .lte('data_hora', fimHoje.toISOString());
     if (e3) throw e3;

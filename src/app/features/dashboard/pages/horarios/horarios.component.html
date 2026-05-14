@@ -5,82 +5,96 @@
   </div>
 </div>
 
-@if (store.carregando()) {
-  <div class="loading-state"><mat-spinner diameter="40"></mat-spinner></div>
-} @else {
-  <mat-card class="preview-card">
-    <div class="preview-item">
-      <span class="pv-label">Dias ativos</span>
-      <span class="pv-value">{{ diasAtivosCount() }}</span>
-    </div>
-    <div class="preview-item">
-      <span class="pv-label">Horas/semana</span>
-      <span class="pv-value">{{ horasSemanais() | number:'1.0-1' }}h</span>
-    </div>
-    <div class="preview-item">
-      <span class="pv-label">Slots/semana</span>
-      <span class="pv-value">{{ slotsSemanais() }}</span>
-    </div>
-  </mat-card>
+<mat-tab-group animationDuration="200ms">
 
-  <div class="dias-list">
-    @for (c of config(); track c.dia) {
-      <mat-card class="dia-card" [class.inativo]="!c.ativo">
-        <div class="dia-row">
-          <div class="dia-toggle">
-            <mat-slide-toggle color="primary" [checked]="c.ativo"
-                              (change)="toggleDia(c.dia, $event.checked)" />
-            <span class="dia-label">{{ c.label }}</span>
-          </div>
+  <!-- Aba 1: Disponibilidade semanal -->
+  <mat-tab label="Disponibilidade semanal">
 
-          @if (c.ativo) {
-            <div class="dia-campos">
-              <mat-form-field appearance="outline">
-                <mat-label>Início</mat-label>
-                <input matInput type="time" [value]="c.hora_inicio"
-                       (change)="atualizar(c.dia, 'hora_inicio', $any($event.target).value)">
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Fim</mat-label>
-                <input matInput type="time" [value]="c.hora_fim"
-                       (change)="atualizar(c.dia, 'hora_fim', $any($event.target).value)">
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Intervalo</mat-label>
-                <mat-select [value]="c.intervalo_min"
-                            (selectionChange)="atualizar(c.dia, 'intervalo_min', $event.value)">
-                  @for (i of intervalos; track i) {
-                    <mat-option [value]="i">{{ i }} min</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-          }
+    @if (store.carregando()) {
+      <div class="loading-state"><mat-spinner diameter="40"></mat-spinner></div>
+    } @else {
+      <mat-card class="preview-card">
+        <div class="preview-item">
+          <span class="pv-label">Dias ativos</span>
+          <span class="pv-value">{{ diasAtivosCount() }}</span>
+        </div>
+        <div class="preview-item">
+          <span class="pv-label">Horas/semana</span>
+          <span class="pv-value">{{ horasSemanais() | number:'1.0-1' }}h</span>
+        </div>
+        <div class="preview-item">
+          <span class="pv-label">Slots/semana</span>
+          <span class="pv-value">{{ slotsSemanais() }}</span>
         </div>
       </mat-card>
+
+      <div class="dias-list">
+        @for (c of config(); track c.dia) {
+          <mat-card class="dia-card" [class.inativo]="!c.ativo">
+            <div class="dia-row">
+              <div class="dia-toggle">
+                <mat-slide-toggle color="primary" [checked]="c.ativo"
+                                  (change)="toggleDia(c.dia, $event.checked)" />
+                <span class="dia-label">{{ c.label }}</span>
+              </div>
+
+              @if (c.ativo) {
+                <div class="dia-campos">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Início</mat-label>
+                    <input matInput type="time" [value]="c.hora_inicio"
+                           (change)="atualizar(c.dia, 'hora_inicio', $any($event.target).value)">
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Fim</mat-label>
+                    <input matInput type="time" [value]="c.hora_fim"
+                           (change)="atualizar(c.dia, 'hora_fim', $any($event.target).value)">
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Intervalo</mat-label>
+                    <mat-select [value]="c.intervalo_min"
+                                (selectionChange)="atualizar(c.dia, 'intervalo_min', $event.value)">
+                      @for (i of intervalos; track i) {
+                        <mat-option [value]="i">{{ i }} min</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              }
+            </div>
+          </mat-card>
+        }
+      </div>
+
+      @if (temAlteracoes()) {
+        <div class="alteracoes-banner">
+          <mat-icon>edit_note</mat-icon>
+          <span>Você tem alterações não salvas</span>
+        </div>
+      }
+
+      <div class="actions">
+        <app-loading-button
+          variant="raised"
+          [color]="temAlteracoes() ? 'accent' : 'primary'"
+          [loading]="store.salvando()"
+          loadingText="Salvando..."
+          icon="save"
+          iconPosition="start"
+          [class.btn-salvar-destaque]="temAlteracoes()"
+          (clicked)="salvar()">
+          Salvar horários
+        </app-loading-button>
+      </div>
     }
-  </div>
 
-  @if (temAlteracoes()) {
-    <div class="alteracoes-banner">
-      <mat-icon>edit_note</mat-icon>
-      <span>Você tem alterações não salvas</span>
-    </div>
-  }
+  </mat-tab>
 
-  <div class="actions">
-    <app-loading-button
-      variant="raised"
-      [color]="temAlteracoes() ? 'accent' : 'primary'"
-      [loading]="store.salvando()"
-      loadingText="Salvando..."
-      icon="save"
-      iconPosition="start"
-      [class.btn-salvar-destaque]="temAlteracoes()"
-      (clicked)="salvar()">
-      Salvar horários
-    </app-loading-button>
-  </div>
-}
+  <!-- Aba 2: Bloqueios de agenda -->
+  <mat-tab label="Bloqueios de agenda">
+    <app-bloqueios />
+  </mat-tab>
+
+</mat-tab-group>

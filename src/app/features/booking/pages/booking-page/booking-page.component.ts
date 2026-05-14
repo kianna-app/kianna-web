@@ -61,6 +61,11 @@ export class BookingPageComponent implements OnInit {
     const slug = this.route.snapshot.paramMap.get('slug')!;
     await this.booking.inicializar(slug);
 
+    const reagendarId = this.route.snapshot.queryParamMap.get('reagendar');
+    if (reagendarId) {
+      await this.booking.iniciarReagendamento(reagendarId);
+    }
+
     const prof = this.booking.profissional();
     if (prof) {
       this.title.setTitle(`Agendar com ${prof.nome} · Kianna`);

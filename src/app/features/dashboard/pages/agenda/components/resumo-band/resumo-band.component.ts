@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common'
   imports: [CommonModule],
   template: `
     <div class="band">
-      <div class="cell" [class.ativo]="filtroAtivo === null" (click)="filtrar.emit(filtroAtivo === null ? '' : '')">
+      <div class="cell" [class.ativo]="filtroAtivo === null" (click)="filtrar.emit('')">
         <span class="n" style="color:var(--text-1)">{{ resumo.total }}</span>
         <span class="lbl">Total</span>
       </div>
@@ -24,10 +24,10 @@ import { CommonModule } from '@angular/common'
         <span class="lbl">Pendentes</span>
       </div>
       <div class="sep"></div>
-      <div class="cell" [class.ativo-concluido]="filtroAtivo === 'concluido'"
-           (click)="onFiltrar('concluido')">
-        <span class="n" style="color:var(--c-green)">{{ resumo.concluidos }}</span>
-        <span class="lbl">Concluídos</span>
+      <div class="cell" [class.ativo-finalizado]="filtroAtivo === 'finalizado'"
+           (click)="onFiltrar('finalizado')">
+        <span class="n" style="color:var(--c-green)">{{ resumo.finalizados }}</span>
+        <span class="lbl">Finalizados</span>
       </div>
     </div>
   `,
@@ -45,7 +45,7 @@ import { CommonModule } from '@angular/common'
     .cell:hover { background: #f1f3f5; }
     .cell.ativo-confirmado { background: var(--c-primary-bg); }
     .cell.ativo-pendente   { background: var(--c-amber-bg); }
-    .cell.ativo-concluido  { background: var(--c-green-bg); }
+    .cell.ativo-finalizado { background: var(--c-green-bg); }
     .n    { font: 700 18px 'Inter'; letter-spacing: -.4px; }
     .lbl  { font: 500 10px 'Inter'; color: var(--text-3);
             letter-spacing: .3px; text-transform: uppercase; }
@@ -53,7 +53,7 @@ import { CommonModule } from '@angular/common'
   `]
 })
 export class ResumoBandComponent {
-  @Input() resumo = { total: 0, confirmados: 0, pendentes: 0, concluidos: 0 }
+  @Input() resumo = { total: 0, confirmados: 0, pendentes: 0, finalizados: 0 }
   @Input() filtroAtivo: string | null = null
   @Output() filtrar = new EventEmitter<string>()
 

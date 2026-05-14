@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { BookingRepository } from '@core/repositories/booking.repository';
 import { SlotCalculatorService } from './slot-calculator.service';
-import { Profissional, Servico, Disponibilidade } from '@core/types/database.types';
+import { Profissional, Servico, Disponibilidade, Bloqueio } from '@core/types/database.types';
 import { PLAN_LIMITS } from '@core/constants/plan.limits';
 import { exceededLimit } from '@core/constants/plan.limits';
 
@@ -24,26 +24,36 @@ export class BookingService {
   readonly loading             = signal(false);
   readonly agendamentoId       = signal<string | null>(null);
   readonly erro                = signal<string | null>(null);
+  readonly agendamentoOrigemId = signal<string | null>(null);
 
-  private agendados = signal<Array<{ data_hora: string; duracao_min: number }>>([]);
+  private agendamentosConfirmados = signal<Array<{ data_hora: string }>>([]);
+  private bloqueios               = signal<Bloqueio[]>([]);
 
   readonly slotsParaDia = computed(() => {
     const data    = this.dataSelecionada();
     const servico = this.servicoSelecionado();
-    if (!data || !servico) return [];
-    return this.slotCalc.calcularSlotsParaDia(data, servico, this.disponibilidades(), this.agendados());
+    const prof    = this.profissional();
+    if (!data || !servico || !prof) return [];
+    return this.slotCalc.calcularSlotsParaDia(
+      data, servico, this.disponibilidades(), this.agendamentosConfirmados(),
+      this.bloqueios(), prof.timezone, prof.antecedencia_minima_horas,
+    );
   });
 
   readonly diasComSlots = computed(() => {
     const servico = this.servicoSelecionado();
-    if (!servico) return [];
-    return this.slotCalc.diasComSlots(this.disponibilidades(), this.agendados(), servico);
+    const prof    = this.profissional();
+    if (!servico || !prof) return [];
+    return this.slotCalc.diasComSlots(
+      this.disponibilidades(), this.agendamentosConfirmados(), servico,
+      this.bloqueios(), prof.timezone, prof.antecedencia_minima_horas,
+    );
   });
 
   async inicializar(slug: string): Promise<void> {
     this.loading.set(true);
     try {
-      let prof = await this.repo.getProfissionalBySlug(slug);
+      const prof = await this.repo.getProfissionalBySlug(slug);
 
       if (!prof) {
         const novoSlug = await this.repo.getRedirectBySlug(slug);
@@ -72,13 +82,24 @@ export class BookingService {
 
       this.servicos.set(servicos);
       this.disponibilidades.set(disps);
-      await this.carregarAgendados(prof.id);
+      await this.carregarDadosPublicos(prof.id);
     } finally {
       this.loading.set(false);
     }
   }
 
-  private async carregarAgendados(profId: string): Promise<void> {
+  async iniciarReagendamento(agendamentoId: string): Promise<void> {
+    const ag = await this.repo.getAgendamentoById(agendamentoId);
+    if (!ag) return;
+
+    const servico = this.servicos().find(s => s.id === ag.servico_id);
+    if (servico) this.selecionarServico(servico);
+
+    this.agendamentoOrigemId.set(agendamentoId);
+    this.step.set('data');
+  }
+
+  private async carregarDadosPublicos(profId: string): Promise<void> {
     const hoje = new Date();
     const em30 = new Date(hoje);
     em30.setDate(hoje.getDate() + 30);
@@ -86,14 +107,13 @@ export class BookingService {
     const de  = hoje.toISOString().split('T')[0];
     const ate = em30.toISOString().split('T')[0];
 
-    const raw = await this.repo.getAgendamentosNoIntervalo(profId, de, ate);
-    const servicosMap = new Map(this.servicos().map(s => [s.id, s.duracao_min]));
-    const enriched = raw.map(ag => ({
-      data_hora:   ag.data_hora,
-      duracao_min: servicosMap.get(ag.servico_id ?? '') ?? 60,
-    }));
+    const [confirmados, bloqueios] = await Promise.all([
+      this.repo.getAgendamentosConfirmados(profId, de, ate),
+      this.repo.getBloqueios(profId, de, ate),
+    ]);
 
-    this.agendados.set(enriched);
+    this.agendamentosConfirmados.set(confirmados);
+    this.bloqueios.set(bloqueios);
   }
 
   selecionarServico(servico: Servico): void {
@@ -124,13 +144,16 @@ export class BookingService {
     this.loading.set(true);
     this.erro.set(null);
     try {
-      const result = await this.repo.criarAgendamento({
+      const payload = {
         profissional_id: this.profissional()!.id,
         servico_id:      this.servicoSelecionado()!.id,
         cliente_nome:    this.clienteNome(),
         cliente_wpp:     this.clienteWpp(),
         data_hora:       this.horarioSelecionado()!,
-      });
+        ...(this.agendamentoOrigemId() ? { agendamento_origem_id: this.agendamentoOrigemId()! } : {}),
+      };
+
+      const result = await this.repo.criarAgendamento(payload);
 
       if (result) {
         this.agendamentoId.set(result.id);

@@ -2,7 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { AgendamentosRepository } from '@core/repositories/agendamentos.repository';
 import { isAuthError } from '@core/repositories/base.repository';
 import { SessionService } from '@core/auth/session.service';
-import { AgendamentoComServico, StatusAgend, Agendamento } from '@core/types/database.types';
+import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
 import { currentUser } from '@core/signals/app.signals';
 
 @Injectable({ providedIn: 'root' })
@@ -41,16 +41,22 @@ export class AgendamentosStore {
     }
   }
 
-  async atualizarStatus(id: string, status: StatusAgend): Promise<void> {
+  async atualizarStatus(id: string, status: StatusAgend, motivo_recusa?: string): Promise<void> {
     try {
-      await this.repo.atualizarStatus(id, status);
+      await this.repo.atualizarStatus(id, status, motivo_recusa);
       this.agendamentos.update(arr =>
-        arr.map(a => a.id === id ? { ...a, status } : a)
+        arr.map(a => a.id === id ? { ...a, status, ...(motivo_recusa ? { motivo_recusa } : {}) } : a)
       );
     } catch (e: unknown) {
       if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
       throw e;
     }
+  }
+
+  atualizarStatusLocal(id: string, status: StatusAgend): void {
+    this.agendamentos.update(arr =>
+      arr.map(a => a.id === id ? { ...a, status } : a)
+    );
   }
 
   async criar(payload: {

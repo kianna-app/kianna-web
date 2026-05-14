@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core'
 import { CommonModule } from '@angular/common'
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms'
+import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms'
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog'
 import { MatFormFieldModule } from '@angular/material/form-field'
 import { MatInputModule } from '@angular/material/input'
@@ -10,6 +10,8 @@ import { MatSnackBar } from '@angular/material/snack-bar'
 import { AgendamentosStore } from '../../../../state/agendamentos.store'
 import { ServicosStore } from '../../../../state/servicos.store'
 import { AgendamentoView } from '../appt-card/appt-card.component'
+import { currentUser } from '@core/signals/app.signals'
+import { APP } from '@core/constants/app.constants'
 
 export interface AgendamentoFormDialogData {
   modo: 'criar' | 'editar'
@@ -21,7 +23,7 @@ export interface AgendamentoFormDialogData {
   selector: 'app-agendamento-form-dialog',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, MatDialogModule,
+    CommonModule, ReactiveFormsModule, FormsModule, MatDialogModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule,
   ],
   template: `
@@ -69,19 +71,44 @@ export interface AgendamentoFormDialogData {
         </div>
 
         <mat-form-field appearance="outline">
-          <mat-label>Status</mat-label>
-          <mat-select formControlName="status">
-            <mat-option value="pendente">Pendente</mat-option>
-            <mat-option value="confirmado">Confirmado</mat-option>
-            <mat-option value="concluido">Concluído</mat-option>
-            <mat-option value="cancelado">Cancelado</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
           <mat-label>Observações (opcional)</mat-label>
           <textarea matInput formControlName="observacoes" rows="2"></textarea>
         </mat-form-field>
+
+        <!-- Ações de status (apenas modo editar) -->
+        @if (data.modo === 'editar' && data.agendamento) {
+          <div class="status-acoes">
+            @if (statusAtual === 'pendente') {
+              <div class="acoes-row">
+                <button type="button" class="btn-primary" (click)="confirmar()" [disabled]="salvando()">Confirmar</button>
+                <button type="button" class="btn-danger" (click)="mostrarRecusa.set(!mostrarRecusa())" [disabled]="salvando()">Recusar</button>
+              </div>
+              @if (mostrarRecusa()) {
+                <mat-form-field appearance="outline" class="motivo-field">
+                  <mat-label>Motivo da recusa (opcional)</mat-label>
+                  <textarea matInput [(ngModel)]="motivoRecusa" [ngModelOptions]="{standalone: true}" rows="2"></textarea>
+                </mat-form-field>
+                <button type="button" class="btn-danger btn-full" (click)="confirmarRecusa()" [disabled]="salvando()">
+                  Confirmar recusa
+                </button>
+              }
+            }
+
+            @if (statusAtual === 'confirmado') {
+              <div class="acoes-row">
+                <button type="button" class="btn-ghost" (click)="reagendar()" [disabled]="salvando()">Reagendar</button>
+                <button type="button" class="btn-ghost" (click)="naoCompareceu()" [disabled]="salvando()">Não compareceu</button>
+                <button type="button" class="btn-danger" (click)="cancelar()" [disabled]="salvando()">Cancelar</button>
+              </div>
+            }
+
+            @if (statusAtual === 'finalizado') {
+              <div class="acoes-row">
+                <button type="button" class="btn-ghost" (click)="naoCompareceu()" [disabled]="salvando()">Marcar não compareceu</button>
+              </div>
+            }
+          </div>
+        }
 
         <div class="dialog-actions">
           @if (data.modo === 'editar') {
@@ -116,15 +143,21 @@ export interface AgendamentoFormDialogData {
     }
 
     .dialog-form { display: flex; flex-direction: column; gap: 4px; }
-
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .status-acoes {
+      border-top: 1px solid #e9ecef; padding-top: 12px; margin-top: 4px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .acoes-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .motivo-field { width: 100%; }
+    .btn-full { width: 100%; }
 
     .dialog-actions {
       display: flex; align-items: center; justify-content: space-between;
-      margin-top: 8px; gap: 8px;
+      margin-top: 8px; gap: 8px; border-top: 1px solid #f1f3f5; padding-top: 12px;
     }
     .actions-right { display: flex; gap: 8px; margin-left: auto; }
-
     mat-form-field { width: 100%; }
   `]
 })
@@ -136,7 +169,11 @@ export class AgendamentoFormDialogComponent implements OnInit {
   readonly agendamentosStore = inject(AgendamentosStore)
   readonly servicosStore     = inject(ServicosStore)
 
-  readonly salvando = signal(false)
+  readonly salvando    = signal(false)
+  readonly mostrarRecusa = signal(false)
+  motivoRecusa = ''
+
+  get statusAtual() { return this.data.agendamento?.status }
 
   form = this.fb.group({
     cliente_nome: ['', Validators.required],
@@ -144,7 +181,6 @@ export class AgendamentoFormDialogComponent implements OnInit {
     servico_id:   ['', Validators.required],
     data:         ['', Validators.required],
     hora:         ['', Validators.required],
-    status:       ['pendente', Validators.required],
     observacoes:  [''],
   })
 
@@ -163,7 +199,6 @@ export class AgendamentoFormDialogComponent implements OnInit {
         servico_id:   ag['servico_id'] ?? '',
         data,
         hora,
-        status:       ag.status,
         observacoes:  ag['observacoes'] ?? '',
       })
     } else if (this.data.diaSelecionado) {
@@ -172,12 +207,56 @@ export class AgendamentoFormDialogComponent implements OnInit {
     }
   }
 
+  async confirmar() {
+    await this.executarAcao(() =>
+      this.agendamentosStore.atualizarStatus(this.data.agendamento!.id, 'confirmado')
+    )
+  }
+
+  async confirmarRecusa() {
+    await this.executarAcao(() =>
+      this.agendamentosStore.atualizarStatus(this.data.agendamento!.id, 'recusado', this.motivoRecusa || undefined)
+    )
+  }
+
+  async cancelar() {
+    await this.executarAcao(() =>
+      this.agendamentosStore.atualizarStatus(this.data.agendamento!.id, 'cancelado')
+    )
+  }
+
+  async naoCompareceu() {
+    await this.executarAcao(() =>
+      this.agendamentosStore.atualizarStatus(this.data.agendamento!.id, 'nao_compareceu')
+    )
+  }
+
+  reagendar() {
+    const slug = currentUser()?.slug ?? ''
+    const id   = this.data.agendamento!.id
+    const link = `${APP.URL_BASE}/${slug}?reagendar=${id}`
+    navigator.clipboard.writeText(link).catch(() => null)
+    this.snack.open('Link de reagendamento copiado!', '', { duration: 3000 })
+  }
+
+  private async executarAcao(fn: () => Promise<void>) {
+    this.salvando.set(true)
+    try {
+      await fn()
+      this.ref.close(true)
+    } catch (e: any) {
+      this.snack.open(e?.message ?? 'Erro ao atualizar status.', 'OK', { duration: 3000 })
+    } finally {
+      this.salvando.set(false)
+    }
+  }
+
   async salvar() {
     if (this.form.invalid) return
     this.salvando.set(true)
 
-    const v          = this.form.getRawValue()
-    const data_hora  = new Date(`${v.data}T${v.hora}`).toISOString()
+    const v         = this.form.getRawValue()
+    const data_hora = new Date(`${v.data}T${v.hora}`).toISOString()
 
     try {
       if (this.data.modo === 'criar') {
@@ -186,7 +265,7 @@ export class AgendamentoFormDialogComponent implements OnInit {
           cliente_nome: v.cliente_nome!,
           cliente_wpp:  v.cliente_wpp!,
           data_hora,
-          status:       v.status!,
+          status:       'pendente',
           observacoes:  v.observacoes ?? undefined,
         })
         this.snack.open('Agendamento criado!', '', { duration: 2500 })
@@ -196,7 +275,6 @@ export class AgendamentoFormDialogComponent implements OnInit {
           cliente_nome: v.cliente_nome!,
           cliente_wpp:  v.cliente_wpp!,
           data_hora,
-          status:       v.status!,
           observacoes:  v.observacoes ?? '',
         })
         this.snack.open('Agendamento atualizado!', '', { duration: 2500 })
