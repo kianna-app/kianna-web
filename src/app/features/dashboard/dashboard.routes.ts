@@ -25,6 +25,13 @@ export const dashboardRoutes: Routes = [
         title: 'Agenda — Kianna',
       },
       {
+        path: 'agenda/:id',
+        loadComponent: () =>
+          import('./pages/agendamento-detalhe/agendamento-detalhe.component')
+            .then(m => m.AgendamentoDetalheComponent),
+        title: 'Agendamento — Kianna',
+      },
+      {
         path: 'servicos',
         loadComponent: () =>
           import('./pages/servicos/servicos.component').then(m => m.ServicosComponent),

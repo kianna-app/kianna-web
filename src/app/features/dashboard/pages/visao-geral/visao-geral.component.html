@@ -33,30 +33,7 @@
     <div class="loading-state">
       <mat-spinner diameter="32"></mat-spinner>
     </div>
-  } @else if (stats(); as s) {
-
-    <!-- ── KPI barra minimalista ──────────────────── -->
-    <div class="kpi-bar">
-      <div class="kpi-item">
-        <span class="kpi-valor">{{ s.doDia }}</span>
-        <span class="kpi-label">Hoje</span>
-      </div>
-      <div class="kpi-divider"></div>
-      <div class="kpi-item">
-        <span class="kpi-valor">{{ s.totalDoMes }}</span>
-        <span class="kpi-label">No mês</span>
-      </div>
-      <div class="kpi-divider"></div>
-      <div class="kpi-item">
-        <span class="kpi-valor kpi-warn">{{ s.totalPendentes }}</span>
-        <span class="kpi-label">Pendentes</span>
-      </div>
-      <div class="kpi-divider"></div>
-      <div class="kpi-item">
-        <span class="kpi-valor kpi-muted">{{ s.cancelamentosDoMes }}</span>
-        <span class="kpi-label">Cancelados</span>
-      </div>
-    </div>
+  } @else {
 
     <!-- ── Mini-agenda ────────────────────────────── -->
     <div class="mini-agenda">
@@ -68,23 +45,18 @@
 
       <app-week-strip [dias]="semana()" (selecionar)="diaSelecionado.set($event)" />
 
-      <app-resumo-band
-        [resumo]="resumo()"
-        [filtroAtivo]="filtroStatus()"
-        (filtrar)="toggleFiltro($event)" />
-
       @if (agendamentosStore.carregando()) {
         <div class="mini-loading"><mat-spinner diameter="24" /></div>
       } @else {
-        @for (ag of agendamentosFiltrados().slice(0, 5); track ag.id) {
+        @for (ag of agendamentosDoDia().slice(0, 5); track ag.id) {
           <app-appt-card [agendamento]="ag" (editar)="abrirEdicao(ag)" />
         }
-        @if (agendamentosFiltrados().length > 5) {
+        @if (agendamentosDoDia().length > 5) {
           <a routerLink="/dashboard/agenda" class="ver-mais-link">
-            Ver mais {{ agendamentosFiltrados().length - 5 }} agendamento(s)
+            Ver mais {{ agendamentosDoDia().length - 5 }} agendamento(s)
           </a>
         }
-        @if (!agendamentosStore.carregando() && !agendamentosFiltrados().length) {
+        @if (!agendamentosStore.carregando() && !agendamentosDoDia().length) {
           <p class="vazio-mini">Nenhum agendamento neste dia.</p>
         }
       }

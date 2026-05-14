@@ -1,5 +1,16 @@
 <div class="agenda-wrap">
 
+  <!-- Cabeçalho com ações -->
+  <div class="agenda-toolbar">
+    <button class="btn-novo" (click)="abrirNovo()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14 M5 12h14"/>
+      </svg>
+      <span>Novo agendamento</span>
+    </button>
+  </div>
+
   <!-- Navegação de semana -->
   <div class="month-row">
     <button class="nav-btn" (click)="semanaAnterior()" aria-label="Semana anterior">
@@ -24,41 +35,27 @@
     (selecionar)="diaSelecionado.set($event)">
   </app-week-strip>
 
-  <!-- Faixa de resumo com filtro por status -->
-  <app-resumo-band
-    [resumo]="resumo()"
-    [filtroAtivo]="filtroStatus()"
-    (filtrar)="toggleFiltro($event)" />
-
   <!-- Lista de agendamentos -->
   <div class="list-wrap">
     <div class="list-head">
       <span class="list-title">{{ diaSelecionadoLabel | titlecase }}</span>
-      <span class="list-count">{{ agendamentosFiltrados().length }} agendamento(s)</span>
+      <span class="list-count">{{ agendamentosDoDia().length }} agendamento(s)</span>
     </div>
 
     @if (agendamentosStore.carregando()) {
       <div class="list-loading">
         <mat-spinner diameter="28" />
       </div>
-    } @else if (!agendamentosFiltrados().length) {
+    } @else if (!agendamentosDoDia().length) {
       <div class="list-vazio">
-        <p>{{ filtroStatus() ? 'Nenhum agendamento com este status.' : 'Nenhum agendamento neste dia.' }}</p>
+        <p>Nenhum agendamento neste dia.</p>
       </div>
     } @else {
-      @for (ag of agendamentosFiltrados(); track ag.id) {
+      @for (ag of agendamentosDoDia(); track ag.id) {
         <app-appt-card [agendamento]="ag" (editar)="abrirEdicao(ag)" />
       }
     }
   </div>
-
-  <!-- FAB — novo agendamento -->
-  <button class="fab-novo" (click)="abrirNovo()" aria-label="Novo agendamento">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-         stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 5v14 M5 12h14"/>
-    </svg>
-  </button>
 
   <!-- Overlay calendário mensal -->
   @if (mostrarCalendario()) {

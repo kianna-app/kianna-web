@@ -26,40 +26,101 @@
   .pv-value { font-size: 22px; font-weight: 700; color: v.$kianna-green-700; margin-top: 4px; }
 }
 
-.dias-list { display: flex; flex-direction: column; gap: 8px; }
-
-.dia-card {
-  padding: 16px !important;
-  transition: opacity .2s;
-  &.inativo { opacity: .6; }
+// ── Lista de dias ─────────────────────────────────────
+.dias-list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid v.$kianna-slate-200;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.dia-row {
+.dia-card {
+  padding: 16px 20px;
+  border-bottom: 1px solid v.$kianna-slate-100;
+  transition: background .15s, opacity .2s;
+
+  &:last-child { border-bottom: none; }
+  &.inativo { background: v.$kianna-slate-50; }
+
+  &:not(.inativo) + .dia-card.inativo { border-top: 1px solid v.$kianna-slate-200; }
+}
+
+.dia-header {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
+}
+
+.dia-label {
+  font: 700 15px 'Inter';
+  color: v.$kianna-slate-900;
+  flex-shrink: 0;
+}
+
+.dia-status {
+  font: 600 13px 'Inter';
+  color: v.$kianna-slate-400;
+  letter-spacing: 0.02em;
+  margin-left: auto;
+
+  &.aberto { color: v.$kianna-green-700; }
+}
+
+.dia-card mat-slide-toggle {
+  flex-shrink: 0;
+}
+
+// ── Corpo (quando ativo) ───────────────────────────────
+.dia-body {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed v.$kianna-slate-200;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.campos-label,
+.intervalo-label {
+  font: 600 12px 'Inter';
+  color: v.$kianna-slate-600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.horario-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.dia-toggle {
+.campo-hora {
+  width: 140px;
+
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+}
+
+.ate-label {
+  font: 500 13px 'Inter';
+  color: v.$kianna-slate-600;
+}
+
+.intervalo-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 160px;
-
-  .dia-label { font-weight: 600; color: v.$kianna-slate-800; }
+  flex-direction: column;
+  gap: 4px;
 }
 
-.dia-campos {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
-  flex: 1;
-  min-width: 280px;
+.campo-intervalo {
+  width: 160px;
 
-  mat-form-field { width: 100%; }
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
 }
 
+// ── Banner alterações ──────────────────────────────────
 .alteracoes-banner {
   display: flex;
   align-items: center;
@@ -88,4 +149,25 @@
 
 .loading-state {
   display: flex; justify-content: center; padding: 64px;
+}
+
+// ── Responsivo ─────────────────────────────────────────
+@media (max-width: 600px) {
+  .dia-card { padding: 14px 16px; }
+
+  .horario-row {
+    gap: 8px;
+  }
+
+  .campo-hora {
+    width: calc(50% - 22px);
+    min-width: 110px;
+  }
+
+  .campo-intervalo {
+    width: 100%;
+  }
+
+  .dia-label { font-size: 14px; }
+  .dia-status { font-size: 12px; }
 }

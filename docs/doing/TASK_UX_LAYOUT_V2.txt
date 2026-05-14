@@ -1,0 +1,1154 @@
+KIANNA — TASK: CORREÇÕES DE LAYOUT, UX E BUG PÁGINA PÚBLICA
+Branch: feat/ux-layout-v2
+Gerado em: Maio/2026
+========================================
+
+CONTEXTO
+--------
+Esta task cobre:
+1. Correções visuais e de layout no dashboard (header, visão geral, agenda)
+2. Página de edição de agendamento (nova rota, sem modal)
+3. Refatoração completa da página pública de agendamento (/:slug)
+4. Bug crítico: "Sem horários disponíveis" mesmo com slots existentes
+
+Execute os blocos na ordem indicada.
+
+
+========================================
+=== BLOCO A — HEADER ===
+========================================
+
+ARQUIVO: src/app/features/dashboard/shell/header/header.component.{ts,html,scss}
+
+
+--- A1: Remover ícone calendar_today ---
+
+No template do header, localizar e remover o botão/ícone com mat-icon 'calendar_today'.
+
+
+--- A2: Card de agendamentos pendentes ---
+
+Substituir (ou adicionar no lugar do ícone removido) um card compacto
+que exibe a contagem de pendentes.
+
+HTML — adicionar na área direita do header:
+  <div class="pending-card" routerLink="/dashboard/agenda"
+       [class.has-pending]="pendentesCount() > 0">
+    <span class="pending-label">Pendentes</span>
+    <span class="pending-count">{{ pendentesCount() }}</span>
+  </div>
+
+SCSS:
+  .pending-card {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 6px 14px; border-radius: 10px; cursor: pointer;
+    border: 1.5px solid #e9ecef; background: #fff;
+    transition: all .15s; min-width: 64px; text-align: center;
+    &:hover { border-color: #1D9E75; }
+    &.has-pending {
+      background: #FFF8E1; border-color: #F59E0B;
+    }
+  }
+  .pending-label {
+    font: 500 10px 'Inter'; color: #868e96;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .pending-count {
+    font: 700 18px 'Inter'; color: #212529; line-height: 1.1;
+    .has-pending & { color: #F59E0B; }
+  }
+
+LÓGICA (já definida na task anterior TASK_FLUXO_AGENDAMENTO_V2.txt, bloco C1):
+  - pendentesCount via signal + Supabase Realtime
+  - Manter a lógica existente, apenas ajustar o template
+
+
+========================================
+=== BLOCO B — DASHBOARD: VISÃO GERAL ===
+========================================
+
+ARQUIVO: src/app/features/dashboard/pages/visao-geral/visao-geral.component.{ts,html,scss}
+
+
+--- B1: Remover barra KPI ---
+
+Localizar e remover completamente o bloco .kpi-bar do template
+(barra com HOJE | NO MÊS | PENDENTES | CANCELADOS).
+Remover também o SCSS correspondente.
+
+Resultado: visão geral exibe apenas:
+  1. Card de link público (já existente)
+  2. Mini-agenda (já existente — week-strip + lista de agendamentos do dia)
+
+
+--- B2: Remover resumo-band da visão geral ---
+
+Na mini-agenda embutida na visão geral, remover o componente:
+  <app-resumo-band ... />
+
+Remover também o import e o signal filtroStatus() se usado apenas pela band.
+Manter a week-strip e a lista de cards.
+
+
+========================================
+=== BLOCO C — DASHBOARD: AGENDA ===
+========================================
+
+
+--- C1: Remover resumo-band da página /dashboard/agenda ---
+
+ARQUIVO: src/app/features/dashboard/pages/agenda/agenda.component.html
+
+Remover o componente:
+  <app-resumo-band ... />
+
+Remover do imports[] do AgendaComponent se não for mais usado.
+Remover o signal filtroStatus() e o computed agendamentosFiltrados()
+se dependiam exclusivamente da band.
+Usar agendamentosDoDia() diretamente no @for.
+
+MANTER a resumo-band apenas se ainda for referenciada em outro lugar.
+Verificar antes de remover o arquivo do componente.
+
+
+========================================
+=== BLOCO D — PÁGINA DE EDIÇÃO DE AGENDAMENTO (nova rota) ===
+========================================
+
+Substituir o modal/dialog de edição por uma página dedicada.
+
+
+--- D1: Nova rota ---
+
+ARQUIVO: src/app/features/dashboard/dashboard.routes.ts
+
+Adicionar:
+  {
+    path: 'agenda/:id',
+    loadComponent: () => import('./pages/agendamento-detalhe/agendamento-detalhe.component')
+      .then(m => m.AgendamentoDetalheComponent)
+  }
+
+
+--- D2: Novo componente AgendamentoDetalheComponent ---
+
+ARQUIVO: src/app/features/dashboard/pages/agendamento-detalhe/
+  agendamento-detalhe.component.ts
+  agendamento-detalhe.component.html
+  agendamento-detalhe.component.scss
+
+
+LAYOUT GERAL (mobile-first, máx 600px centralizado):
+
+  ┌─────────────────────────────────┐
+  │  ← Voltar                       │  header simples
+  │  Agendamento                    │
+  ├─────────────────────────────────┤
+  │  [card com dados do cliente]    │
+  │  Nome, WhatsApp, Serviço        │
+  │  Data e hora, Status chip       │
+  ├─────────────────────────────────┤
+  │  [formulário de edição]         │
+  │  Serviço (select)               │
+  │  Data (datepicker)              │
+  │  Horário (select)               │
+  │  Nome (input)                   │
+  │  WhatsApp (input)               │
+  │  Observações (textarea)         │
+  ├─────────────────────────────────┤
+  │  [ações de status]              │
+  │  — varia conforme status atual  │
+  └─────────────────────────────────┘
+
+
+LÓGICA — agendamento-detalhe.component.ts:
+
+  import { Component, inject, signal, computed, OnInit } from '@angular/core'
+  import { ActivatedRoute, Router } from '@angular/router'
+  import { CommonModule } from '@angular/common'
+  import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms'
+  import { MatSnackBar } from '@angular/material/snack-bar'
+  import { AgendamentosStore } from '../../state/agendamentos.store'
+  import { ServicosStore } from '../../state/servicos.store'
+  import { AgendamentosRepository } from '../../../../core/repositories/agendamentos.repository'
+
+  @Component({
+    selector: 'app-agendamento-detalhe',
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule, /* Material modules */],
+    templateUrl: './agendamento-detalhe.component.html',
+    styleUrl:    './agendamento-detalhe.component.scss',
+  })
+  export class AgendamentoDetalheComponent implements OnInit {
+    private route   = inject(ActivatedRoute)
+    private router  = inject(Router)
+    private fb      = inject(FormBuilder)
+    private snack   = inject(MatSnackBar)
+    private agStore = inject(AgendamentosStore)
+    private svStore = inject(ServicosStore)
+    private agRepo  = inject(AgendamentosRepository)
+
+    loading  = signal(false)
+    salvando = signal(false)
+    mostrarCampoMotivo = signal(false)
+
+    agendamento = computed(() => {
+      const id = this.route.snapshot.paramMap.get('id')
+      return this.agStore.agendamentos().find(a => a.id === id) ?? null
+    })
+
+    servicos = computed(() => this.svStore.servicos().filter(s => s.ativo))
+
+    form = this.fb.group({
+      servico_id:   ['', Validators.required],
+      data_hora:    ['', Validators.required],
+      cliente_nome: ['', Validators.required],
+      cliente_wpp:  ['', Validators.required],
+      observacoes:  [''],
+    })
+
+    motivoRecusa = signal('')
+
+    async ngOnInit(): Promise<void> {
+      this.loading.set(true)
+      if (!this.agStore.agendamentos().length) await this.agStore.carregar()
+      if (!this.svStore.servicos().length)     await this.svStore.carregar()
+
+      const ag = this.agendamento()
+      if (!ag) { this.router.navigate(['/dashboard/agenda']); return }
+
+      this.form.patchValue({
+        servico_id:   ag.servico_id,
+        data_hora:    ag.data_hora,
+        cliente_nome: ag.cliente_nome,
+        cliente_wpp:  ag.cliente_wpp,
+        observacoes:  ag.observacoes ?? '',
+      })
+      this.loading.set(false)
+    }
+
+    voltar(): void {
+      this.router.navigate(['/dashboard/agenda'])
+    }
+
+    async salvarEdicao(): Promise<void> {
+      if (this.form.invalid) return
+      this.salvando.set(true)
+      try {
+        await this.agRepo.atualizar(this.agendamento()!.id, this.form.value as any)
+        this.agStore.carregar()
+        this.snack.open('Agendamento atualizado.', '', { duration: 3000 })
+        this.voltar()
+      } catch (e) {
+        this.snack.open('Erro ao salvar. Tente novamente.', '', { duration: 4000 })
+      } finally {
+        this.salvando.set(false)
+      }
+    }
+
+    async confirmar(): Promise<void> {
+      await this.executarAcao('confirmado')
+    }
+
+    async cancelar(): Promise<void> {
+      await this.executarAcao('cancelado')
+    }
+
+    async confirmarRecusa(): Promise<void> {
+      await this.executarAcao('recusado', this.motivoRecusa())
+    }
+
+    async naoCompareceu(): Promise<void> {
+      await this.executarAcao('nao_compareceu')
+    }
+
+    reagendar(): void {
+      const ag = this.agendamento()!
+      // Buscar slug do profissional via currentUser signal
+      const slug = this.agStore.profissionalSlug?.() ?? ''
+      const link = `https://www.kianna.com.br/${slug}?reagendar=${ag.id}`
+      navigator.clipboard.writeText(link)
+      this.snack.open('Link de reagendamento copiado!', 'OK', { duration: 4000 })
+    }
+
+    private async executarAcao(
+      status: 'confirmado' | 'recusado' | 'cancelado' | 'nao_compareceu',
+      motivo?: string
+    ): Promise<void> {
+      this.salvando.set(true)
+      try {
+        await this.agRepo.atualizarStatus(this.agendamento()!.id, status, motivo)
+        this.agStore.atualizarStatusLocal(this.agendamento()!.id, status)
+        this.snack.open('Status atualizado.', '', { duration: 3000 })
+        this.voltar()
+      } catch (e) {
+        this.snack.open('Erro ao atualizar. Tente novamente.', '', { duration: 4000 })
+      } finally {
+        this.salvando.set(false)
+      }
+    }
+  }
+
+
+TEMPLATE — agendamento-detalhe.component.html:
+
+  <div class="detalhe-wrap">
+
+    <!-- Header da página -->
+    <div class="detalhe-header">
+      <button class="btn-voltar" (click)="voltar()">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Voltar</span>
+      </button>
+      <h1 class="detalhe-titulo">Agendamento</h1>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-center"><mat-spinner diameter="32" /></div>
+    }
+
+    @if (!loading() && agendamento()) {
+
+      <!-- Card resumo do agendamento -->
+      <div class="resumo-card">
+        <div class="resumo-row">
+          <span class="resumo-label">Cliente</span>
+          <span class="resumo-valor">{{ agendamento()!.cliente_nome }}</span>
+        </div>
+        <div class="resumo-row">
+          <span class="resumo-label">WhatsApp</span>
+          <span class="resumo-valor">{{ agendamento()!.cliente_wpp }}</span>
+        </div>
+        <div class="resumo-row">
+          <span class="resumo-label">Serviço</span>
+          <span class="resumo-valor">{{ agendamento()!.servico_nome ?? '—' }}</span>
+        </div>
+        <div class="resumo-row">
+          <span class="resumo-label">Data e hora</span>
+          <span class="resumo-valor">
+            {{ agendamento()!.data_hora | date:'dd/MM/yyyy HH:mm':'':'pt-BR' }}
+          </span>
+        </div>
+        <div class="resumo-row">
+          <span class="resumo-label">Status</span>
+          <span class="status-chip status-{{ agendamento()!.status }}">
+            {{ agendamento()!.status | titlecase }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Formulário de edição -->
+      <form [formGroup]="form" class="edicao-form">
+        <h2 class="secao-titulo">Editar dados</h2>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Serviço</mat-label>
+          <mat-select formControlName="servico_id">
+            @for (s of servicos(); track s.id) {
+              <mat-option [value]="s.id">{{ s.nome }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Data e hora</mat-label>
+          <input matInput type="datetime-local" formControlName="data_hora" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome do cliente</mat-label>
+          <input matInput formControlName="cliente_nome" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>WhatsApp</mat-label>
+          <input matInput type="tel" formControlName="cliente_wpp" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Observações</mat-label>
+          <textarea matInput formControlName="observacoes" rows="3"></textarea>
+        </mat-form-field>
+
+        <button class="btn-primary full-width" (click)="salvarEdicao()"
+          [disabled]="salvando() || form.invalid">
+          @if (salvando()) { <mat-spinner diameter="16" /> } @else { Salvar alterações }
+        </button>
+      </form>
+
+      <!-- Ações de status -->
+      <div class="acoes-secao">
+        <h2 class="secao-titulo">Ações</h2>
+
+        <div class="acoes-grid">
+
+          <!-- pendente → confirmar | recusar -->
+          @if (agendamento()!.status === 'pendente') {
+            <button class="btn-primary" (click)="confirmar()" [disabled]="salvando()">
+              <mat-icon>check_circle</mat-icon> Confirmar
+            </button>
+            <button class="btn-danger" (click)="mostrarCampoMotivo.set(true)" [disabled]="salvando()">
+              <mat-icon>cancel</mat-icon> Recusar
+            </button>
+          }
+
+          <!-- confirmado → cancelar | reagendar | não compareceu -->
+          @if (agendamento()!.status === 'confirmado') {
+            <button class="btn-ghost" (click)="reagendar()" [disabled]="salvando()">
+              <mat-icon>event_repeat</mat-icon> Reagendar
+            </button>
+            <button class="btn-danger" (click)="cancelar()" [disabled]="salvando()">
+              <mat-icon>cancel</mat-icon> Cancelar
+            </button>
+            <button class="btn-ghost" (click)="naoCompareceu()" [disabled]="salvando()">
+              <mat-icon>person_off</mat-icon> Não compareceu
+            </button>
+          }
+
+          <!-- finalizado → não compareceu (correção) -->
+          @if (agendamento()!.status === 'finalizado') {
+            <button class="btn-ghost" (click)="naoCompareceu()" [disabled]="salvando()">
+              <mat-icon>person_off</mat-icon> Marcar não compareceu
+            </button>
+          }
+
+        </div>
+
+        <!-- Campo motivo da recusa (expansível) -->
+        @if (mostrarCampoMotivo()) {
+          <div class="motivo-recusa">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Motivo da recusa (opcional)</mat-label>
+              <textarea matInput [value]="motivoRecusa()"
+                (input)="motivoRecusa.set($any($event.target).value)"
+                rows="2">
+              </textarea>
+            </mat-form-field>
+            <div class="motivo-acoes">
+              <button class="btn-ghost btn-sm" (click)="mostrarCampoMotivo.set(false)">
+                Cancelar
+              </button>
+              <button class="btn-danger" (click)="confirmarRecusa()" [disabled]="salvando()">
+                @if (salvando()) { <mat-spinner diameter="14" /> } @else { Confirmar recusa }
+              </button>
+            </div>
+          </div>
+        }
+
+      </div>
+
+    } <!-- fim @if agendamento -->
+
+  </div>
+
+
+SCSS — agendamento-detalhe.component.scss:
+
+  :host {
+    display: block;
+    background: #F4F6F9;
+    min-height: 100%;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .detalhe-wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 16px 80px;
+  }
+
+  .detalhe-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 20px;
+  }
+  .btn-voltar {
+    display: flex; align-items: center; gap: 4px;
+    background: none; border: none; cursor: pointer;
+    font: 500 14px 'Inter'; color: #495057;
+    padding: 6px 8px; border-radius: 8px;
+    &:hover { background: #f1f3f5; }
+    mat-icon { font-size: 18px; width: 18px; }
+  }
+  .detalhe-titulo {
+    font: 600 18px 'Inter'; color: #212529; margin: 0;
+  }
+
+  .resumo-card {
+    background: #fff; border: 1px solid #e9ecef;
+    border-radius: 12px; padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .resumo-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+  .resumo-label {
+    font: 500 12px 'Inter'; color: #868e96;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    min-width: 80px;
+  }
+  .resumo-valor { font: 500 14px 'Inter'; color: #212529; }
+
+  /* Status chips */
+  .status-chip {
+    font: 600 12px 'Inter'; padding: 3px 10px;
+    border-radius: 99px;
+  }
+  .status-pendente    { background: #FFF8E1; color: #F59E0B; }
+  .status-confirmado  { background: #E8F5F0; color: #1D9E75; }
+  .status-recusado    { background: #FBEDEF; color: #E26172; }
+  .status-cancelado   { background: #FBEDEF; color: #E26172; }
+  .status-reagendado  { background: #F5EEF8; color: #6C3483; }
+  .status-finalizado  { background: #E8F6EF; color: #1F7A55; }
+  .status-nao_compareceu { background: #F2F3F4; color: #566573; }
+
+  .edicao-form, .acoes-secao {
+    background: #fff; border: 1px solid #e9ecef;
+    border-radius: 12px; padding: 20px;
+    margin-bottom: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .secao-titulo {
+    font: 600 14px 'Inter'; color: #495057;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin: 0 0 4px;
+  }
+  .full-width { width: 100%; }
+
+  .acoes-grid {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  /* Em desktop: botões lado a lado quando há 2 */
+  @media (min-width: 480px) {
+    .acoes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+  }
+
+  .motivo-recusa {
+    border-top: 1px solid #f1f3f5;
+    padding-top: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .motivo-acoes {
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+
+  /* Botões padrão (reutilizados de styles.scss global) */
+  // As classes .btn-primary, .btn-danger, .btn-ghost, .btn-sm
+  // já devem existir no styles.scss global (branch feat/agenda-dashboard-ux).
+  // Se ainda não existirem, aplicar inline aqui provisoriamente.
+
+  .loading-center {
+    display: flex; justify-content: center; padding: 60px;
+  }
+
+
+--- D3: Navegar para a página ao clicar no card da agenda ---
+
+ARQUIVO: agenda.component.html (e appt-card.component.ts)
+
+Ao clicar no ícone de edição (ou no próprio card), navegar para a rota:
+  this.router.navigate(['/dashboard/agenda', ag.id])
+
+No appt-card, o @Output() editar já existe.
+No AgendaComponent, substituir o método abrirEdicao():
+
+  ANTES:
+    abrirEdicao(ag: AgendamentoView) {
+      this.dialog.open(AgendamentoFormDialogComponent, { data: { ... } })
+    }
+
+  DEPOIS:
+    abrirEdicao(ag: AgendamentoView) {
+      this.router.navigate(['/dashboard/agenda', ag.id])
+    }
+
+Fazer o mesmo na visão geral (mini-agenda):
+  abrirEdicao(ag: AgendamentoView) {
+    this.router.navigate(['/dashboard/agenda', ag.id])
+  }
+
+Remover o AgendamentoFormDialogComponent se não for mais usado em lugar nenhum.
+Verificar antes de deletar o arquivo.
+
+
+========================================
+=== BLOCO E — PÁGINA PÚBLICA (/:slug) ===
+========================================
+
+Layout de tela única, mobile-first.
+Referência visual: imagem anexada (seleção de serviço, strip de datas,
+strip de horários, formulário de dados, botão fixo no rodapé).
+
+
+--- E1: Estrutura geral da página ---
+
+ARQUIVO: src/app/features/booking/pages/booking-page/booking-page.component.html
+
+Remover o sistema de steps/@switch atual.
+Substituir por seções sempre visíveis na mesma página, na ordem:
+
+  1. Header do profissional (já existe: app-professional-header)
+  2. Seção Serviço
+  3. Seção Data
+  4. Seção Horário
+  5. Seção Dados do cliente (expande após selecionar horário)
+  6. Seção Resumo/Confirmação (expande após preencher dados)
+  7. Botão "Confirmar solicitação" fixo no rodapé (sticky)
+
+  // Seções 3, 4, 5, 6 só aparecem quando a seção anterior estiver completa
+  // (usando signal stepAtivo ou flags booleanas)
+
+
+NOVO TEMPLATE COMPLETO:
+
+  <div class="booking-page">
+
+    <!-- Header do profissional -->
+    <app-professional-header [profissional]="booking.profissional()" />
+
+    <!-- Seção 1: Serviço -->
+    <section class="booking-section">
+      <h2 class="section-title">Serviço</h2>
+
+      <div class="servicos-list">
+        @for (s of booking.servicos(); track s.id) {
+          <button class="servico-card"
+            [class.selected]="booking.servicoSelecionado()?.id === s.id"
+            (click)="booking.selecionarServico(s)">
+            <div class="servico-info">
+              <span class="servico-nome">{{ s.nome }}</span>
+              <span class="servico-meta">
+                {{ s.duracao_min }} min
+                @if (s.preco) { · R$ {{ s.preco | number:'1.2-2' }} }
+              </span>
+            </div>
+            @if (booking.servicoSelecionado()?.id === s.id) {
+              <mat-icon class="servico-check">check_circle</mat-icon>
+            }
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- Seção 2: Data (aparece após selecionar serviço) -->
+    @if (booking.servicoSelecionado()) {
+      <section class="booking-section" #secData>
+        <h2 class="section-title">Data</h2>
+
+        <div class="date-strip-wrap">
+          <button class="strip-nav" (click)="booking.semanaAnterior()"
+            [disabled]="!booking.podeSemanaAnterior()">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+
+          <div class="date-strip">
+            @for (dia of booking.semana(); track dia.dataISO) {
+              <button class="date-pill"
+                [class.selected]="booking.dataSelecionada() === dia.dataISO"
+                [class.disabled]="!dia.temSlots"
+                [disabled]="!dia.temSlots"
+                (click)="booking.selecionarData(dia.dataISO)">
+                <span class="date-weekday">{{ dia.letra }}</span>
+                <span class="date-num">{{ dia.numero }}</span>
+                <span class="date-month">{{ dia.mes }}</span>
+              </button>
+            }
+          </div>
+
+          <button class="strip-nav" (click)="booking.proximaSemana()">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+
+        @if (!booking.semana().some(d => d.temSlots)) {
+          <p class="sem-slots-inline">Sem datas disponíveis nesta semana.</p>
+        }
+      </section>
+    }
+
+    <!-- Seção 3: Horário (aparece após selecionar data) -->
+    @if (booking.dataSelecionada()) {
+      <section class="booking-section" #secHorario>
+        <h2 class="section-title">Horário</h2>
+
+        @if (booking.loadingSlots()) {
+          <div class="slots-loading"><mat-spinner diameter="24" /></div>
+        } @else if (!booking.slotsParaDia().length) {
+          <p class="sem-slots-inline">Sem horários disponíveis para esta data.</p>
+        } @else {
+          <div class="time-strip-wrap">
+            <button class="strip-nav" (click)="slotsScrollEsq()">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <div class="time-strip" #timeStrip>
+              @for (slot of booking.slotsParaDia(); track slot) {
+                <button class="time-pill"
+                  [class.selected]="booking.horarioSelecionado() === slot"
+                  (click)="onSelecionouHorario(slot)">
+                  {{ slot | date:'HH:mm':'':'pt-BR' }}
+                </button>
+              }
+            </div>
+            <button class="strip-nav" (click)="slotsScrollDir()">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Seção 4: Dados do cliente (expande após selecionar horário) -->
+    @if (booking.horarioSelecionado()) {
+      <section class="booking-section" #secDados>
+        <h2 class="section-title">Seus dados</h2>
+
+        <div class="dados-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Seu nome</mat-label>
+            <input matInput [(ngModel)]="booking.clienteNome"
+              placeholder="Como prefere ser chamado(a)" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>WhatsApp</mat-label>
+            <input matInput type="tel" [(ngModel)]="booking.clienteWpp"
+              placeholder="(11) 91234-5678" />
+          </mat-form-field>
+        </div>
+      </section>
+    }
+
+    <!-- Seção 5: Resumo (expande após preencher dados) -->
+    @if (booking.dadosPreenchidos()) {
+      <section class="booking-section resumo-section" #secResumo>
+        <h2 class="section-title">Resumo</h2>
+
+        <div class="resumo-lista">
+          <div class="resumo-item">
+            <span class="resumo-key">Serviço</span>
+            <span class="resumo-val">{{ booking.servicoSelecionado()!.nome }}</span>
+          </div>
+          <div class="resumo-item">
+            <span class="resumo-key">Data</span>
+            <span class="resumo-val">
+              {{ booking.dataSelecionada() | date:'EEEE, dd/MM/yyyy':'':'pt-BR' | titlecase }}
+            </span>
+          </div>
+          <div class="resumo-item">
+            <span class="resumo-key">Horário</span>
+            <span class="resumo-val">
+              {{ booking.horarioSelecionado() | date:'HH:mm':'':'pt-BR' }}
+            </span>
+          </div>
+          <div class="resumo-item">
+            <span class="resumo-key">Nome</span>
+            <span class="resumo-val">{{ booking.clienteNome }}</span>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- Confirmação (substitui toda a página após confirmar) -->
+    @if (booking.step() === 'confirmado') {
+      <section class="booking-section confirmado-section">
+        <mat-icon class="confirmado-icon">check_circle</mat-icon>
+        <h2>Solicitação enviada!</h2>
+        <p>
+          Aguarde a confirmação de
+          <strong>{{ booking.profissional()?.nome }}</strong>
+          pelo WhatsApp.
+        </p>
+      </section>
+    }
+
+    <!-- Espaço para não ficar atrás do botão fixo -->
+    <div style="height: 80px"></div>
+
+  </div>
+
+  <!-- Botão fixo no rodapé -->
+  @if (booking.step() !== 'confirmado') {
+    <div class="booking-footer">
+      <button class="btn-confirmar"
+        [disabled]="!booking.dadosPreenchidos() || booking.enviando()"
+        (click)="booking.confirmarAgendamento()">
+        @if (booking.enviando()) {
+          <mat-spinner diameter="18" color="accent" />
+        } @else {
+          Confirmar solicitação
+        }
+      </button>
+    </div>
+  }
+
+
+--- E2: Lógica no booking.service.ts ---
+
+ADICIONAR / AJUSTAR os seguintes signals e métodos:
+
+  // Navegação de semana (offset)
+  semanaOffset = signal(0)
+  semana = computed(() => this.gerarSemanaComSlots(this.semanaOffset()))
+
+  podeSemanaAnterior = computed(() => {
+    // Não permitir voltar antes da semana atual
+    return this.semanaOffset() > 0
+  })
+
+  semanaAnterior() {
+    if (this.podeSemanaAnterior()) this.semanaOffset.update(v => v - 1)
+  }
+  proximaSemana() { this.semanaOffset.update(v => v + 1) }
+
+  // Indica se dados mínimos para confirmar estão preenchidos
+  dadosPreenchidos = computed(() =>
+    !!this.horarioSelecionado() &&
+    this.clienteNome.trim().length >= 2 &&
+    this.clienteWpp.trim().length >= 10
+  )
+
+  // loadingSlots: true enquanto recalcula slots após trocar data
+  loadingSlots = signal(false)
+
+  // enviando: true durante o POST de criação do agendamento
+  enviando = signal(false)
+
+  // Gerar semana com flag temSlots por dia
+  private gerarSemanaComSlots(offset: number): DiaSemana[] {
+    const hoje = new Date()
+    const diasLetras = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
+    const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+    const base = new Date(hoje)
+    base.setDate(hoje.getDate() - hoje.getDay() + offset * 7)
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(base)
+      d.setDate(base.getDate() + i)
+      const dataISO = d.toISOString().split('T')[0]
+      const slots = this.calcularSlotsParaDia(dataISO)
+      return {
+        dataISO,
+        letra:   diasLetras[d.getDay()],
+        numero:  d.getDate(),
+        mes:     meses[d.getMonth()],
+        temSlots: slots.length > 0,
+      }
+    })
+  }
+
+
+--- E3: Scroll automático entre seções ---
+
+ARQUIVO: booking-page.component.ts
+
+  @ViewChild('secData')    secData!: ElementRef
+  @ViewChild('secHorario') secHorario!: ElementRef
+  @ViewChild('secDados')   secDados!: ElementRef
+  @ViewChild('secResumo')  secResumo!: ElementRef
+
+  onSelecionouHorario(slot: string): void {
+    this.booking.selecionarHorario(slot)
+    setTimeout(() => {
+      this.secDados?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
+  // Ao selecionar serviço: scroll para secData
+  // Ao selecionar data: scroll para secHorario
+  // (conectar aos outputs ou effects)
+
+
+--- E4: Scroll horizontal do strip de horários ---
+
+ARQUIVO: booking-page.component.ts
+
+  @ViewChild('timeStrip') timeStrip!: ElementRef
+
+  slotsScrollEsq(): void {
+    this.timeStrip?.nativeElement?.scrollBy({ left: -160, behavior: 'smooth' })
+  }
+  slotsScrollDir(): void {
+    this.timeStrip?.nativeElement?.scrollBy({ left: 160, behavior: 'smooth' })
+  }
+
+
+--- E5: SCSS da página pública ---
+
+ARQUIVO: booking-page.component.scss
+
+  :host {
+    display: block;
+    background: #F4F6F9;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    padding-bottom: 80px;
+  }
+
+  .booking-page {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .booking-section {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 12px 16px;
+  }
+
+  .section-title {
+    font: 600 15px 'Inter'; color: #212529;
+    margin: 0 0 14px; letter-spacing: -0.1px;
+  }
+
+  /* Serviços */
+  .servicos-list { display: flex; flex-direction: column; gap: 8px; }
+  .servico-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-radius: 10px;
+    border: 1.5px solid #e9ecef; background: #fff;
+    cursor: pointer; text-align: left; width: 100%;
+    transition: all .15s;
+    &:hover  { border-color: #1D9E75; background: #F9FFFE; }
+    &.selected { border-color: #1D9E75; background: #E8F5F0; }
+  }
+  .servico-nome { font: 600 14px 'Inter'; color: #212529; display: block; }
+  .servico-meta { font: 400 12px 'Inter'; color: #868e96; margin-top: 2px; }
+  .servico-check { color: #1D9E75; font-size: 20px; }
+
+  /* Strip de datas */
+  .date-strip-wrap {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .date-strip {
+    display: flex; gap: 6px; overflow-x: auto;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; flex: 1;
+    &::-webkit-scrollbar { display: none; }
+  }
+  .date-pill {
+    flex-shrink: 0; scroll-snap-align: start;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 8px; border-radius: 12px; min-width: 52px;
+    border: 1.5px solid #e9ecef; background: #fff;
+    cursor: pointer; transition: all .15s;
+    &:hover:not(:disabled)  { border-color: #1D9E75; }
+    &.selected { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+    &.disabled { opacity: 0.35; cursor: not-allowed; }
+  }
+  .date-weekday { font: 600 10px 'Inter'; letter-spacing: .4px; text-transform: uppercase; }
+  .date-num     { font: 700 16px 'Inter'; line-height: 1.1; }
+  .date-month   { font: 400 10px 'Inter'; opacity: .7; }
+
+  /* Strip de horários */
+  .time-strip-wrap {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .time-strip {
+    display: flex; gap: 6px; overflow-x: auto;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; flex: 1;
+    &::-webkit-scrollbar { display: none; }
+  }
+  .time-pill {
+    flex-shrink: 0; scroll-snap-align: start;
+    padding: 10px 14px; border-radius: 10px;
+    border: 1.5px solid #e9ecef; background: #fff;
+    font: 600 13px 'Inter'; color: #212529;
+    cursor: pointer; white-space: nowrap; transition: all .15s;
+    &:hover  { border-color: #1D9E75; color: #1D9E75; }
+    &.selected { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+  }
+
+  .strip-nav {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    border: 1px solid #e9ecef; background: #fff;
+    display: grid; place-items: center; cursor: pointer;
+    color: #868e96;
+    &:hover:not(:disabled) { border-color: #1D9E75; color: #1D9E75; }
+    &:disabled { opacity: 0.3; cursor: not-allowed; }
+    mat-icon { font-size: 18px; }
+  }
+
+  /* Formulário de dados */
+  .dados-form { display: flex; flex-direction: column; gap: 4px; }
+  .full-width  { width: 100%; }
+
+  /* Resumo */
+  .resumo-lista { display: flex; flex-direction: column; gap: 10px; }
+  .resumo-item  { display: flex; justify-content: space-between; gap: 12px; }
+  .resumo-key   { font: 500 13px 'Inter'; color: #868e96; }
+  .resumo-val   { font: 600 13px 'Inter'; color: #212529; text-align: right; }
+
+  /* Confirmação */
+  .confirmado-section {
+    text-align: center; padding: 40px 20px;
+  }
+  .confirmado-icon {
+    font-size: 56px; color: #1D9E75; margin-bottom: 12px;
+  }
+
+  /* Mensagens de sem slots */
+  .sem-slots-inline {
+    font: 400 13px 'Inter'; color: #868e96;
+    text-align: center; padding: 12px 0;
+  }
+  .slots-loading { display: flex; justify-content: center; padding: 20px; }
+
+  /* Botão fixo no rodapé */
+  .booking-footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    background: #fff; border-top: 1px solid #e9ecef;
+    z-index: 50;
+  }
+  .btn-confirmar {
+    width: 100%; padding: 15px;
+    background: #1D9E75; color: #fff; border: none;
+    border-radius: 12px; font: 600 15px 'Inter';
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 8px; transition: background .15s;
+    &:hover:not(:disabled) { background: #178a65; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  /* Desktop */
+  @media (min-width: 640px) {
+    .booking-page { padding: 24px 0; }
+    .booking-section { margin: 12px 0; }
+    .booking-footer { max-width: 600px; left: 50%; transform: translateX(-50%);
+      border-left: 1px solid #e9ecef; border-right: 1px solid #e9ecef; }
+  }
+
+
+--- E6: BUG CRÍTICO — "Sem horários disponíveis" mesmo com slots existentes ---
+
+⚠️  ATENÇÃO CLAUDE CODE: INVESTIGAR ANTES DE IMPLEMENTAR
+
+O cliente não consegue agendar mesmo com datas e horários configurados.
+A mensagem "Sem horários disponíveis" aparece indevidamente.
+
+Pontos a investigar no slot-calculator.service.ts:
+
+  1. TIMEZONE
+     Verificar se as datas estão sendo comparadas no timezone correto.
+     Comparações entre Date objects UTC e strings locais podem causar
+     o dia "errar" por 1 dia (ex: 2026-05-08T03:00:00Z vira 07/05 no UTC).
+     Garantir que a comparação de dia da semana usa o timezone do profissional,
+     não UTC.
+
+  2. DIA DA SEMANA
+     A tabela disponibilidades usa dia_semana (0=domingo...6=sábado).
+     Verificar se new Date(dataISO).getDay() retorna o dia correto
+     ou se está sendo afetado pelo timezone do browser vs UTC.
+     Correção sugerida:
+       // Em vez de:
+       new Date(dataISO).getDay()
+       // Usar:
+       new Date(dataISO + 'T12:00:00').getDay()
+       // (meio-dia evita virada de dia por timezone)
+
+  3. INTERVALO DE BUSCA DE AGENDAMENTOS
+     Verificar se a query de agendamentos confirmados está buscando
+     o intervalo correto (hoje até hoje+30 dias).
+     Se a query não retornar agendamentos, a lógica de bloqueio
+     pode estar invertida (bloqueando tudo em vez de nada).
+
+  4. SERVIÇO SEM DURAÇÃO
+     Se duracao_min for null ou 0, o cálculo de slots pode gerar
+     loop infinito ou array vazio. Adicionar guard:
+       if (!servico?.duracao_min || servico.duracao_min <= 0) return []
+
+  5. ANTECEDÊNCIA MÍNIMA
+     Se antecedencia_minima_horas não existir ainda no banco
+     (campo novo da task TASK_FLUXO_AGENDAMENTO_V2.txt),
+     o valor pode ser undefined, causando comportamento inesperado.
+     Adicionar fallback:
+       const antecedencia = profissional.antecedencia_minima_horas ?? 24
+
+  6. LOG DE DIAGNÓSTICO
+     Adicionar logs temporários no slot-calculator para entender
+     o que está sendo descartado:
+       console.log('[SlotCalc] dia:', dataISO, '| dia semana:', diaSemana)
+       console.log('[SlotCalc] disponibilidades encontradas:', disponibilidades.length)
+       console.log('[SlotCalc] slots gerados antes de filtrar:', slots.length)
+       console.log('[SlotCalc] slots após filtro de antecedência:', slotsValidos.length)
+       console.log('[SlotCalc] slots após filtro de capacidade:', slotsFinal.length)
+
+  Após corrigir o bug, remover os logs de diagnóstico.
+
+
+========================================
+=== ORDEM DE EXECUÇÃO ===
+========================================
+
+1.  E6  — Investigar e corrigir bug "Sem horários disponíveis" (CRÍTICO)
+2.  A1  — Remover ícone calendar_today do header
+3.  A2  — Card de pendentes no header
+4.  B1  — Remover kpi-bar da visão geral
+5.  B2  — Remover resumo-band da visão geral
+6.  C1  — Remover resumo-band da página /agenda
+7.  D1  — Adicionar rota /dashboard/agenda/:id
+8.  D2  — Criar componente AgendamentoDetalheComponent
+9.  D3  — Atualizar navegação nos cards da agenda
+10. E1  — Novo template da página pública (tela única)
+11. E2  — Lógica booking.service.ts (semana, slots, dadosPreenchidos)
+12. E3  — Scroll automático entre seções
+13. E4  — Scroll horizontal do strip de horários
+14. E5  — SCSS da página pública
+
+
+========================================
+=== CHECKLIST FINAL ===
+========================================
+
+HEADER
+[ ] Ícone calendar_today removido
+[ ] Card de pendentes aparece com contagem correta
+[ ] Card fica âmbar quando há pendentes
+[ ] Badge atualiza em tempo real via Realtime
+
+DASHBOARD — VISÃO GERAL
+[ ] Barra KPI (hoje/mês/pendentes/cancelados) removida
+[ ] Resumo-band (total/confirmados/pendentes/finalizados) removida
+[ ] Visão geral mostra: card de link público + mini-agenda
+
+DASHBOARD — AGENDA
+[ ] Resumo-band removida da página /agenda
+[ ] Clicar no ícone de edição navega para /dashboard/agenda/:id
+[ ] Não há mais abertura de modal/dialog para edição
+
+PÁGINA DE EDIÇÃO (/dashboard/agenda/:id)
+[ ] Página carrega com dados do agendamento preenchidos
+[ ] Botão voltar retorna para /dashboard/agenda
+[ ] Formulário de edição funciona e salva corretamente
+[ ] Ações de status corretas aparecem conforme o status atual
+[ ] Recusa exibe campo de motivo expansível
+[ ] Reagendar copia link para clipboard e exibe snackbar
+[ ] Botões com cores e tamanhos padronizados
+[ ] Layout usável em mobile (375px) e desktop
+
+PÁGINA PÚBLICA (/:slug)
+[ ] Bug "Sem horários disponíveis" corrigido
+[ ] Layout de tela única sem steps
+[ ] Selecionar serviço exibe seção de data
+[ ] Strip de datas com setas de navegação de semana
+[ ] Dias sem slots aparecem desabilitados
+[ ] Selecionar data exibe strip de horários
+[ ] Strip de horários com scroll horizontal
+[ ] Selecionar horário expande formulário de dados
+[ ] Preencher nome e WhatsApp exibe seção de resumo
+[ ] Botão "Confirmar solicitação" fixo no rodapé
+[ ] Botão desabilitado até dados estarem completos
+[ ] Após confirmar: tela de confirmação com mensagem
+[ ] Layout responsivo: funciona bem em mobile e desktop
+[ ] Banner de reagendamento aparece com ?reagendar=ID

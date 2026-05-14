@@ -1,4 +1,4 @@
-<div class="booking-container">
+<div class="booking-page">
 
   <app-professional-header [profissional]="booking.profissional()" />
 
@@ -9,10 +9,8 @@
     </div>
   }
 
-  @if (booking.loading()) {
-    <div class="global-loading">
-      <div class="spinner"></div>
-    </div>
+  @if (booking.loading() && !booking.enviando()) {
+    <div class="global-loading"><div class="spinner"></div></div>
   }
 
   @if (booking.step() === 'lotado') {
@@ -41,118 +39,193 @@
     </div>
   }
 
-  @if (booking.stepDesbloqueado('servico') && booking.step() !== 'lotado' && booking.step() !== 'not-found') {
+  @if (booking.step() !== 'lotado' && booking.step() !== 'not-found' && booking.step() !== 'confirmado') {
 
     <!-- Seção 1: Serviço -->
     <section class="booking-section">
-      <app-section-header
-        titulo="Serviço"
-        [concluida]="!!booking.servicoSelecionado()"
-        [resumo]="booking.servicoSelecionado()?.nome ?? null"
-        (editar)="booking.reabrirStep('servico')"
-      />
-      @if (booking.step() === 'servico') {
-        <div class="section-body">
-          <app-service-selector
-            [servicos]="booking.servicos()"
-            (selecionou)="onSelecionouServico($event)"
-          />
-        </div>
-      }
+      <h2 class="section-title">Serviço</h2>
+
+      <div class="servicos-list">
+        @for (s of booking.servicos(); track s.id) {
+          <button class="servico-card"
+            [class.selected]="booking.servicoSelecionado()?.id === s.id"
+            (click)="selecionarServico(s)">
+            <div class="servico-info">
+              <span class="servico-nome">{{ s.nome }}</span>
+              <span class="servico-meta">
+                {{ s.duracao_min }} min
+                @if (s.preco) { · R$ {{ s.preco | number:'1.2-2' }} }
+              </span>
+            </div>
+            @if (booking.servicoSelecionado()?.id === s.id) {
+              <mat-icon class="servico-check">check_circle</mat-icon>
+            }
+          </button>
+        }
+      </div>
     </section>
 
     <!-- Seção 2: Data -->
-    @if (booking.stepDesbloqueado('data')) {
-      <section #secData class="booking-section">
-        <app-section-header
-          titulo="Data"
-          [concluida]="!!booking.dataSelecionada()"
-          [resumo]="booking.dataSelecionada() ? (booking.dataSelecionada()! | date:'EEE, dd/MM':'':'pt-BR') : null"
-          (editar)="booking.reabrirStep('data')"
-        />
-        @if (booking.step() === 'data') {
-          <div class="section-body">
-            <app-date-selector
-              [diasComSlots]="booking.diasComSlots()"
-              (selecionou)="onSelecionouData($event)"
-              (voltou)="booking.voltar()"
-            />
+    @if (booking.servicoSelecionado()) {
+      <section class="booking-section" #secData>
+        <h2 class="section-title">Data</h2>
+
+        <div class="date-strip-wrap">
+          <button type="button" class="strip-nav"
+                  (click)="booking.semanaAnterior()"
+                  [disabled]="!booking.podeSemanaAnterior()"
+                  aria-label="Semana anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+
+          <div class="date-strip">
+            @for (dia of booking.semana(); track dia.dataISO) {
+              <button type="button" class="date-pill"
+                [class.selected]="dataISOSelecionada() === dia.dataISO"
+                [class.disabled]="!dia.temSlots"
+                [disabled]="!dia.temSlots"
+                (click)="selecionarData(dia)">
+                <span class="date-weekday">{{ dia.letra }}</span>
+                <span class="date-num">{{ dia.numero }}</span>
+                <span class="date-month">{{ dia.mes }}</span>
+              </button>
+            }
           </div>
+
+          <button type="button" class="strip-nav"
+                  (click)="booking.proximaSemana()"
+                  aria-label="Próxima semana">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+
+        @if (!booking.semana().length || booking.semana().every(d => !d.temSlots)) {
+          <p class="sem-slots-inline">Sem datas disponíveis nesta semana.</p>
         }
       </section>
     }
 
     <!-- Seção 3: Horário -->
-    @if (booking.stepDesbloqueado('horario')) {
-      <section #secHorario class="booking-section">
-        <app-section-header
-          titulo="Horário"
-          [concluida]="!!booking.horarioSelecionado()"
-          [resumo]="booking.horarioSelecionado() ? (booking.horarioSelecionado()! | date:'HH:mm') : null"
-          (editar)="booking.reabrirStep('horario')"
-        />
-        @if (booking.step() === 'horario') {
-          <div class="section-body">
-            <app-time-selector
-              [slots]="booking.slotsParaDia()"
-              [data]="booking.dataSelecionada()"
-              (selecionou)="onSelecionouHorario($event)"
-              (voltou)="booking.voltar()"
-            />
+    @if (booking.dataSelecionada()) {
+      <section class="booking-section" #secHorario>
+        <h2 class="section-title">Horário</h2>
+
+        @if (booking.loadingSlots()) {
+          <div class="slots-loading"><mat-spinner diameter="24" /></div>
+        } @else if (!booking.slotsParaDia().length || !booking.slotsParaDia().some(s => s.disponivel)) {
+          <p class="sem-slots-inline">Sem horários disponíveis para esta data.</p>
+        } @else {
+          <div class="time-strip-wrap">
+            <button type="button" class="strip-nav"
+                    (click)="slotsScrollEsq()" aria-label="Rolar para esquerda">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <div class="time-strip" #timeStrip>
+              @for (slot of booking.slotsParaDia(); track slot.dataHoraISO) {
+                <button type="button" class="time-pill"
+                  [class.selected]="booking.horarioSelecionado() === slot.dataHoraISO"
+                  [class.disabled]="!slot.disponivel"
+                  [disabled]="!slot.disponivel"
+                  (click)="onSelecionouHorario(slot.dataHoraISO)">
+                  {{ slot.hora }}
+                </button>
+              }
+            </div>
+            <button type="button" class="strip-nav"
+                    (click)="slotsScrollDir()" aria-label="Rolar para direita">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
           </div>
         }
       </section>
     }
 
     <!-- Seção 4: Dados do cliente -->
-    @if (booking.stepDesbloqueado('dados')) {
-      <section #secDados class="booking-section">
-        <app-section-header
-          titulo="Seus dados"
-          [concluida]="booking.step() === 'resumo' || booking.step() === 'confirmado'"
-        />
-        @if (booking.step() === 'dados') {
-          <div class="section-body">
-            <app-client-form
-              (confirmou)="onConfirmouDados($event)"
-              (voltou)="booking.voltar()"
-            />
+    @if (booking.horarioSelecionado()) {
+      <section class="booking-section" #secDados>
+        <h2 class="section-title">Seus dados</h2>
+
+        <div class="dados-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Seu nome</mat-label>
+            <input matInput
+              [ngModel]="booking.clienteNome()"
+              (ngModelChange)="onClienteNomeChange($event)"
+              placeholder="Como prefere ser chamado(a)" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>WhatsApp</mat-label>
+            <input matInput type="tel"
+              [ngModel]="booking.clienteWpp()"
+              (ngModelChange)="onClienteWppChange($event)"
+              placeholder="(11) 91234-5678" />
+          </mat-form-field>
+        </div>
+      </section>
+    }
+
+    <!-- Seção 5: Resumo -->
+    @if (booking.dadosPreenchidos()) {
+      <section class="booking-section resumo-section" #secResumo>
+        <h2 class="section-title">Resumo</h2>
+
+        <div class="resumo-lista">
+          <div class="resumo-item">
+            <span class="resumo-key">Serviço</span>
+            <span class="resumo-val">{{ booking.servicoSelecionado()!.nome }}</span>
           </div>
+          <div class="resumo-item">
+            <span class="resumo-key">Data</span>
+            <span class="resumo-val">
+              {{ booking.dataSelecionada() | date:'EEEE, dd/MM/yyyy':'':'pt-BR' | titlecase }}
+            </span>
+          </div>
+          <div class="resumo-item">
+            <span class="resumo-key">Horário</span>
+            <span class="resumo-val">
+              {{ booking.horarioSelecionado() | date:'HH:mm':'':'pt-BR' }}
+            </span>
+          </div>
+          <div class="resumo-item">
+            <span class="resumo-key">Nome</span>
+            <span class="resumo-val">{{ booking.clienteNome() }}</span>
+          </div>
+        </div>
+
+        @if (booking.erro()) {
+          <p class="resumo-erro">{{ booking.erro() }}</p>
         }
       </section>
     }
 
-    <!-- Seção 5: Resumo / Confirmação -->
-    @if (booking.step() === 'resumo' || booking.step() === 'confirmado') {
-      <section #secResumo class="booking-section">
-        @if (booking.step() === 'resumo') {
-          <app-booking-summary
-            [profissional]="booking.profissional()"
-            [servico]="booking.servicoSelecionado()"
-            [dataHora]="booking.horarioSelecionado()"
-            [cliente]="{ nome: booking.clienteNome(), wpp: booking.clienteWpp() }"
-            [loading]="booking.loading()"
-            [erro]="booking.erro()"
-            (confirmou)="booking.confirmarAgendamento()"
-            (voltou)="booking.voltar()"
-          />
-        }
-        @if (booking.step() === 'confirmado') {
-          <app-booking-confirmation
-            [profissional]="booking.profissional()"
-            [servico]="booking.servicoSelecionado()"
-            [dataHora]="booking.horarioSelecionado()"
-            [clienteNome]="booking.clienteNome()"
-          />
-        }
-      </section>
-    }
+    <div style="height: 80px"></div>
+  }
 
+  @if (booking.step() === 'confirmado') {
+    <section class="booking-section confirmado-section">
+      <mat-icon class="confirmado-icon">check_circle</mat-icon>
+      <h2>Solicitação enviada!</h2>
+      <p>
+        Aguarde a confirmação de
+        <strong>{{ booking.profissional()?.nome }}</strong>
+        pelo WhatsApp.
+      </p>
+    </section>
   }
 
 </div>
 
-<!-- FAB scroll to top -->
-<button class="fab-top" [class.visivel]="mostrarFab()" (click)="scrollTop()" aria-label="Voltar ao topo">
-  <mat-icon>keyboard_arrow_up</mat-icon>
-</button>
+@if (booking.step() !== 'confirmado' && booking.step() !== 'lotado' && booking.step() !== 'not-found') {
+  <div class="booking-footer">
+    <button type="button" class="btn-confirmar"
+      [disabled]="!booking.dadosPreenchidos() || booking.enviando()"
+      (click)="booking.confirmarAgendamento()">
+      @if (booking.enviando()) {
+        <mat-spinner diameter="18" />
+      } @else {
+        Confirmar solicitação
+      }
+    </button>
+  </div>
+}

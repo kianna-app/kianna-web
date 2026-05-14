@@ -21,11 +21,14 @@ export class SlotCalculatorService {
     timezone: string,
     antecedenciaMinHoras: number,
   ): SlotInfo[] {
+    const tz = timezone || 'America/Sao_Paulo';
+    const antecedencia = antecedenciaMinHoras ?? 24;
+
     const diaSemana = data.getDay();
     const disp = disponibilidades.find(d => d.dia_semana === diaSemana);
     if (!disp) return [];
 
-    const diaISO = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(data);
+    const diaISO = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(data);
 
     const bloqueiosDoDia = bloqueios.filter(b => b.data === diaISO);
     if (bloqueiosDoDia.some(b => b.hora_inicio === null)) return [];
@@ -33,14 +36,15 @@ export class SlotCalculatorService {
 
     const capacidade = disp.capacidade ?? 1;
     const slots: SlotInfo[] = [];
-    const intervalo = disp.intervalo_min;
+    const intervalo = disp.intervalo_min || 30;
+    const duracao = servico?.duracao_min || 30;
 
-    let cursor = this.slotDate(diaISO, disp.hora_inicio, timezone);
-    const fim = this.slotDate(diaISO, disp.hora_fim, timezone);
-    const limiteAntecedencia = Date.now() + antecedenciaMinHoras * 60 * 60 * 1000;
+    let cursor = this.slotDate(diaISO, disp.hora_inicio, tz);
+    const fim = this.slotDate(diaISO, disp.hora_fim, tz);
+    const limiteAntecedencia = Date.now() + antecedencia * 60 * 60 * 1000;
 
-    while (addMinutes(cursor, servico.duracao_min).getTime() <= fim.getTime()) {
-      const slotHora = formatInTimeZone(cursor, timezone, 'HH:mm');
+    while (addMinutes(cursor, duracao).getTime() <= fim.getTime()) {
+      const slotHora = formatInTimeZone(cursor, tz, 'HH:mm');
       const slotISO = cursor.toISOString();
 
       const dentroDaAntecedencia = cursor.getTime() <= limiteAntecedencia;
@@ -91,6 +95,8 @@ export class SlotCalculatorService {
   }
 
   private slotDate(diaISO: string, hora: string, timezone: string): Date {
-    return fromZonedTime(`${diaISO}T${hora}:00`, timezone);
+    // hora pode vir como "HH:MM" ou "HH:MM:SS" do Postgres → normaliza para "HH:MM"
+    const horaCurta = (hora || '00:00').slice(0, 5);
+    return fromZonedTime(`${diaISO}T${horaCurta}:00`, timezone);
   }
 }

@@ -7,6 +7,16 @@ import { exceededLimit } from '@core/constants/plan.limits';
 
 export type BookingStep = 'servico' | 'data' | 'horario' | 'dados' | 'resumo' | 'confirmado' | 'lotado' | 'not-found';
 
+export interface DiaSemana {
+  data: Date;
+  dataISO: string;
+  letra: string;
+  numero: number;
+  mes: string;
+  temSlots: boolean;
+  isPassado: boolean;
+}
+
 @Injectable()
 export class BookingService {
   private repo     = inject(BookingRepository);
@@ -22,9 +32,12 @@ export class BookingService {
   readonly clienteNome         = signal('');
   readonly clienteWpp          = signal('');
   readonly loading             = signal(false);
+  readonly loadingSlots        = signal(false);
+  readonly enviando            = signal(false);
   readonly agendamentoId       = signal<string | null>(null);
   readonly erro                = signal<string | null>(null);
   readonly agendamentoOrigemId = signal<string | null>(null);
+  readonly semanaOffset        = signal(0);
 
   private agendamentosConfirmados = signal<Array<{ data_hora: string }>>([]);
   private bloqueios               = signal<Bloqueio[]>([]);
@@ -49,6 +62,46 @@ export class BookingService {
       this.bloqueios(), prof.timezone, prof.antecedencia_minima_horas,
     );
   });
+
+  readonly semana = computed<DiaSemana[]>(() => {
+    const offset = this.semanaOffset();
+    const servico = this.servicoSelecionado();
+    const prof    = this.profissional();
+    if (!servico || !prof) return [];
+
+    const diasLetras = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const base = new Date(hoje);
+    base.setDate(hoje.getDate() - hoje.getDay() + offset * 7);
+
+    const diasDisponiveis = this.diasComSlots();
+    const setDisponivel = new Set(diasDisponiveis.map(d => d.toDateString()));
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      const dataISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      return {
+        data: d,
+        dataISO,
+        letra: diasLetras[d.getDay()],
+        numero: d.getDate(),
+        mes: meses[d.getMonth()],
+        temSlots: setDisponivel.has(d.toDateString()),
+        isPassado: d.getTime() < hoje.getTime(),
+      };
+    });
+  });
+
+  readonly podeSemanaAnterior = computed(() => this.semanaOffset() > 0);
+
+  readonly dadosPreenchidos = computed(() =>
+    !!this.horarioSelecionado() &&
+    this.clienteNome().trim().length >= 2 &&
+    this.clienteWpp().trim().length >= 10,
+  );
 
   async inicializar(slug: string): Promise<void> {
     this.loading.set(true);
@@ -124,14 +177,26 @@ export class BookingService {
   }
 
   selecionarData(data: Date): void {
+    this.loadingSlots.set(true);
     this.dataSelecionada.set(data);
     this.horarioSelecionado.set(null);
     this.step.set('horario');
+    setTimeout(() => this.loadingSlots.set(false), 0);
   }
 
   selecionarHorario(iso: string): void {
     this.horarioSelecionado.set(iso);
     this.step.set('dados');
+  }
+
+  semanaAnterior(): void {
+    if (this.podeSemanaAnterior()) {
+      this.semanaOffset.update(v => v - 1);
+    }
+  }
+
+  proximaSemana(): void {
+    this.semanaOffset.update(v => v + 1);
   }
 
   irParaResumo(dados: { nome: string; wpp: string }): void {
@@ -141,6 +206,8 @@ export class BookingService {
   }
 
   async confirmarAgendamento(): Promise<void> {
+    if (!this.dadosPreenchidos()) return;
+    this.enviando.set(true);
     this.loading.set(true);
     this.erro.set(null);
     try {
@@ -173,6 +240,7 @@ export class BookingService {
       this.erro.set(msg);
     } finally {
       this.loading.set(false);
+      this.enviando.set(false);
     }
   }
 

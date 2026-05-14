@@ -94,47 +94,6 @@
   flex-wrap: wrap;
 }
 
-// ── KPI barra minimalista ────────────────────────────
-.kpi-bar {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 10px;
-  padding: 16px 0;
-}
-
-.kpi-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.kpi-valor {
-  font-size: 22px;
-  font-weight: 700;
-  color: #212529;
-  line-height: 1;
-
-  &.kpi-warn  { color: #F59E0B; }
-  &.kpi-muted { color: #adb5bd; }
-}
-
-.kpi-label {
-  font-size: 11px;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.kpi-divider {
-  width: 1px;
-  height: 36px;
-  background: #e9ecef;
-}
-
 // ── Mini-agenda ──────────────────────────────────────
 .mini-agenda { margin-top: 4px; }
 

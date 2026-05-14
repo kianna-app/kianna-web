@@ -1,11 +1,11 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core'
 import { CommonModule, TitleCasePipe } from '@angular/common'
+import { Router } from '@angular/router'
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
 import { MatDialog } from '@angular/material/dialog'
 import { AgendamentosStore } from '../../state/agendamentos.store'
 import { MODALIDADE_LABELS } from '@core/types/database.types'
 import { WeekStripComponent } from './components/week-strip/week-strip.component'
-import { ResumoBandComponent } from './components/resumo-band/resumo-band.component'
 import { ApptCardComponent, AgendamentoView } from './components/appt-card/appt-card.component'
 import { MonthCalendarComponent } from './components/month-calendar/month-calendar.component'
 import { AgendamentoFormDialogComponent, AgendamentoFormDialogData } from './components/agendamento-form-dialog/agendamento-form-dialog.component'
@@ -16,7 +16,7 @@ import { firstValueFrom } from 'rxjs'
   standalone: true,
   imports: [
     CommonModule, TitleCasePipe, MatProgressSpinnerModule,
-    WeekStripComponent, ResumoBandComponent, ApptCardComponent, MonthCalendarComponent,
+    WeekStripComponent, ApptCardComponent, MonthCalendarComponent,
   ],
   templateUrl: './agenda.component.html',
   styleUrl: './agenda.component.scss',
@@ -24,10 +24,10 @@ import { firstValueFrom } from 'rxjs'
 export class AgendaComponent implements OnInit {
   protected agendamentosStore = inject(AgendamentosStore)
   private dialog = inject(MatDialog)
+  private router = inject(Router)
 
   diaSelecionado    = signal<Date>(new Date())
   semanaOffset      = signal(0)
-  filtroStatus      = signal<string | null>(null)
   mostrarCalendario = signal(false)
 
   semana = computed(() => this.gerarSemana(this.semanaOffset()))
@@ -59,23 +59,6 @@ export class AgendaComponent implements OnInit {
       })
   })
 
-  agendamentosFiltrados = computed(() => {
-    const f = this.filtroStatus()
-    return f
-      ? this.agendamentosDoDia().filter(a => a.status === f)
-      : this.agendamentosDoDia()
-  })
-
-  resumo = computed(() => {
-    const ags = this.agendamentosDoDia()
-    return {
-      total:       ags.length,
-      confirmados: ags.filter(a => a.status === 'confirmado').length,
-      pendentes:   ags.filter(a => a.status === 'pendente').length,
-      finalizados: ags.filter(a => a.status === 'finalizado').length,
-    }
-  })
-
   ocupacaoPorDia = computed(() => {
     const map = new Map<string, number>()
     this.agendamentosStore.agendamentos()
@@ -99,10 +82,6 @@ export class AgendaComponent implements OnInit {
   proximaSemana() {
     this.semanaOffset.update(v => v + 1)
     this.carregarPeriodoVisivel()
-  }
-
-  toggleFiltro(status: string) {
-    this.filtroStatus.set(this.filtroStatus() === status ? null : status)
   }
 
   selecionarDiaDoCalendario(data: Date) {
@@ -133,13 +112,8 @@ export class AgendaComponent implements OnInit {
     if (result) await this.carregarPeriodoVisivel()
   }
 
-  async abrirEdicao(ag: AgendamentoView) {
-    const ref = this.dialog.open<AgendamentoFormDialogComponent, AgendamentoFormDialogData>(
-      AgendamentoFormDialogComponent,
-      { data: { modo: 'editar', agendamento: ag as any } }
-    )
-    const result = await firstValueFrom(ref.afterClosed())
-    if (result) await this.carregarPeriodoVisivel()
+  abrirEdicao(ag: AgendamentoView) {
+    this.router.navigate(['/dashboard/agenda', ag.id])
   }
 
   get mesLabel(): string {

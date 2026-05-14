@@ -1,0 +1,149 @@
+:host {
+  display: block;
+  background: #F4F6F9;
+  min-height: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.detalhe-wrap {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 16px 80px;
+}
+
+.detalhe-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0 16px;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 20px;
+}
+
+.btn-voltar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: 500 14px 'Inter';
+  color: #495057;
+  padding: 6px 8px;
+  border-radius: 8px;
+
+  &:hover { background: #f1f3f5; }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.detalhe-titulo {
+  font: 600 18px 'Inter';
+  color: #212529;
+  margin: 0;
+}
+
+.resumo-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resumo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.resumo-label {
+  font: 500 12px 'Inter';
+  color: #868e96;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 80px;
+}
+
+.resumo-valor {
+  font: 500 14px 'Inter';
+  color: #212529;
+  text-align: right;
+}
+
+.status-chip {
+  font: 600 12px 'Inter';
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+.status-pendente       { background: #FFF8E1; color: #F59E0B; }
+.status-confirmado     { background: #E8F5F0; color: #1D9E75; }
+.status-recusado       { background: #FBEDEF; color: #E26172; }
+.status-cancelado      { background: #FBEDEF; color: #E26172; }
+.status-reagendado     { background: #F5EEF8; color: #6C3483; }
+.status-finalizado     { background: #E8F6EF; color: #1F7A55; }
+.status-nao_compareceu { background: #F2F3F4; color: #566573; }
+
+.edicao-form,
+.acoes-secao {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.secao-titulo {
+  font: 600 14px 'Inter';
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+}
+
+.full-width { width: 100%; }
+
+.acoes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 480px) {
+  .acoes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+}
+
+.motivo-recusa {
+  border-top: 1px solid #f1f3f5;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.motivo-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 60px;
+}

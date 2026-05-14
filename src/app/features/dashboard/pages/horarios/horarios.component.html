@@ -30,30 +30,37 @@
 
       <div class="dias-list">
         @for (c of config(); track c.dia) {
-          <mat-card class="dia-card" [class.inativo]="!c.ativo">
-            <div class="dia-row">
-              <div class="dia-toggle">
-                <mat-slide-toggle color="primary" [checked]="c.ativo"
-                                  (change)="toggleDia(c.dia, $event.checked)" />
-                <span class="dia-label">{{ c.label }}</span>
-              </div>
+          <div class="dia-card" [class.inativo]="!c.ativo">
+            <div class="dia-header">
+              <span class="dia-label">{{ c.label }}</span>
+              <span class="dia-status" [class.aberto]="c.ativo">
+                ({{ c.ativo ? 'ABERTO' : 'FECHADO' }})
+              </span>
+              <mat-slide-toggle color="primary" [checked]="c.ativo"
+                                (change)="toggleDia(c.dia, $event.checked)"
+                                aria-label="Ativar dia" />
+            </div>
 
-              @if (c.ativo) {
-                <div class="dia-campos">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Início</mat-label>
+            @if (c.ativo) {
+              <div class="dia-body">
+                <span class="campos-label">Horário de Funcionamento</span>
+                <div class="horario-row">
+                  <mat-form-field appearance="outline" class="campo-hora">
                     <input matInput type="time" [value]="c.hora_inicio"
                            (change)="atualizar(c.dia, 'hora_inicio', $any($event.target).value)">
                   </mat-form-field>
 
-                  <mat-form-field appearance="outline">
-                    <mat-label>Fim</mat-label>
+                  <span class="ate-label">até</span>
+
+                  <mat-form-field appearance="outline" class="campo-hora">
                     <input matInput type="time" [value]="c.hora_fim"
                            (change)="atualizar(c.dia, 'hora_fim', $any($event.target).value)">
                   </mat-form-field>
+                </div>
 
-                  <mat-form-field appearance="outline">
-                    <mat-label>Intervalo</mat-label>
+                <div class="intervalo-row">
+                  <span class="intervalo-label">Intervalo entre horários</span>
+                  <mat-form-field appearance="outline" class="campo-intervalo">
                     <mat-select [value]="c.intervalo_min"
                                 (selectionChange)="atualizar(c.dia, 'intervalo_min', $event.value)">
                       @for (i of intervalos; track i) {
@@ -62,9 +69,9 @@
                     </mat-select>
                   </mat-form-field>
                 </div>
-              }
-            </div>
-          </mat-card>
+              </div>
+            }
+          </div>
         }
       </div>
 

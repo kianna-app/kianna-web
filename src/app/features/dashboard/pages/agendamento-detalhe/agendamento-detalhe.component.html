@@ -1,0 +1,157 @@
+<div class="detalhe-wrap">
+
+  <div class="detalhe-header">
+    <button class="btn-voltar" (click)="voltar()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Voltar</span>
+    </button>
+    <h1 class="detalhe-titulo">Agendamento</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center"><mat-spinner diameter="32" /></div>
+  }
+
+  @if (!loading() && agendamento(); as ag) {
+
+    <div class="resumo-card">
+      <div class="resumo-row">
+        <span class="resumo-label">Cliente</span>
+        <span class="resumo-valor">{{ ag.cliente_nome }}</span>
+      </div>
+      <div class="resumo-row">
+        <span class="resumo-label">WhatsApp</span>
+        <span class="resumo-valor">{{ ag.cliente_wpp }}</span>
+      </div>
+      <div class="resumo-row">
+        <span class="resumo-label">Serviço</span>
+        <span class="resumo-valor">{{ ag.servico?.nome ?? '—' }}</span>
+      </div>
+      <div class="resumo-row">
+        <span class="resumo-label">Data e hora</span>
+        <span class="resumo-valor">
+          {{ ag.data_hora | date:'dd/MM/yyyy HH:mm':'':'pt-BR' }}
+        </span>
+      </div>
+      <div class="resumo-row">
+        <span class="resumo-label">Status</span>
+        <span class="status-chip status-{{ ag.status }}">
+          {{ ag.status | titlecase }}
+        </span>
+      </div>
+    </div>
+
+    <form [formGroup]="form" class="edicao-form">
+      <h2 class="secao-titulo">Editar dados</h2>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Serviço</mat-label>
+        <mat-select formControlName="servico_id">
+          @for (s of servicos(); track s.id) {
+            <mat-option [value]="s.id">{{ s.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Data e hora</mat-label>
+        <input matInput type="datetime-local" formControlName="data_hora" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nome do cliente</mat-label>
+        <input matInput formControlName="cliente_nome" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>WhatsApp</mat-label>
+        <input matInput type="tel" formControlName="cliente_wpp" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Observações</mat-label>
+        <textarea matInput formControlName="observacoes" rows="3"></textarea>
+      </mat-form-field>
+
+      <button type="button" class="btn-primary full-width"
+              (click)="salvarEdicao()"
+              [disabled]="salvando() || form.invalid">
+        @if (salvando()) {
+          <mat-spinner diameter="16" />
+        } @else {
+          Salvar alterações
+        }
+      </button>
+    </form>
+
+    <div class="acoes-secao">
+      <h2 class="secao-titulo">Ações</h2>
+
+      <div class="acoes-grid">
+
+        @if (ag.status === 'pendente') {
+          <button type="button" class="btn-primary"
+                  (click)="confirmar()" [disabled]="salvando()">
+            <mat-icon>check_circle</mat-icon> Confirmar
+          </button>
+          <button type="button" class="btn-danger"
+                  (click)="mostrarCampoMotivo.set(true)" [disabled]="salvando()">
+            <mat-icon>cancel</mat-icon> Recusar
+          </button>
+        }
+
+        @if (ag.status === 'confirmado') {
+          <button type="button" class="btn-ghost"
+                  (click)="reagendar()" [disabled]="salvando()">
+            <mat-icon>event_repeat</mat-icon> Reagendar
+          </button>
+          <button type="button" class="btn-danger"
+                  (click)="cancelar()" [disabled]="salvando()">
+            <mat-icon>cancel</mat-icon> Cancelar
+          </button>
+          <button type="button" class="btn-ghost"
+                  (click)="naoCompareceu()" [disabled]="salvando()">
+            <mat-icon>person_off</mat-icon> Não compareceu
+          </button>
+        }
+
+        @if (ag.status === 'finalizado') {
+          <button type="button" class="btn-ghost"
+                  (click)="naoCompareceu()" [disabled]="salvando()">
+            <mat-icon>person_off</mat-icon> Marcar não compareceu
+          </button>
+        }
+
+      </div>
+
+      @if (mostrarCampoMotivo()) {
+        <div class="motivo-recusa">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Motivo da recusa (opcional)</mat-label>
+            <textarea matInput
+              [value]="motivoRecusa()"
+              (input)="motivoRecusa.set($any($event.target).value)"
+              rows="2">
+            </textarea>
+          </mat-form-field>
+          <div class="motivo-acoes">
+            <button type="button" class="btn-ghost btn-sm"
+                    (click)="mostrarCampoMotivo.set(false)">
+              Cancelar
+            </button>
+            <button type="button" class="btn-danger"
+                    (click)="confirmarRecusa()" [disabled]="salvando()">
+              @if (salvando()) {
+                <mat-spinner diameter="14" />
+              } @else {
+                Confirmar recusa
+              }
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+  }
+
+</div>

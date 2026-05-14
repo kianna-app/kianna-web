@@ -1,13 +1,11 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
-import { EstatisticasRepository, EstatisticasDashboard } from '@core/repositories/estatisticas.repository';
 import { isAuthError } from '@core/repositories/base.repository';
 import { SessionService } from '@core/auth/session.service';
 import { AgendamentosStore } from '../../state/agendamentos.store';
@@ -15,10 +13,7 @@ import { currentUser } from '@core/signals/app.signals';
 import { APP } from '@core/constants/app.constants';
 import { MODALIDADE_LABELS } from '@core/types/database.types';
 import { WeekStripComponent } from '../agenda/components/week-strip/week-strip.component';
-import { ResumoBandComponent } from '../agenda/components/resumo-band/resumo-band.component';
 import { ApptCardComponent, AgendamentoView } from '../agenda/components/appt-card/appt-card.component';
-import { AgendamentoFormDialogComponent, AgendamentoFormDialogData } from '../agenda/components/agendamento-form-dialog/agendamento-form-dialog.component';
-import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-visao-geral',
@@ -26,26 +21,23 @@ import { firstValueFrom } from 'rxjs';
   imports: [
     CommonModule, RouterLink,
     MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule,
-    WeekStripComponent, ResumoBandComponent, ApptCardComponent,
+    WeekStripComponent, ApptCardComponent,
   ],
   templateUrl: './visao-geral.component.html',
   styleUrl: './visao-geral.component.scss',
 })
 export class VisaoGeralComponent implements OnInit {
-  private repo    = inject(EstatisticasRepository);
   private snack   = inject(MatSnackBar);
   private session = inject(SessionService);
-  private dialog  = inject(MatDialog);
+  private router  = inject(Router);
   readonly agendamentosStore = inject(AgendamentosStore);
 
   readonly user        = currentUser;
   readonly carregando  = signal(true);
-  readonly stats       = signal<EstatisticasDashboard | null>(null);
   readonly copiado     = signal(false);
 
   // ── Mini-agenda ───────────────────────────────────────
   readonly diaSelecionado = signal<Date>(new Date());
-  readonly filtroStatus   = signal<string | null>(null);
 
   readonly semana = computed(() => {
     const hoje       = new Date();
@@ -96,28 +88,8 @@ export class VisaoGeralComponent implements OnInit {
           duracao:     svc ? `${svc.duracao_min} min` : '',
           modalidade:  svc ? (MODALIDADE_LABELS[svc.modalidade]?.label ?? svc.modalidade) : '',
           data_hora:   a.data_hora,
-          servico_id:  a.servico_id ?? undefined,
-          cliente_wpp: (a as any).cliente_wpp,
-          observacoes: (a as any).observacoes,
-        } as AgendamentoView & { servico_id?: string; cliente_wpp?: string; observacoes?: string };
+        };
       });
-  });
-
-  readonly agendamentosFiltrados = computed(() => {
-    const f = this.filtroStatus();
-    return f
-      ? this.agendamentosDoDia().filter(a => a.status === f)
-      : this.agendamentosDoDia();
-  });
-
-  readonly resumo = computed(() => {
-    const ags = this.agendamentosDoDia();
-    return {
-      total:       ags.length,
-      confirmados: ags.filter(a => a.status === 'confirmado').length,
-      pendentes:   ags.filter(a => a.status === 'pendente').length,
-      finalizados: ags.filter(a => a.status === 'finalizado').length,
-    };
   });
 
   get linkPublico(): string {
@@ -131,20 +103,12 @@ export class VisaoGeralComponent implements OnInit {
     return 'Boa noite';
   }
 
-  toggleFiltro(status: string) {
-    this.filtroStatus.set(this.filtroStatus() === status ? null : status);
-  }
-
   async ngOnInit(): Promise<void> {
     const inicio = new Date(); inicio.setHours(0, 0, 0, 0);
     const fim = new Date(inicio); fim.setDate(fim.getDate() + 30); fim.setHours(23, 59, 59, 999);
 
     try {
-      const [data] = await Promise.all([
-        this.repo.carregarDashboard(),
-        this.agendamentosStore.carregarPeriodo(inicio, fim),
-      ]);
-      this.stats.set(data);
+      await this.agendamentosStore.carregarPeriodo(inicio, fim);
     } catch (e: unknown) {
       if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
       this.snack.open('Erro ao carregar dados', 'OK', { duration: 3000 });
@@ -153,17 +117,8 @@ export class VisaoGeralComponent implements OnInit {
     }
   }
 
-  async abrirEdicao(ag: AgendamentoView): Promise<void> {
-    const ref = this.dialog.open<AgendamentoFormDialogComponent, AgendamentoFormDialogData>(
-      AgendamentoFormDialogComponent,
-      { data: { modo: 'editar', agendamento: ag as any } }
-    );
-    const result = await firstValueFrom(ref.afterClosed());
-    if (result) {
-      const inicio = new Date(); inicio.setHours(0, 0, 0, 0);
-      const fim = new Date(inicio); fim.setDate(fim.getDate() + 30); fim.setHours(23, 59, 59, 999);
-      await this.agendamentosStore.carregarPeriodo(inicio, fim);
-    }
+  abrirEdicao(ag: AgendamentoView): void {
+    this.router.navigate(['/dashboard/agenda', ag.id]);
   }
 
   async copiarLink(): Promise<void> {
