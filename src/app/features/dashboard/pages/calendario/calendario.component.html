@@ -55,7 +55,7 @@
   <!-- ── Calendário ──────────────────────────────────────────── -->
   <div class="cal-body">
     @if (isBrowser) {
-      <full-calendar [options]="calendarOptions" />
+      <full-calendar #fullcal [options]="calendarOptions" />
     }
   </div>
 

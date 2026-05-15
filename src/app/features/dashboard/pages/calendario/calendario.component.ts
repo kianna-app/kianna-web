@@ -1,11 +1,11 @@
 import {
-  Component, inject, signal, computed, effect, OnInit, PLATFORM_ID, NgZone
+  Component, inject, signal, computed, effect, OnInit, PLATFORM_ID, NgZone, ViewChild
 } from '@angular/core'
 import { CommonModule, isPlatformBrowser } from '@angular/common'
 import { MatIconModule } from '@angular/material/icon'
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
 import { MatSnackBar } from '@angular/material/snack-bar'
-import { FullCalendarModule } from '@fullcalendar/angular'
+import { FullCalendarModule, FullCalendarComponent } from '@fullcalendar/angular'
 import { CalendarOptions, EventInput, EventClickArg, DateSelectArg, EventDropArg } from '@fullcalendar/core'
 import type { EventResizeDoneArg } from '@fullcalendar/interaction'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -47,6 +47,8 @@ const VIEWS: { id: CalView; label: string }[] = [
   styleUrl: './calendario.component.scss',
 })
 export class CalendarioComponent implements OnInit {
+  @ViewChild('fullcal') calRef!: FullCalendarComponent
+
   private agStore = inject(AgendamentosStore)
   private agRepo  = inject(AgendamentosRepository)
   private snack   = inject(MatSnackBar)
@@ -162,23 +164,19 @@ export class CalendarioComponent implements OnInit {
 
   trocarView(view: CalView): void {
     this.viewAtual.set(view)
-    const calApi = this.getCalApi()
-    if (calApi) calApi.changeView(view)
+    this.calRef?.getApi().changeView(view)
   }
 
   hoje(): void {
-    const calApi = this.getCalApi()
-    if (calApi) calApi.today()
+    this.calRef?.getApi().today()
   }
 
   anterior(): void {
-    const calApi = this.getCalApi()
-    if (calApi) calApi.prev()
+    this.calRef?.getApi().prev()
   }
 
   proximo(): void {
-    const calApi = this.getCalApi()
-    if (calApi) calApi.next()
+    this.calRef?.getApi().next()
   }
 
   fecharDrawer(): void {
@@ -192,7 +190,7 @@ export class CalendarioComponent implements OnInit {
     try {
       await this.agStore.atualizarStatus(ag.id, status)
       this.eventoAberto.set({ ...ag, status })
-      this.getCalApi()?.refetchEvents()
+      this.calRef?.getApi().refetchEvents()
       this.snack.open('Status atualizado.', '', { duration: 3000 })
     } catch {
       this.snack.open('Erro ao atualizar status.', '', { duration: 3000 })
@@ -262,8 +260,4 @@ export class CalendarioComponent implements OnInit {
     })
   }
 
-  private getCalApi() {
-    const el = document.querySelector('full-calendar') as any
-    return el?._component?.calendar ?? null
-  }
 }
