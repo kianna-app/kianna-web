@@ -77,6 +77,7 @@ export class CalendarioComponent implements OnInit {
     plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
     locale: ptBrLocale,
     initialView: 'timeGridWeek',
+    firstDay: 1,
     headerToolbar: false,
     editable: true,
     selectable: true,
@@ -177,6 +178,11 @@ export class CalendarioComponent implements OnInit {
 
   proximo(): void {
     this.calRef?.getApi().next()
+  }
+
+  trocarFiltro(status: StatusAgend | ''): void {
+    this.filtroStatus.set(status)
+    this.calRef?.getApi().refetchEvents()
   }
 
   fecharDrawer(): void {

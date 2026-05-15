@@ -40,14 +40,14 @@
     <button
       class="filter-chip"
       [class.active]="filtroStatus() === ''"
-      (click)="filtroStatus.set('')"
+      (click)="trocarFiltro('')"
     >Todos</button>
     @for (s of statusKeys; track s) {
       <button
         class="filter-chip"
         [class.active]="filtroStatus() === s"
         [style.--chip-color]="STATUS_STYLE[s].border"
-        (click)="filtroStatus.set(filtroStatus() === s ? '' : s)"
+        (click)="trocarFiltro(filtroStatus() === s ? '' : s)"
       >{{ STATUS_STYLE[s].label }}</button>
     }
   </div>
