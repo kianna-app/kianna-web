@@ -9,6 +9,7 @@ export interface MenuItem {
 export const MENU_ITEMS: MenuItem[] = [
   { rota: '/dashboard',              label: 'Visão Geral', icone: 'dashboard',     exactMatch: true },
   { rota: '/dashboard/agenda',       label: 'Agenda',      icone: 'event' },
+  { rota: '/dashboard/calendario',   label: 'Calendário',  icone: 'calendar_month' },
   { rota: '/dashboard/servicos',     label: 'Serviços',    icone: 'content_cut' },
   { rota: '/dashboard/horarios',     label: 'Horários',    icone: 'schedule' },
   { rota: '/dashboard/perfil',       label: 'Perfil',      icone: 'person' },

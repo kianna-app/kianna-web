@@ -1,0 +1,151 @@
+<!-- ── Wrapper principal ─────────────────────────────────────── -->
+<div class="cal-page">
+
+  <!-- ── Header customizado ─────────────────────────────────── -->
+  <header class="cal-header">
+    <!-- Navegação -->
+    <div class="cal-nav">
+      <button class="nav-btn" (click)="hoje()" aria-label="Hoje">Hoje</button>
+      <button class="nav-icon-btn" (click)="anterior()" aria-label="Anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button class="nav-icon-btn" (click)="proximo()" aria-label="Próximo">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+    <!-- Título do período -->
+    <div class="cal-titulo">
+      @if (carregandoPeriodo()) {
+        <mat-spinner diameter="18" class="spinner-inline" />
+      }
+      <span>{{ tituloAtual() }}</span>
+    </div>
+
+    <!-- Alternador de visualização -->
+    <div class="view-switcher">
+      @for (v of views; track v.id) {
+        <button
+          class="view-btn"
+          [class.active]="viewAtual() === v.id"
+          (click)="trocarView(v.id)"
+        >{{ v.label }}</button>
+      }
+    </div>
+  </header>
+
+  <!-- ── Filtros ──────────────────────────────────────────────── -->
+  <div class="cal-filters">
+    <span class="filter-label">Filtrar:</span>
+    <button
+      class="filter-chip"
+      [class.active]="filtroStatus() === ''"
+      (click)="filtroStatus.set('')"
+    >Todos</button>
+    @for (s of statusKeys; track s) {
+      <button
+        class="filter-chip"
+        [class.active]="filtroStatus() === s"
+        [style.--chip-color]="STATUS_STYLE[s].border"
+        (click)="filtroStatus.set(filtroStatus() === s ? '' : s)"
+      >{{ STATUS_STYLE[s].label }}</button>
+    }
+  </div>
+
+  <!-- ── Calendário ──────────────────────────────────────────── -->
+  <div class="cal-body">
+    @if (isBrowser) {
+      <full-calendar [options]="calendarOptions" />
+    }
+  </div>
+
+</div>
+
+<!-- ── Drawer de detalhe do evento ─────────────────────────── -->
+@if (eventoAberto()) {
+  <div class="drawer-overlay" (click)="fecharDrawer()">
+    <aside class="drawer" (click)="$event.stopPropagation()">
+      <!-- Header do drawer -->
+      <div class="drawer-header" [style.border-left-color]="STATUS_STYLE[eventoAberto()!.status].border">
+        <div class="drawer-header-top">
+          <span class="status-badge" [class]="STATUS_STYLE[eventoAberto()!.status].chip">
+            {{ statusLabel(eventoAberto()!.status) }}
+          </span>
+          <button class="close-btn" (click)="fecharDrawer()" aria-label="Fechar">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <h2 class="drawer-cliente">{{ eventoAberto()!.cliente_nome }}</h2>
+        <p class="drawer-data">{{ formatarData(eventoAberto()!.data_hora) }}</p>
+        <p class="drawer-hora">
+          <mat-icon class="icon-sm">schedule</mat-icon>
+          {{ formatarHora(eventoAberto()!.data_hora, eventoAberto()!.servico?.duracao_min ?? null) }}
+        </p>
+      </div>
+
+      <!-- Detalhes -->
+      <div class="drawer-body">
+        @if (eventoAberto()!.servico) {
+          <div class="detail-row">
+            <span class="detail-label">Serviço</span>
+            <span class="detail-value">{{ eventoAberto()!.servico!.nome }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Duração</span>
+            <span class="detail-value">{{ eventoAberto()!.servico!.duracao_min }} min</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Valor</span>
+            <span class="detail-value valor">{{ formatarPreco(eventoAberto()!.servico!.preco) }}</span>
+          </div>
+        }
+        <div class="detail-row">
+          <span class="detail-label">WhatsApp</span>
+          <button class="wpp-btn" (click)="abrirWhatsApp()">
+            <mat-icon>chat</mat-icon>
+            {{ eventoAberto()!.cliente_wpp }}
+          </button>
+        </div>
+        @if (eventoAberto()!.observacoes) {
+          <div class="detail-row obs">
+            <span class="detail-label">Observações</span>
+            <span class="detail-value">{{ eventoAberto()!.observacoes }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Ações rápidas -->
+      <div class="drawer-actions">
+        <p class="actions-label">Ações rápidas</p>
+        <div class="action-grid">
+          @if (eventoAberto()!.status === 'pendente') {
+            <button class="action-btn confirmar" (click)="atualizarStatus('confirmado')" [disabled]="salvandoStatus()">
+              <mat-icon>check_circle</mat-icon>
+              Confirmar
+            </button>
+          }
+          @if (eventoAberto()!.status === 'pendente' || eventoAberto()!.status === 'confirmado') {
+            <button class="action-btn cancelar" (click)="atualizarStatus('cancelado')" [disabled]="salvandoStatus()">
+              <mat-icon>cancel</mat-icon>
+              Cancelar
+            </button>
+          }
+          @if (eventoAberto()!.status === 'confirmado') {
+            <button class="action-btn finalizar" (click)="atualizarStatus('finalizado')" [disabled]="salvandoStatus()">
+              <mat-icon>done_all</mat-icon>
+              Finalizado
+            </button>
+            <button class="action-btn faltou" (click)="atualizarStatus('nao_compareceu')" [disabled]="salvandoStatus()">
+              <mat-icon>person_off</mat-icon>
+              Não compareceu
+            </button>
+          }
+          <button class="action-btn reagendar" (click)="reagendar()">
+            <mat-icon>event_repeat</mat-icon>
+            Reagendar
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+}

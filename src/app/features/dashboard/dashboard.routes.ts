@@ -56,6 +56,12 @@ export const dashboardRoutes: Routes = [
         data: { titulo: 'Relatório' },
       },
       {
+        path: 'calendario',
+        loadComponent: () =>
+          import('./pages/calendario/calendario.component').then(m => m.CalendarioComponent),
+        title: 'Calendário — Kianna',
+      },
+      {
         path: 'configuracoes',
         loadComponent: () =>
           import('./pages/configuracoes/configuracoes.component').then(m => m.ConfiguracoesComponent),
