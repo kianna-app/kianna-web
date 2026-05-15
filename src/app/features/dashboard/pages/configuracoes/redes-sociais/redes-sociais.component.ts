@@ -1,7 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,29 +10,77 @@ import { LoadingButtonComponent } from '@shared/components/loading-button/loadin
 import { supabase } from '@core/supabase/supabase.client';
 import { currentUser, AppUser } from '@core/signals/app.signals';
 
+const URL_PATTERN = /^https?:\/\//;
+
+interface RedeSocial {
+  controlName: string;
+  label:       string;
+  placeholder: string;
+  letra:       string;
+  bgColor:     string;
+  textColor:   string;
+}
+
+const REDES: RedeSocial[] = [
+  {
+    controlName: 'instagram_url',
+    label:       'Instagram',
+    placeholder: 'https://instagram.com/seuusuario',
+    letra:       'Ig',
+    bgColor:     'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF)',
+    textColor:   '#fff',
+  },
+  {
+    controlName: 'facebook_url',
+    label:       'Facebook',
+    placeholder: 'https://facebook.com/seunegocio',
+    letra:       'Fb',
+    bgColor:     '#1877F2',
+    textColor:   '#fff',
+  },
+  {
+    controlName: 'twitter_url',
+    label:       'X (Twitter)',
+    placeholder: 'https://x.com/seuusuario',
+    letra:       'X',
+    bgColor:     '#000',
+    textColor:   '#fff',
+  },
+  {
+    controlName: 'youtube_url',
+    label:       'YouTube',
+    placeholder: 'https://youtube.com/@seucanal',
+    letra:       'Yt',
+    bgColor:     '#FF0000',
+    textColor:   '#fff',
+  },
+];
+
 @Component({
   selector: 'app-cfg-redes-sociais',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule,
-    MatInputModule, MatIconModule, MatButtonModule, LoadingButtonComponent,
+    CommonModule, ReactiveFormsModule,
+    MatFormFieldModule, MatInputModule, MatIconModule,
+    MatButtonModule, LoadingButtonComponent,
   ],
   templateUrl: './redes-sociais.component.html',
   styleUrl: './redes-sociais.component.scss',
 })
 export class RedesSociaisComponent implements OnInit {
-  private fb = inject(FormBuilder);
+  private fb    = inject(FormBuilder);
   private snack = inject(MatSnackBar);
 
-  readonly salvando = signal(false);
-  readonly user = currentUser;
+  readonly salvando  = signal(false);
+  readonly user      = currentUser;
   readonly MAX_LINKS = 3;
+  readonly redes     = REDES;
 
   form = this.fb.group({
-    instagram_url: ['', Validators.pattern(/^https?:\/\//)],
-    facebook_url:  ['', Validators.pattern(/^https?:\/\//)],
-    twitter_url:   ['', Validators.pattern(/^https?:\/\//)],
-    youtube_url:   ['', Validators.pattern(/^https?:\/\//)],
+    instagram_url:        ['', Validators.pattern(URL_PATTERN)],
+    facebook_url:         ['', Validators.pattern(URL_PATTERN)],
+    twitter_url:          ['', Validators.pattern(URL_PATTERN)],
+    youtube_url:          ['', Validators.pattern(URL_PATTERN)],
     links_personalizados: this.fb.array([]),
   });
 
@@ -47,9 +94,9 @@ export class RedesSociaisComponent implements OnInit {
 
     this.form.patchValue({
       instagram_url: u.instagram_url ?? '',
-      facebook_url:  u.facebook_url ?? '',
-      twitter_url:   u.twitter_url ?? '',
-      youtube_url:   u.youtube_url ?? '',
+      facebook_url:  u.facebook_url  ?? '',
+      twitter_url:   u.twitter_url   ?? '',
+      youtube_url:   u.youtube_url   ?? '',
     });
 
     const links = (u.links_personalizados ?? []) as { label: string; url: string }[];
@@ -63,7 +110,7 @@ export class RedesSociaisComponent implements OnInit {
     }
     this.linksArray.push(this.fb.group({
       label: [label, [Validators.required, Validators.maxLength(30)]],
-      url:   [url,   [Validators.required, Validators.pattern(/^https?:\/\//)]],
+      url:   [url,   [Validators.required, Validators.pattern(URL_PATTERN)]],
     }));
   }
 
@@ -84,9 +131,9 @@ export class RedesSociaisComponent implements OnInit {
         .from('profissionais')
         .update({
           instagram_url:        v.instagram_url || null,
-          facebook_url:         v.facebook_url || null,
-          twitter_url:          v.twitter_url || null,
-          youtube_url:          v.youtube_url || null,
+          facebook_url:         v.facebook_url  || null,
+          twitter_url:          v.twitter_url   || null,
+          youtube_url:          v.youtube_url   || null,
           links_personalizados: v.links_personalizados ?? [],
         })
         .eq('id', u.id)

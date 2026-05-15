@@ -1,10 +1,11 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
 import { supabase } from '@core/supabase/supabase.client';
@@ -16,25 +17,33 @@ import { differenceInDays, addDays } from 'date-fns';
   selector: 'app-cfg-empresa',
   standalone: true,
   imports: [
-    CommonModule, DatePipe, ReactiveFormsModule, MatCardModule, MatFormFieldModule,
-    MatInputModule, MatIconModule, LoadingButtonComponent,
+    CommonModule, DatePipe, ReactiveFormsModule,
+    MatFormFieldModule, MatInputModule, MatIconModule,
+    MatButtonModule, MatProgressBarModule, LoadingButtonComponent,
   ],
   templateUrl: './empresa.component.html',
   styleUrl: './empresa.component.scss',
 })
 export class EmpresaComponent implements OnInit {
-  private fb = inject(FormBuilder);
+  private fb    = inject(FormBuilder);
   private snack = inject(MatSnackBar);
 
-  readonly salvando = signal(false);
-  readonly user = currentUser;
+  readonly salvando      = signal(false);
+  readonly logoUploading = signal(false);
+  readonly dragOver      = signal(false);
+  readonly user          = currentUser;
+
+  readonly fotoPreview = computed(() => this.user()?.foto_url ?? null);
 
   form = this.fb.group({
-    nome:                  ['', [Validators.required, Validators.minLength(2)]],
-    bio:                   [''],
+    nome:                  ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
+    bio:                   ['', Validators.maxLength(200)],
     slug:                  ['', [Validators.required, Validators.minLength(3)]],
     politica_cancelamento: [''],
   });
+
+  readonly nomeLen = computed(() => (this.form.get('nome')?.value ?? '').length);
+  readonly bioLen  = computed(() => (this.form.get('bio')?.value ?? '').length);
 
   readonly slugUltimaAlteracao = computed(() => {
     const data = this.user()?.slug_alterado_em;
@@ -66,6 +75,9 @@ export class EmpresaComponent implements OnInit {
     if (!this.podeAlterarSlug()) {
       this.form.get('slug')?.disable();
     }
+
+    this.form.get('nome')?.valueChanges.subscribe(() => {});
+    this.form.get('bio')?.valueChanges.subscribe(() => {});
   }
 
   formatarSlugLive(): void {
@@ -73,6 +85,89 @@ export class EmpresaComponent implements OnInit {
     const limpo = gerarSlug(valor);
     if (limpo !== valor) {
       this.form.get('slug')?.setValue(limpo, { emitEvent: false });
+    }
+  }
+
+  onDragOver(ev: DragEvent): void {
+    ev.preventDefault();
+    this.dragOver.set(true);
+  }
+
+  onDragLeave(): void {
+    this.dragOver.set(false);
+  }
+
+  onDrop(ev: DragEvent): void {
+    ev.preventDefault();
+    this.dragOver.set(false);
+    const file = ev.dataTransfer?.files?.[0];
+    if (file) this.uploadLogo(file);
+  }
+
+  onLogoFileChange(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) this.uploadLogo(file);
+  }
+
+  async removerLogo(): Promise<void> {
+    const u = this.user();
+    if (!u) return;
+    try {
+      const { data, error } = await supabase
+        .from('profissionais')
+        .update({ foto_url: null })
+        .eq('id', u.id)
+        .select()
+        .single();
+      if (error) throw error;
+      currentUser.set({ ...u, ...data } as AppUser);
+      this.snack.open('Logo removida', 'OK', { duration: 2000 });
+    } catch (e: unknown) {
+      this.snack.open(e instanceof Error ? e.message : 'Erro ao remover', 'OK', { duration: 3000 });
+    }
+  }
+
+  private async uploadLogo(file: File): Promise<void> {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      this.snack.open('Formato não suportado. Use JPG, PNG ou WebP.', 'OK', { duration: 3000 });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      this.snack.open('Arquivo muito grande. Máximo 2 MB.', 'OK', { duration: 3000 });
+      return;
+    }
+
+    const u = this.user();
+    if (!u) return;
+
+    this.logoUploading.set(true);
+    try {
+      const ext  = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+      const path = `avatars/${u.id}.${ext}`;
+
+      const { error: upErr } = await supabase.storage
+        .from('profiles')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+
+      const { data: urlData } = supabase.storage.from('profiles').getPublicUrl(path);
+      const fotoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { data, error } = await supabase
+        .from('profissionais')
+        .update({ foto_url: fotoUrl })
+        .eq('id', u.id)
+        .select()
+        .single();
+      if (error) throw error;
+
+      currentUser.set({ ...u, ...data } as AppUser);
+      this.snack.open('Logo atualizada', 'OK', { duration: 2000 });
+    } catch (e: unknown) {
+      this.snack.open(e instanceof Error ? e.message : 'Erro ao fazer upload', 'OK', { duration: 3000 });
+    } finally {
+      this.logoUploading.set(false);
     }
   }
 
@@ -101,9 +196,9 @@ export class EmpresaComponent implements OnInit {
         }
 
         await supabase.from('slug_redirects').insert({
-          slug_antigo: u.slug,
+          slug_antigo:     u.slug,
           profissional_id: u.id,
-          expira_em: addDays(new Date(), 90).toISOString(),
+          expira_em:       addDays(new Date(), 90).toISOString(),
         });
       }
 
@@ -113,7 +208,7 @@ export class EmpresaComponent implements OnInit {
         politica_cancelamento: v.politica_cancelamento || null,
       };
       if (slugMudou) {
-        updates['slug'] = v.slug;
+        updates['slug']            = v.slug;
         updates['slug_alterado_em'] = new Date().toISOString();
       }
 

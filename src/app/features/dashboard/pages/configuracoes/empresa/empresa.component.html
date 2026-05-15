@@ -1,57 +1,158 @@
-<form [formGroup]="form" class="cfg-tabs-form" (ngSubmit)="salvar()">
+<form [formGroup]="form" class="cfg-tab-content" (ngSubmit)="salvar()">
 
-  <!-- ── Card 1: Informações da empresa ─────────────────── -->
-    <h3 class="cfg-card-titulo">Informações da empresa</h3>
-    <p class="cfg-card-desc">Como seu negócio aparece pros clientes</p>
-
-    <div class="card">
+  <!-- ── Card 1: Nome da organização ───────────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-blue">
+        <mat-icon>storefront</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Nome da organização</h3>
+        <p class="cfg-card-desc">Como seu negócio aparece para os clientes</p>
+      </div>
+    </div>
+    <div class="cfg-card-body">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Nome do negócio</mat-label>
-        <input matInput formControlName="nome">
+        <input matInput formControlName="nome" maxlength="80" autocomplete="organization">
         <mat-hint>Esse nome aparece na sua página pública</mat-hint>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Bio / descrição (opcional)</mat-label>
-        <textarea matInput formControlName="bio" rows="3" maxlength="200"></textarea>
-        <mat-hint>Frase curta sobre seu trabalho · máx 200 caracteres</mat-hint>
-      </mat-form-field>
-    </div>
-
-    <hr class="divider">
-
-  <!-- ── Card 2: Link da página ─────────────────────────── -->
-    <h3 class="cfg-card-titulo">Link da sua página</h3>
-    <p class="cfg-card-desc">O endereço onde seus clientes vão agendar</p>
-
-    <div class="card">
-      <mat-form-field appearance="outline" class="full-width slug-field">
-        <mat-label>Link personalizado</mat-label>
-        <span matTextPrefix class="slug-prefix">kianna.com.br/&nbsp;</span>
-        <input matInput formControlName="slug" (input)="formatarSlugLive()">
-        @if (!podeAlterarSlug()) {
-          <mat-hint>⏳ Próxima alteração em {{ proximaAlteracaoEm() | date:'dd/MM/yyyy' }}</mat-hint>
-        } @else {
-          <mat-hint>Pode alterar 1x por mês. O link antigo redireciona por 90 dias.</mat-hint>
+        <mat-hint align="end" [class.counter-warn]="nomeLen() > 70">
+          {{ nomeLen() }}/80
+        </mat-hint>
+        @if (form.get('nome')?.hasError('required') && form.get('nome')?.touched) {
+          <mat-error>Nome é obrigatório</mat-error>
+        }
+        @if (form.get('nome')?.hasError('minlength')) {
+          <mat-error>Mínimo de 2 caracteres</mat-error>
         }
       </mat-form-field>
     </div>
+  </div>
 
-    <hr>
+  <!-- ── Card 2: Descrição ──────────────────────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-violet">
+        <mat-icon>description</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Descrição</h3>
+        <p class="cfg-card-desc">Frase curta sobre o seu trabalho</p>
+      </div>
+    </div>
+    <div class="cfg-card-body">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Bio / descrição (opcional)</mat-label>
+        <textarea matInput formControlName="bio" rows="3" maxlength="200"
+                  placeholder="Ex: Especialista em coloração e tratamentos capilares..."></textarea>
+        <mat-hint>Visível na sua página pública</mat-hint>
+        <mat-hint align="end" [class.counter-warn]="bioLen() > 180">
+          {{ bioLen() }}/200
+        </mat-hint>
+      </mat-form-field>
+    </div>
+  </div>
 
-  <!-- ── Card 3: Política de cancelamento ────────────────── -->
-    <h3 class="cfg-card-titulo">Política de cancelamento</h3>
-    <p class="cfg-card-desc">Texto livre que aparece pro cliente na hora de agendar</p>
+  <!-- ── Card 3: Logo ───────────────────────────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-amber">
+        <mat-icon>photo_camera</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Logo / Foto de perfil</h3>
+        <p class="cfg-card-desc">Aparece na sua página pública e nos agendamentos</p>
+      </div>
+    </div>
+    <div class="cfg-card-body">
+      @if (logoUploading()) {
+        <div class="logo-uploading">
+          <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+          <span>Enviando imagem...</span>
+        </div>
+      }
 
-    <div class="card">
+      <div class="logo-upload-area"
+           [class.has-image]="fotoPreview()"
+           [class.drag-over]="dragOver()"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave()"
+           (drop)="onDrop($event)">
+
+        @if (fotoPreview()) {
+          <div class="logo-preview-wrap">
+            <img [src]="fotoPreview()" alt="Logo" class="logo-preview">
+            <div class="logo-overlay">
+              <label class="logo-overlay-btn" for="logo-input">
+                <mat-icon>edit</mat-icon>
+                <span>Alterar</span>
+              </label>
+              <button type="button" class="logo-overlay-btn danger" (click)="removerLogo()">
+                <mat-icon>delete</mat-icon>
+                <span>Remover</span>
+              </button>
+            </div>
+          </div>
+        } @else {
+          <label class="logo-drop-zone" for="logo-input">
+            <mat-icon class="logo-drop-icon">cloud_upload</mat-icon>
+            <p class="logo-drop-title">Arraste ou clique para enviar</p>
+            <p class="logo-drop-hint">JPG, PNG ou WebP · Máx. 2 MB · Recomendado 400×400px</p>
+          </label>
+        }
+
+        <input id="logo-input" type="file" accept="image/jpeg,image/png,image/webp"
+               class="logo-input-hidden" (change)="onLogoFileChange($event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Card 4: Link da página ─────────────────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-green">
+        <mat-icon>link</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Link da sua página</h3>
+        <p class="cfg-card-desc">O endereço onde seus clientes agendam</p>
+      </div>
+    </div>
+    <div class="cfg-card-body">
+      <mat-form-field appearance="outline" class="full-width slug-field">
+        <mat-label>Link personalizado</mat-label>
+        <span matTextPrefix class="slug-prefix">kianna.com.br/&nbsp;</span>
+        <input matInput formControlName="slug" (input)="formatarSlugLive()" autocomplete="off">
+        @if (!podeAlterarSlug()) {
+          <mat-hint>⏳ Próxima alteração em {{ proximaAlteracaoEm() | date:'dd/MM/yyyy' }}</mat-hint>
+        } @else {
+          <mat-hint>Pode alterar 1× por mês. O link antigo redireciona por 90 dias.</mat-hint>
+        }
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- ── Card 5: Política de cancelamento ───────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-slate">
+        <mat-icon>policy</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Política de cancelamento</h3>
+        <p class="cfg-card-desc">Texto exibido para o cliente na hora de agendar</p>
+      </div>
+    </div>
+    <div class="cfg-card-body">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Sua política (opcional)</mat-label>
         <textarea matInput formControlName="politica_cancelamento" rows="3"
                   placeholder="Ex: Cancelamentos permitidos até 24h antes do horário."></textarea>
       </mat-form-field>
     </div>
+  </div>
 
-  <!-- ── Botão salvar ────────────────────────────────────── -->
+  <!-- ── Botão salvar ────────────────────────────────────────── -->
   <div class="cfg-actions-sticky">
     <app-loading-button
       type="submit"
@@ -63,4 +164,5 @@
       Salvar alterações
     </app-loading-button>
   </div>
+
 </form>

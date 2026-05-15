@@ -1,0 +1,398 @@
+[TASK] Refatoração das Configurações da Organização (Empresa, Endereço, Redes e Perfil)
+
+CONTEXTO
+A IA já conhece a estrutura, stack, design system, componentes reutilizáveis e padrões visuais do projeto.
+
+Refatorar completamente a área de Configurações da Organização do sistema com foco em:
+- Modernização visual
+- Melhor UX
+- Melhor responsividade
+- Melhor hierarquia visual
+- Melhor usabilidade no mobile
+- Layout clean e profissional
+
+Utilizar como referência as imagens anexadas.
+
+IMPORTANTE:
+- Manter as cores padrões do projeto
+- Não criar visual genérico
+- Priorizar experiência premium estilo SaaS moderno
+- Layout deve transmitir organização e profissionalismo
+
+====================================================================
+OBJETIVO GERAL
+====================================================================
+
+Refatorar as seguintes abas:
+
+1. Configurações → Empresa
+2. Configurações → Endereço
+3. Configurações → Redes
+4. Configurações → Perfil
+
+Todas devem seguir:
+- Mesmo padrão visual
+- Mesmo comportamento responsivo
+- Mesmo espaçamento
+- Mesma identidade visual
+
+====================================================================
+1. REFATORAÇÃO - ABA "EMPRESA"
+====================================================================
+
+Basear na referência da imagem 1.
+
+Renomear/estruturar visualmente como:
+"Configurações da Organização"
+
+Adicionar:
+- Melhor hierarquia visual
+- Melhor separação entre blocos
+- Melhor organização dos campos
+
+====================================================================
+ESTRUTURA DA TELA
+====================================================================
+
+TOPO:
+- Título principal
+- Subtítulo auxiliar explicativo
+
+Exemplo:
+"Gerencie as configurações da sua organização"
+
+Abaixo:
+- Navegação em tabs moderna
+- Tabs com:
+  - hover suave
+  - estado ativo elegante
+  - boa área de clique
+  - scroll horizontal no mobile
+
+====================================================================
+SEÇÕES DA ABA EMPRESA
+====================================================================
+
+Criar cards independentes para:
+
+--------------------------------------------------
+CARD 1 — Nome da organização
+--------------------------------------------------
+
+Campos:
+- Nome da organização
+
+Adicionar:
+- Texto auxiliar
+- Contador de caracteres
+- Feedback visual de validação
+
+UX:
+- Botão salvar alinhado corretamente
+- Melhor espaçamento interno
+- Input moderno
+
+--------------------------------------------------
+CARD 2 — Descrição
+--------------------------------------------------
+
+Campo:
+- Descrição da empresa
+
+Adicionar:
+- textarea moderna
+- contador de caracteres
+- altura confortável
+- suporte mobile
+
+--------------------------------------------------
+CARD 3 — Logo
+--------------------------------------------------
+
+Melhorar totalmente UX do upload.
+
+Adicionar:
+- Área de upload moderna
+- Preview da imagem
+- Drag and drop
+- Estado hover
+- Botão remover
+- Feedback visual de upload
+
+IMPORTANTE:
+O upload deve parecer moderno e premium.
+
+Adicionar:
+- Informações de formatos aceitos
+- Limite de tamanho
+- Recomendações de proporção
+
+====================================================================
+2. REFATORAÇÃO - ABA "ENDEREÇO"
+====================================================================
+
+Basear na referência da imagem 2.
+
+Melhorar totalmente a organização do formulário.
+
+====================================================================
+ESTRUTURA DOS CAMPOS
+====================================================================
+
+Organizar campos em grid responsiva.
+
+Desktop:
+- Campos lado a lado quando fizer sentido
+
+Mobile:
+- Tudo empilhado
+- Excelente leitura
+
+Campos:
+- CEP
+- Estado
+- Cidade
+- Bairro
+- Logradouro
+- Número
+- Complemento
+- Referência
+
+====================================================================
+MELHORIAS UX
+====================================================================
+
+Adicionar:
+- Auto preenchimento via CEP
+- Máscara de CEP
+- Feedback visual de carregamento
+- Estados de erro elegantes
+- Inputs modernos
+
+IMPORTANTE:
+- Excelente experiência mobile
+- Inputs altos o suficiente
+- Boa área de toque
+
+====================================================================
+3. REFATORAÇÃO - ABA "REDES"
+====================================================================
+
+Basear na referência da imagem 3.
+
+Transformar a aba em algo:
+- Mais moderno
+- Mais limpo
+- Mais intuitivo
+
+====================================================================
+ESTRUTURA
+====================================================================
+
+Cada rede social deve possuir:
+
+- Ícone
+- Nome da rede
+- Input com placeholder
+- Validação de URL
+
+Redes:
+- Facebook
+- Instagram
+- X/Twitter
+- YouTube
+- LinkedIn
+
+====================================================================
+UX DOS CAMPOS
+====================================================================
+
+Melhorias:
+- Inputs modernos
+- Melhor espaçamento
+- Hover elegante
+- Foco visual moderno
+
+Adicionar:
+- Preview do link
+- Validação visual
+- Estados de erro amigáveis
+
+====================================================================
+LINKS PERSONALIZADOS
+====================================================================
+
+Melhorar UX dessa área.
+
+Adicionar:
+- Botão "Adicionar link"
+- Limite visual de quantidade
+- Card por link personalizado
+
+Cada link:
+- Título
+- URL
+- Ícone opcional
+- Remover link
+
+====================================================================
+BOTÕES
+====================================================================
+
+Botão:
+"Salvar alterações"
+
+Melhorar:
+- Hierarquia visual
+- Estados:
+  - loading
+  - sucesso
+  - erro
+
+====================================================================
+4. REFATORAÇÃO - ABA "PERFIL"
+====================================================================
+
+Refatorar a aba Perfil deixando:
+- Mais moderna
+- Mais elegante
+- Mais clean
+
+====================================================================
+OBJETIVO
+====================================================================
+
+A aba Perfil deve transmitir:
+- Credibilidade
+- Organização
+- Identidade profissional
+
+====================================================================
+MELHORIAS VISUAIS
+====================================================================
+
+Adicionar:
+- Header com avatar maior
+- Nome em destaque
+- Cargo/perfil
+- Melhor organização visual
+
+Cards modernos para:
+- Dados pessoais
+- Contato
+- Segurança
+- Preferências
+
+====================================================================
+UPLOAD DE FOTO
+====================================================================
+
+Melhorar experiência:
+- Preview elegante
+- Upload intuitivo
+- Crop opcional
+- Hover com ações
+
+====================================================================
+5. PADRÃO VISUAL GLOBAL
+====================================================================
+
+Todos os formulários devem possuir:
+
+- Inputs modernos
+- Bordas suaves
+- Espaçamentos consistentes
+- Altura confortável
+- Tipografia limpa
+- Excelente contraste
+
+====================================================================
+6. RESPONSIVIDADE
+====================================================================
+
+PRIORIDADE ALTA.
+
+Mobile deve possuir:
+- Excelente leitura
+- Navegação confortável
+- Inputs grandes
+- Tabs adaptáveis
+- Sem overflow horizontal
+
+====================================================================
+7. UX E MICROINTERAÇÕES
+====================================================================
+
+Adicionar:
+- Hover suave
+- Focus states modernos
+- Skeleton loading
+- Feedback visual ao salvar
+- Toasts elegantes
+- Transições suaves
+
+Tudo deve ser:
+- Discreto
+- Fluido
+- Profissional
+
+====================================================================
+8. ACESSIBILIDADE
+====================================================================
+
+Garantir:
+- Contraste adequado
+- Navegação por teclado
+- Labels acessíveis
+- Inputs semânticos
+- Estados visuais claros
+
+====================================================================
+9. PERFORMANCE
+====================================================================
+
+Evitar:
+- Re-renderizações desnecessárias
+- Componentes pesados
+- Animações excessivas
+
+Priorizar:
+- Fluidez
+- Rapidez
+- Excelente experiência mobile
+
+====================================================================
+10. RESULTADO ESPERADO
+====================================================================
+
+A nova área de configurações deve transmitir:
+
+- Modernidade
+- Organização
+- Profissionalismo
+- Experiência premium
+- Facilidade de uso
+
+O usuário deve conseguir:
+- Configurar rapidamente
+- Encontrar facilmente as informações
+- Utilizar perfeitamente no mobile
+- Ter sensação de produto SaaS moderno
+
+====================================================================
+11. IMPORTANTE
+====================================================================
+
+NÃO:
+- Criar layout genérico
+- Poluir visualmente
+- Deixar inputs apertados
+- Criar excesso de cores
+- Utilizar aparência antiga
+
+PRIORIZAR:
+- Clean UI
+- Modern SaaS
+- UX refinada
+- Mobile-first
+- Excelente escaneabilidade

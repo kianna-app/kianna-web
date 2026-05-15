@@ -1,9 +1,9 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
@@ -19,23 +19,24 @@ const ESTADOS = [
   selector: 'app-cfg-endereco',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule,
-    MatInputModule, MatSelectModule, LoadingButtonComponent,
+    CommonModule, ReactiveFormsModule,
+    MatFormFieldModule, MatInputModule, MatIconModule, MatSelectModule,
+    LoadingButtonComponent,
   ],
   templateUrl: './endereco.component.html',
   styleUrl: './endereco.component.scss',
 })
 export class EnderecoComponent implements OnInit {
-  private fb = inject(FormBuilder);
+  private fb    = inject(FormBuilder);
   private snack = inject(MatSnackBar);
 
-  readonly salvando = signal(false);
+  readonly salvando    = signal(false);
   readonly buscandoCep = signal(false);
-  readonly user = currentUser;
-  readonly estados = ESTADOS;
+  readonly user        = currentUser;
+  readonly estados     = ESTADOS;
 
   form = this.fb.group({
-    cep:         ['', Validators.pattern(/^\d{5}-?\d{3}$/)],
+    cep:         ['', Validators.pattern(/^\d{5}-\d{3}$/)],
     rua:         [''],
     numero:      [''],
     complemento: [''],
@@ -58,13 +59,21 @@ export class EnderecoComponent implements OnInit {
     });
   }
 
+  formatarCep(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let v = input.value.replace(/\D/g, '').slice(0, 8);
+    if (v.length > 5) v = `${v.slice(0, 5)}-${v.slice(5)}`;
+    input.value = v;
+    this.form.get('cep')?.setValue(v, { emitEvent: false });
+  }
+
   async buscarCep(): Promise<void> {
     const cep = (this.form.value.cep ?? '').replace(/\D/g, '');
     if (cep.length !== 8) return;
 
     this.buscandoCep.set(true);
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const res  = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
       const data = await res.json();
       if (data.erro) {
         this.snack.open('CEP não encontrado', 'OK', { duration: 2000 });

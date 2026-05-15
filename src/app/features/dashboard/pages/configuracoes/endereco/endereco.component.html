@@ -1,46 +1,74 @@
-<form [formGroup]="form" class="cfg-tabs-form" (ngSubmit)="salvar()">
+<form [formGroup]="form" class="cfg-tab-content" (ngSubmit)="salvar()">
 
-  <!-- ── Card: Endereço de atendimento ─────────────────── -->
-  <div class="card">
-    <h3 class="cfg-card-titulo">Endereço de atendimento</h3>
-    <p class="cfg-card-desc">Aparece na sua página pública para clientes que escolherem modalidade Presencial</p>
+  <!-- ── Card: Endereço de atendimento ─────────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-green">
+        <mat-icon>location_on</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Endereço de atendimento</h3>
+        <p class="cfg-card-desc">Aparece na sua página pública para clientes que escolherem atendimento Presencial</p>
+      </div>
+    </div>
 
-    <div class="cfg-card-form">
-      <div class="row-cep">
+    <div class="cfg-card-body">
+
+      <!-- CEP -->
+      <div class="cep-row">
         <mat-form-field appearance="outline" class="cep-field">
           <mat-label>CEP</mat-label>
-          <input matInput formControlName="cep" maxlength="9" (blur)="buscarCep()" placeholder="00000-000">
+          <mat-icon matPrefix class="field-icon">pin</mat-icon>
+          <input matInput formControlName="cep" maxlength="9"
+                 placeholder="00000-000"
+                 (input)="formatarCep($event)"
+                 (blur)="buscarCep()">
           @if (buscandoCep()) {
-            <mat-hint>Buscando...</mat-hint>
+            <mat-hint>
+              <span class="hint-loading">
+                <mat-icon class="spin">refresh</mat-icon>
+                Buscando endereço...
+              </span>
+            </mat-hint>
+          }
+          @if (form.get('cep')?.hasError('pattern') && form.get('cep')?.touched) {
+            <mat-error>CEP inválido</mat-error>
           }
         </mat-form-field>
+        <p class="cep-tip">Digite o CEP para preencher automaticamente</p>
       </div>
 
+      <!-- Logradouro -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Rua</mat-label>
-        <input matInput formControlName="rua">
+        <mat-label>Rua / Logradouro</mat-label>
+        <mat-icon matPrefix class="field-icon">home</mat-icon>
+        <input matInput formControlName="rua" placeholder="Ex: Rua das Flores">
       </mat-form-field>
 
+      <!-- Número + Complemento -->
       <div class="row-2col">
         <mat-form-field appearance="outline">
           <mat-label>Número</mat-label>
-          <input matInput formControlName="numero">
+          <input matInput formControlName="numero" placeholder="Ex: 123">
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Complemento</mat-label>
-          <input matInput formControlName="complemento">
+          <input matInput formControlName="complemento" placeholder="Apto, sala, bloco...">
         </mat-form-field>
       </div>
 
+      <!-- Bairro -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Bairro</mat-label>
-        <input matInput formControlName="bairro">
+        <mat-icon matPrefix class="field-icon">map</mat-icon>
+        <input matInput formControlName="bairro" placeholder="Ex: Centro">
       </mat-form-field>
 
+      <!-- Cidade + Estado -->
       <div class="row-2col">
         <mat-form-field appearance="outline">
           <mat-label>Cidade</mat-label>
-          <input matInput formControlName="cidade">
+          <input matInput formControlName="cidade" placeholder="Ex: São Paulo">
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Estado</mat-label>
@@ -51,13 +79,16 @@
           </mat-select>
         </mat-form-field>
       </div>
+
     </div>
   </div>
 
+  <!-- ── Botão salvar ────────────────────────────────────────── -->
   <div class="cfg-actions-sticky">
     <app-loading-button type="submit" variant="flat" color="primary"
                         [loading]="salvando()" icon="save" iconPosition="start">
       Salvar endereço
     </app-loading-button>
   </div>
+
 </form>

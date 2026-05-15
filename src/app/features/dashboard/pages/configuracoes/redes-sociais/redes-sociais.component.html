@@ -1,70 +1,74 @@
-<form [formGroup]="form" class="cfg-tabs-form" (ngSubmit)="salvar()">
+<form [formGroup]="form" class="cfg-tab-content" (ngSubmit)="salvar()">
 
-  <!-- ── Card 1: Redes sociais ──────────────────────────── -->
-  <div class="card">
-    <h3 class="cfg-card-titulo">Redes sociais</h3>
-    <p class="cfg-card-desc">Aparecem como ícones na sua página pública. Use a URL completa (com https://).</p>
+  <!-- ── Card 1: Redes sociais ──────────────────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-violet">
+        <mat-icon>share</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Redes sociais</h3>
+        <p class="cfg-card-desc">Aparecem como ícones na sua página pública. Use a URL completa (com https://).</p>
+      </div>
+    </div>
 
-    <div class="cfg-card-form">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Instagram</mat-label>
-        <mat-icon matPrefix>photo_camera</mat-icon>
-        <input matInput formControlName="instagram_url" placeholder="https://instagram.com/seuusuario">
-        @if (form.get('instagram_url')?.hasError('pattern')) {
-          <mat-error>Use a URL completa, começando com https://</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Facebook</mat-label>
-        <mat-icon matPrefix>thumb_up</mat-icon>
-        <input matInput formControlName="facebook_url" placeholder="https://facebook.com/seunegocio">
-        @if (form.get('facebook_url')?.hasError('pattern')) {
-          <mat-error>Use a URL completa, começando com https://</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>X (Twitter)</mat-label>
-        <mat-icon matPrefix>chat</mat-icon>
-        <input matInput formControlName="twitter_url" placeholder="https://x.com/seuusuario">
-        @if (form.get('twitter_url')?.hasError('pattern')) {
-          <mat-error>Use a URL completa, começando com https://</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>YouTube</mat-label>
-        <mat-icon matPrefix>play_circle</mat-icon>
-        <input matInput formControlName="youtube_url" placeholder="https://youtube.com/@seucanal">
-        @if (form.get('youtube_url')?.hasError('pattern')) {
-          <mat-error>Use a URL completa, começando com https://</mat-error>
-        }
-      </mat-form-field>
+    <div class="cfg-card-body">
+      @for (rede of redes; track rede.controlName) {
+        <div class="rede-row">
+          <div class="rede-badge" [style.background]="rede.bgColor">
+            <span class="rede-badge-letter" [style.color]="rede.textColor">{{ rede.letra }}</span>
+          </div>
+          <div class="rede-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ rede.label }}</mat-label>
+              <input matInput [formControlName]="rede.controlName"
+                     [placeholder]="rede.placeholder"
+                     autocomplete="url">
+              @if (form.get(rede.controlName)?.hasError('pattern') && form.get(rede.controlName)?.value) {
+                <mat-error>Use a URL completa começando com https://</mat-error>
+              }
+              @if (form.get(rede.controlName)?.value && !form.get(rede.controlName)?.hasError('pattern')) {
+                <mat-icon matSuffix class="valid-icon">check_circle</mat-icon>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+      }
     </div>
   </div>
 
-  <!-- ── Card 2: Links personalizados ──────────────────── -->
-  <div class="card">
-    <h3 class="cfg-card-titulo">Links personalizados (máx. 3)</h3>
-    <p class="cfg-card-desc">Útil pra site próprio, blog, agenda externa, lista de preços.</p>
+  <!-- ── Card 2: Links personalizados ──────────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-amber">
+        <mat-icon>add_link</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Links personalizados</h3>
+        <p class="cfg-card-desc">Útil para site próprio, blog, lista de preços ou agenda externa · máx. {{ MAX_LINKS }}</p>
+      </div>
+    </div>
 
-    <div class="cfg-card-form">
+    <div class="cfg-card-body">
       <div formArrayName="links_personalizados" class="links-list">
         @for (link of linksArray.controls; track $index; let i = $index) {
-          <div [formGroupName]="i" class="link-item">
-            <mat-form-field appearance="outline" class="link-label">
-              <mat-label>Nome do link</mat-label>
-              <input matInput formControlName="label" maxlength="30" placeholder="Ex: Meu site">
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="link-url">
-              <mat-label>URL</mat-label>
-              <input matInput formControlName="url" placeholder="https://...">
-              @if (linksArray.at(i).get('url')?.hasError('pattern')) {
-                <mat-error>Comece com https://</mat-error>
-              }
-            </mat-form-field>
-            <button mat-icon-button type="button" (click)="removerLink(i)" aria-label="Remover">
+          <div [formGroupName]="i" class="link-card">
+            <div class="link-card-fields">
+              <mat-form-field appearance="outline" class="link-label-field">
+                <mat-label>Nome do link</mat-label>
+                <input matInput formControlName="label" maxlength="30" placeholder="Ex: Meu site">
+                <mat-hint align="end">{{ link.get('label')?.value?.length ?? 0 }}/30</mat-hint>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="link-url-field">
+                <mat-label>URL</mat-label>
+                <input matInput formControlName="url" placeholder="https://...">
+                @if (linksArray.at(i).get('url')?.hasError('pattern') && linksArray.at(i).get('url')?.value) {
+                  <mat-error>Comece com https://</mat-error>
+                }
+              </mat-form-field>
+            </div>
+            <button mat-icon-button type="button" class="link-remove-btn"
+                    (click)="removerLink(i)" aria-label="Remover link">
               <mat-icon>delete_outline</mat-icon>
             </button>
           </div>
@@ -72,17 +76,25 @@
       </div>
 
       @if (linksArray.length < MAX_LINKS) {
-        <button mat-stroked-button type="button" (click)="adicionarLink()">
-          <mat-icon>add</mat-icon> Adicionar link
+        <button mat-stroked-button type="button" class="add-link-btn" (click)="adicionarLink()">
+          <mat-icon>add</mat-icon>
+          Adicionar link
         </button>
+      } @else {
+        <p class="links-limit-msg">
+          <mat-icon>info</mat-icon>
+          Limite de {{ MAX_LINKS }} links atingido
+        </p>
       }
     </div>
   </div>
 
+  <!-- ── Botão salvar ────────────────────────────────────────── -->
   <div class="cfg-actions-sticky">
     <app-loading-button type="submit" variant="flat" color="primary"
                         [loading]="salvando()" icon="save" iconPosition="start">
       Salvar redes
     </app-loading-button>
   </div>
+
 </form>
