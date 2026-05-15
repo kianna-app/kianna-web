@@ -1,5 +1,5 @@
 import {
-  Component, inject, signal, computed, effect, OnInit, PLATFORM_ID, NgZone, ViewChild
+  Component, inject, signal, computed, OnInit, PLATFORM_ID, NgZone, ViewChild
 } from '@angular/core'
 import { CommonModule, isPlatformBrowser } from '@angular/common'
 import { MatIconModule } from '@angular/material/icon'
@@ -10,7 +10,6 @@ import { CalendarOptions, EventInput, EventClickArg, DateSelectArg, EventDropArg
 import type { EventResizeDoneArg } from '@fullcalendar/interaction'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import listPlugin from '@fullcalendar/list'
 import interactionPlugin from '@fullcalendar/interaction'
 import ptBrLocale from '@fullcalendar/core/locales/pt-br'
 
@@ -20,7 +19,7 @@ import { AgendamentoComServico, StatusAgend } from '@core/types/database.types'
 import { APP } from '@core/constants/app.constants'
 import { currentUser } from '@core/signals/app.signals'
 
-type CalView = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'
+type CalView = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'
 
 const STATUS_STYLE: Record<StatusAgend, { bg: string; border: string; text: string; chip: string; label: string }> = {
   confirmado:     { bg: '#DCFCE7', border: '#1D9E75', text: '#166534', chip: 'confirmado',     label: 'Confirmado'      },
@@ -33,10 +32,9 @@ const STATUS_STYLE: Record<StatusAgend, { bg: string; border: string; text: stri
 }
 
 const VIEWS: { id: CalView; label: string }[] = [
-  { id: 'dayGridMonth',  label: 'Mês'    },
-  { id: 'timeGridWeek',  label: 'Semana' },
-  { id: 'timeGridDay',   label: 'Dia'    },
-  { id: 'listWeek',      label: 'Agenda' },
+  { id: 'dayGridMonth', label: 'Mês'    },
+  { id: 'timeGridWeek', label: 'Semana' },
+  { id: 'timeGridDay',  label: 'Dia'    },
 ]
 
 @Component({
@@ -74,7 +72,7 @@ export class CalendarioComponent implements OnInit {
   })
 
   calendarOptions: CalendarOptions = {
-    plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
+    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     locale: ptBrLocale,
     initialView: 'timeGridWeek',
     firstDay: 1,
