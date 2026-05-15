@@ -169,15 +169,7 @@
 
 /* Confirmação */
 .confirmado-section {
-  text-align: center; padding: 40px 20px;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-
-  h2 { font: 600 18px 'Inter'; margin: 0; }
-  p  { font: 400 14px 'Inter'; color: #6c757d; margin: 0; max-width: 320px; }
-}
-.confirmado-icon {
-  font-size: 56px; height: 56px; width: 56px;
-  color: #1D9E75; margin-bottom: 12px;
+  padding: 16px 20px 24px;
 }
 
 .sem-slots-inline {

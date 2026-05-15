@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,9 +11,17 @@ import { SessionService } from '@core/auth/session.service';
 import { AgendamentosStore } from '../../state/agendamentos.store';
 import { currentUser } from '@core/signals/app.signals';
 import { APP } from '@core/constants/app.constants';
-import { MODALIDADE_LABELS } from '@core/types/database.types';
-import { WeekStripComponent } from '../agenda/components/week-strip/week-strip.component';
-import { ApptCardComponent, AgendamentoView } from '../agenda/components/appt-card/appt-card.component';
+import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
+
+const STATUS_LABELS: Record<string, string> = {
+  pendente: 'Pendente',
+  confirmado: 'Confirmado',
+  recusado: 'Recusado',
+  cancelado: 'Cancelado',
+  reagendado: 'Reagendado',
+  finalizado: 'Finalizado',
+  nao_compareceu: 'Não compareceu',
+};
 
 @Component({
   selector: 'app-visao-geral',
@@ -21,7 +29,6 @@ import { ApptCardComponent, AgendamentoView } from '../agenda/components/appt-ca
   imports: [
     CommonModule, RouterLink,
     MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule,
-    WeekStripComponent, ApptCardComponent,
   ],
   templateUrl: './visao-geral.component.html',
   styleUrl: './visao-geral.component.scss',
@@ -29,67 +36,35 @@ import { ApptCardComponent, AgendamentoView } from '../agenda/components/appt-ca
 export class VisaoGeralComponent implements OnInit {
   private snack   = inject(MatSnackBar);
   private session = inject(SessionService);
-  private router  = inject(Router);
   readonly agendamentosStore = inject(AgendamentosStore);
 
-  readonly user        = currentUser;
-  readonly carregando  = signal(true);
-  readonly copiado     = signal(false);
+  readonly user       = currentUser;
+  readonly carregando = signal(true);
+  readonly copiado    = signal(false);
 
-  // ── Mini-agenda ───────────────────────────────────────
-  readonly diaSelecionado = signal<Date>(new Date());
+  readonly actionLoading = signal<Map<string, string>>(new Map());
 
-  readonly semana = computed(() => {
-    const hoje       = new Date();
-    const diasLetras = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(hoje);
-      d.setDate(hoje.getDate() - hoje.getDay() + i);
-      const k        = d.toDateString();
-      const ocupacao = Math.min(this.ocupacaoPorDia().get(k) ?? 0, 3);
-      return {
-        data:        d,
-        letra:       diasLetras[d.getDay()],
-        numero:      d.getDate(),
-        hoje:        d.toDateString() === hoje.toDateString(),
-        selecionado: d.toDateString() === this.diaSelecionado().toDateString(),
-        ocupacao,
-      };
-    });
-  });
-
-  readonly ocupacaoPorDia = computed(() => {
-    const map = new Map<string, number>();
-    this.agendamentosStore.agendamentos()
-      .filter(a => a.status !== 'cancelado')
-      .forEach(a => {
-        const k = new Date(a.data_hora).toDateString();
-        map.set(k, (map.get(k) ?? 0) + 1);
-      });
-    return map;
-  });
-
-  readonly agendamentosDoDia = computed<AgendamentoView[]>(() => {
-    const diaSel = this.diaSelecionado().toDateString();
+  // ── Próximos agendamentos (futuros, não cancelados/recusados/finalizados) ──
+  readonly proximosAgendamentos = computed<AgendamentoComServico[]>(() => {
+    const agora = new Date();
     return this.agendamentosStore.agendamentos()
-      .filter(a => new Date(a.data_hora).toDateString() === diaSel)
-      .sort((a, b) => a.data_hora.localeCompare(b.data_hora))
-      .map(a => {
-        const svc   = a.servico;
-        const inicio = new Date(a.data_hora);
-        const fim    = svc ? new Date(inicio.getTime() + svc.duracao_min * 60000) : inicio;
-        return {
-          id:          a.id,
-          inicio:      inicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-          fim:         fim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-          status:      a.status,
-          clienteNome: a.cliente_nome,
-          servicoNome: svc?.nome ?? '—',
-          duracao:     svc ? `${svc.duracao_min} min` : '',
-          modalidade:  svc ? (MODALIDADE_LABELS[svc.modalidade]?.label ?? svc.modalidade) : '',
-          data_hora:   a.data_hora,
-        };
-      });
+      .filter(a => {
+        const dt = new Date(a.data_hora);
+        return dt >= agora &&
+          !['cancelado', 'recusado', 'finalizado', 'nao_compareceu'].includes(a.status);
+      })
+      .sort((a, b) => a.data_hora.localeCompare(b.data_hora));
+  });
+
+  // ── Confirmações pendentes (passados sem status final) ──
+  readonly confirmacoesPendentes = computed<AgendamentoComServico[]>(() => {
+    const agora = new Date();
+    return this.agendamentosStore.agendamentos()
+      .filter(a => {
+        const dt = new Date(a.data_hora);
+        return dt < agora && ['pendente', 'confirmado'].includes(a.status);
+      })
+      .sort((a, b) => b.data_hora.localeCompare(a.data_hora));
   });
 
   get linkPublico(): string {
@@ -104,8 +79,12 @@ export class VisaoGeralComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    const inicio = new Date(); inicio.setHours(0, 0, 0, 0);
-    const fim = new Date(inicio); fim.setDate(fim.getDate() + 30); fim.setHours(23, 59, 59, 999);
+    const inicio = new Date();
+    inicio.setDate(inicio.getDate() - 14);
+    inicio.setHours(0, 0, 0, 0);
+    const fim = new Date();
+    fim.setDate(fim.getDate() + 30);
+    fim.setHours(23, 59, 59, 999);
 
     try {
       await this.agendamentosStore.carregarPeriodo(inicio, fim);
@@ -117,8 +96,79 @@ export class VisaoGeralComponent implements OnInit {
     }
   }
 
-  abrirEdicao(ag: AgendamentoView): void {
-    this.router.navigate(['/dashboard/agenda', ag.id]);
+  async recarregar(): Promise<void> {
+    const inicio = new Date();
+    inicio.setDate(inicio.getDate() - 14);
+    inicio.setHours(0, 0, 0, 0);
+    const fim = new Date();
+    fim.setDate(fim.getDate() + 30);
+    fim.setHours(23, 59, 59, 999);
+    try {
+      await this.agendamentosStore.carregarPeriodo(inicio, fim);
+    } catch (e: unknown) {
+      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      this.snack.open('Erro ao atualizar', 'OK', { duration: 3000 });
+    }
+  }
+
+  async confirmar(ag: AgendamentoComServico): Promise<void> {
+    this._setLoading(ag.id, 'confirmar');
+    try {
+      await this.agendamentosStore.atualizarStatus(ag.id, 'confirmado');
+      this.snack.open('Agendamento confirmado!', 'OK', { duration: 2500 });
+    } catch {
+      this.snack.open('Erro ao confirmar', 'OK', { duration: 3000 });
+    } finally {
+      this._clearLoading(ag.id);
+    }
+  }
+
+  async recusar(ag: AgendamentoComServico): Promise<void> {
+    this._setLoading(ag.id, 'recusar');
+    try {
+      await this.agendamentosStore.atualizarStatus(ag.id, 'recusado');
+      this.snack.open('Agendamento recusado.', 'OK', { duration: 2500 });
+    } catch {
+      this.snack.open('Erro ao recusar', 'OK', { duration: 3000 });
+    } finally {
+      this._clearLoading(ag.id);
+    }
+  }
+
+  async marcarRealizado(ag: AgendamentoComServico): Promise<void> {
+    this._setLoading(ag.id, 'realizado');
+    try {
+      await this.agendamentosStore.atualizarStatus(ag.id, 'finalizado');
+      this.snack.open('Marcado como realizado!', 'OK', { duration: 2500 });
+    } catch {
+      this.snack.open('Erro ao atualizar', 'OK', { duration: 3000 });
+    } finally {
+      this._clearLoading(ag.id);
+    }
+  }
+
+  async marcarFaltou(ag: AgendamentoComServico): Promise<void> {
+    this._setLoading(ag.id, 'faltou');
+    try {
+      await this.agendamentosStore.atualizarStatus(ag.id, 'nao_compareceu');
+      this.snack.open('Marcado: cliente não compareceu.', 'OK', { duration: 2500 });
+    } catch {
+      this.snack.open('Erro ao atualizar', 'OK', { duration: 3000 });
+    } finally {
+      this._clearLoading(ag.id);
+    }
+  }
+
+  async marcarCancelado(ag: AgendamentoComServico): Promise<void> {
+    this._setLoading(ag.id, 'cancelado');
+    try {
+      await this.agendamentosStore.atualizarStatus(ag.id, 'cancelado');
+      this.snack.open('Agendamento cancelado.', 'OK', { duration: 2500 });
+    } catch {
+      this.snack.open('Erro ao cancelar', 'OK', { duration: 3000 });
+    } finally {
+      this._clearLoading(ag.id);
+    }
   }
 
   async copiarLink(): Promise<void> {
@@ -134,5 +184,37 @@ export class VisaoGeralComponent implements OnInit {
 
   abrirLink(): void {
     window.open(this.linkPublico, '_blank');
+  }
+
+  statusLabel(status: string): string {
+    return STATUS_LABELS[status] ?? status;
+  }
+
+  formatarData(dataHora: string): string {
+    return new Date(dataHora).toLocaleDateString('pt-BR', {
+      weekday: 'short', day: '2-digit', month: 'short',
+    });
+  }
+
+  formatarHora(dataHora: string): string {
+    return new Date(dataHora).toLocaleTimeString('pt-BR', {
+      hour: '2-digit', minute: '2-digit',
+    });
+  }
+
+  isLoadingAction(id: string, action: string): boolean {
+    return this.actionLoading().get(id) === action;
+  }
+
+  isAnyLoading(id: string): boolean {
+    return this.actionLoading().has(id);
+  }
+
+  private _setLoading(id: string, action: string): void {
+    this.actionLoading.update(m => { const n = new Map(m); n.set(id, action); return n; });
+  }
+
+  private _clearLoading(id: string): void {
+    this.actionLoading.update(m => { const n = new Map(m); n.delete(id); return n; });
   }
 }

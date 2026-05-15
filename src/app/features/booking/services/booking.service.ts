@@ -100,7 +100,7 @@ export class BookingService {
   readonly dadosPreenchidos = computed(() =>
     !!this.horarioSelecionado() &&
     this.clienteNome().trim().length >= 2 &&
-    this.clienteWpp().trim().length >= 10,
+    this.clienteWpp().replace(/\D/g, '').length >= 10,
   );
 
   async inicializar(slug: string): Promise<void> {

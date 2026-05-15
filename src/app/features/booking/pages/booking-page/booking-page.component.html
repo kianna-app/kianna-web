@@ -159,7 +159,9 @@
             <input matInput type="tel"
               [ngModel]="booking.clienteWpp()"
               (ngModelChange)="onClienteWppChange($event)"
-              placeholder="(11) 91234-5678" />
+              placeholder="(11) 91234-5678"
+              maxlength="16"
+              inputmode="numeric" />
           </mat-form-field>
         </div>
       </section>
@@ -177,15 +179,11 @@
           </div>
           <div class="resumo-item">
             <span class="resumo-key">Data</span>
-            <span class="resumo-val">
-              {{ booking.dataSelecionada() | date:'EEEE, dd/MM/yyyy':'':'pt-BR' | titlecase }}
-            </span>
+            <span class="resumo-val">{{ formatarDataResumo(booking.dataSelecionada()) }}</span>
           </div>
           <div class="resumo-item">
             <span class="resumo-key">Horário</span>
-            <span class="resumo-val">
-              {{ booking.horarioSelecionado() | date:'HH:mm':'':'pt-BR' }}
-            </span>
+            <span class="resumo-val">{{ formatarHoraResumo(booking.horarioSelecionado()) }}</span>
           </div>
           <div class="resumo-item">
             <span class="resumo-key">Nome</span>
@@ -204,13 +202,12 @@
 
   @if (booking.step() === 'confirmado') {
     <section class="booking-section confirmado-section">
-      <mat-icon class="confirmado-icon">check_circle</mat-icon>
-      <h2>Solicitação enviada!</h2>
-      <p>
-        Aguarde a confirmação de
-        <strong>{{ booking.profissional()?.nome }}</strong>
-        pelo WhatsApp.
-      </p>
+      <app-booking-confirmation
+        [profissional]="booking.profissional()"
+        [servico]="booking.servicoSelecionado()"
+        [dataHora]="booking.horarioSelecionado()"
+        [clienteNome]="booking.clienteNome()"
+      />
     </section>
   }
 

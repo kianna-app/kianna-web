@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BookingService, DiaSemana } from '../../services/booking.service';
 import { Servico } from '@core/types/database.types';
 import { ProfessionalHeaderComponent } from '../../components/professional-header/professional-header.component';
+import { BookingConfirmationComponent } from '../../components/booking-confirmation/booking-confirmation.component';
 
 @Component({
   selector: 'app-booking-page',
@@ -19,7 +20,7 @@ import { ProfessionalHeaderComponent } from '../../components/professional-heade
     CommonModule, RouterLink, FormsModule,
     DatePipe, TitleCasePipe, DecimalPipe,
     MatIconModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule,
-    ProfessionalHeaderComponent,
+    ProfessionalHeaderComponent, BookingConfirmationComponent,
   ],
   templateUrl: './booking-page.component.html',
   styleUrl: './booking-page.component.scss',
@@ -69,10 +70,6 @@ export class BookingPageComponent implements OnInit {
 
   onSelecionouHorario(slotISO: string): void {
     this.booking.selecionarHorario(slotISO);
-    this.booking.irParaResumo({
-      nome: this.booking.clienteNome(),
-      wpp: this.booking.clienteWpp(),
-    });
     this.scrollPara(this.secDados);
   }
 
@@ -82,8 +79,26 @@ export class BookingPageComponent implements OnInit {
   }
 
   onClienteWppChange(v: string): void {
-    this.booking.clienteWpp.set(v);
+    this.booking.clienteWpp.set(this.mascaraWpp(v));
     if (this.booking.dadosPreenchidos()) this.scrollPara(this.secResumo);
+  }
+
+  private mascaraWpp(valor: string): string {
+    const d = valor.replace(/\D/g, '').slice(0, 11);
+    if (d.length <= 2) return d;
+    if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  }
+
+  formatarDataResumo(d: Date | null): string {
+    if (!d) return '—';
+    return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+  }
+
+  formatarHoraResumo(iso: string | null): string {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
 
   slotsScrollEsq(): void {

@@ -1,5 +1,6 @@
 <div class="vg-page">
-  <!-- ── Cabeçalho com saudação ────────────────────── -->
+
+  <!-- ── Cabeçalho ────────────────────────────────────── -->
   <div class="vg-header">
     <div>
       <h1>{{ saudacao }}, {{ user()?.nome?.split(' ')?.[0] }} ✨</h1>
@@ -7,7 +8,7 @@
     </div>
   </div>
 
-  <!-- ── Card destaque: link público ─────────────────── -->
+  <!-- ── Card link público ─────────────────────────────── -->
   <mat-card class="link-publico-card">
     <div class="lp-content">
       <div class="lp-info">
@@ -28,39 +29,194 @@
     </div>
   </mat-card>
 
-  <!-- ── Loading state ─────────────────────────────── -->
+  <!-- ── Skeleton durante carregamento inicial ─────────── -->
   @if (carregando()) {
-    <div class="loading-state">
-      <mat-spinner diameter="32"></mat-spinner>
+    <div class="skeleton-wrap">
+      <div class="skeleton-card">
+        <div class="sk-header"></div>
+        @for (i of [1,2,3]; track i) {
+          <div class="sk-item">
+            <div class="sk-line sk-line--md"></div>
+            <div class="sk-line sk-line--sm"></div>
+            <div class="sk-line sk-line--xs"></div>
+          </div>
+        }
+      </div>
+      <div class="skeleton-card">
+        <div class="sk-header"></div>
+        @for (i of [1,2]; track i) {
+          <div class="sk-item">
+            <div class="sk-line sk-line--md"></div>
+            <div class="sk-line sk-line--sm"></div>
+          </div>
+        }
+      </div>
     </div>
   } @else {
 
-    <!-- ── Mini-agenda ────────────────────────────── -->
-    <div class="mini-agenda">
-
-      <div class="mini-agenda-header">
-        <span class="mini-titulo">Agenda</span>
-        <a routerLink="/dashboard/agenda" class="ver-tudo">Ver tudo</a>
+    <!-- ── Card: Próximos Agendamentos ─────────────────── -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div>
+          <h2 class="dash-card-title">Próximos Agendamentos</h2>
+          <p class="dash-card-sub">Acompanhe seus próximos agendamentos</p>
+        </div>
+        <button class="btn-reload"
+                (click)="recarregar()"
+                [disabled]="agendamentosStore.carregando()"
+                aria-label="Atualizar lista">
+          <mat-icon [class.spinning]="agendamentosStore.carregando()">refresh</mat-icon>
+        </button>
       </div>
 
-      <app-week-strip [dias]="semana()" (selecionar)="diaSelecionado.set($event)" />
+      @if (agendamentosStore.carregando()) {
+        <div class="card-loading"><mat-spinner diameter="24" /></div>
+      } @else if (!proximosAgendamentos().length) {
+        <div class="vazio-state">
+          <mat-icon class="vazio-icon">event_available</mat-icon>
+          <p>Nenhum agendamento próximo.</p>
+          <a routerLink="/dashboard/agenda" class="vazio-link">Ver agenda completa</a>
+        </div>
+      } @else {
+        <div class="ag-list">
+          @for (ag of proximosAgendamentos(); track ag.id) {
+            <div class="ag-item" [class.ag-item--loading]="isAnyLoading(ag.id)">
+              <div class="ag-body">
+                <div class="ag-left">
+                  <div class="ag-cliente">{{ ag.cliente_nome }}</div>
+                  <div class="ag-com">com {{ user()?.nome }}</div>
+                  <div class="ag-servico">{{ ag.servico?.nome ?? '—' }}</div>
+                  @if (ag.servico?.duracao_min) {
+                    <div class="ag-meta">{{ ag.servico!.duracao_min }} min</div>
+                  }
+                </div>
+                <div class="ag-right">
+                  <div class="ag-datetime">
+                    <span class="ag-data">{{ formatarData(ag.data_hora) }}</span>
+                    <span class="ag-hora">{{ formatarHora(ag.data_hora) }}</span>
+                  </div>
+                  @if (ag.servico?.preco) {
+                    <div class="ag-valor">R$ {{ ag.servico!.preco | number:'1.2-2' }}</div>
+                  }
+                  <span class="status-badge status-badge--{{ ag.status }}">
+                    {{ statusLabel(ag.status) }}
+                  </span>
+                </div>
+              </div>
+
+              @if (ag.status === 'pendente') {
+                <div class="ag-actions">
+                  <button class="btn-ag btn-ag--confirm"
+                          (click)="confirmar(ag)"
+                          [disabled]="isAnyLoading(ag.id)">
+                    @if (isLoadingAction(ag.id, 'confirmar')) {
+                      <mat-spinner diameter="14" />
+                    } @else {
+                      <mat-icon>check</mat-icon>
+                    }
+                    Confirmar
+                  </button>
+                  <button class="btn-ag btn-ag--recusar"
+                          (click)="recusar(ag)"
+                          [disabled]="isAnyLoading(ag.id)">
+                    @if (isLoadingAction(ag.id, 'recusar')) {
+                      <mat-spinner diameter="14" />
+                    } @else {
+                      <mat-icon>close</mat-icon>
+                    }
+                    Recusar
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ── Card: Confirmações Pendentes ────────────────── -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div>
+          <h2 class="dash-card-title">Confirmações Pendentes</h2>
+          <p class="dash-card-sub">Agendamentos passados sem confirmação de status. Atualize com um clique.</p>
+        </div>
+        <button class="btn-reload"
+                (click)="recarregar()"
+                [disabled]="agendamentosStore.carregando()"
+                aria-label="Atualizar lista">
+          <mat-icon [class.spinning]="agendamentosStore.carregando()">refresh</mat-icon>
+        </button>
+      </div>
 
       @if (agendamentosStore.carregando()) {
-        <div class="mini-loading"><mat-spinner diameter="24" /></div>
+        <div class="card-loading"><mat-spinner diameter="24" /></div>
+      } @else if (!confirmacoesPendentes().length) {
+        <div class="vazio-state">
+          <mat-icon class="vazio-icon vazio-icon--green">task_alt</mat-icon>
+          <p>Tudo em dia! Nenhuma confirmação pendente.</p>
+        </div>
       } @else {
-        @for (ag of agendamentosDoDia().slice(0, 5); track ag.id) {
-          <app-appt-card [agendamento]="ag" (editar)="abrirEdicao(ag)" />
-        }
-        @if (agendamentosDoDia().length > 5) {
-          <a routerLink="/dashboard/agenda" class="ver-mais-link">
-            Ver mais {{ agendamentosDoDia().length - 5 }} agendamento(s)
-          </a>
-        }
-        @if (!agendamentosStore.carregando() && !agendamentosDoDia().length) {
-          <p class="vazio-mini">Nenhum agendamento neste dia.</p>
-        }
-      }
+        <div class="ag-list">
+          @for (ag of confirmacoesPendentes(); track ag.id) {
+            <div class="ag-item" [class.ag-item--loading]="isAnyLoading(ag.id)">
+              <div class="ag-body">
+                <div class="ag-left">
+                  <div class="ag-cliente">{{ ag.cliente_nome }}</div>
+                  <div class="ag-com">com {{ user()?.nome }}</div>
+                  <div class="ag-servico">{{ ag.servico?.nome ?? '—' }}</div>
+                  @if (ag.servico?.duracao_min) {
+                    <div class="ag-meta">{{ ag.servico!.duracao_min }} min</div>
+                  }
+                </div>
+                <div class="ag-right">
+                  <div class="ag-datetime">
+                    <span class="ag-data">{{ formatarData(ag.data_hora) }}</span>
+                    <span class="ag-hora">{{ formatarHora(ag.data_hora) }}</span>
+                  </div>
+                  @if (ag.servico?.preco) {
+                    <div class="ag-valor">R$ {{ ag.servico!.preco | number:'1.2-2' }}</div>
+                  }
+                </div>
+              </div>
 
+              <div class="ag-actions ag-actions--quick">
+                <button class="btn-quick btn-quick--realizado"
+                        (click)="marcarRealizado(ag)"
+                        [disabled]="isAnyLoading(ag.id)">
+                  @if (isLoadingAction(ag.id, 'realizado')) {
+                    <mat-spinner diameter="12" />
+                  } @else {
+                    <mat-icon>check_circle</mat-icon>
+                  }
+                  Realizado
+                </button>
+                <button class="btn-quick btn-quick--faltou"
+                        (click)="marcarFaltou(ag)"
+                        [disabled]="isAnyLoading(ag.id)">
+                  @if (isLoadingAction(ag.id, 'faltou')) {
+                    <mat-spinner diameter="12" />
+                  } @else {
+                    <mat-icon>person_off</mat-icon>
+                  }
+                  Cliente faltou
+                </button>
+                <button class="btn-quick btn-quick--cancelado"
+                        (click)="marcarCancelado(ag)"
+                        [disabled]="isAnyLoading(ag.id)">
+                  @if (isLoadingAction(ag.id, 'cancelado')) {
+                    <mat-spinner diameter="12" />
+                  } @else {
+                    <mat-icon>cancel</mat-icon>
+                  }
+                  Cancelado
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
     </div>
+
   }
 </div>
