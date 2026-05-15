@@ -267,16 +267,22 @@
 }
 
 .ag-item {
-  padding: 16px 20px;
+  padding: 16px 20px 16px 17px;
   border-top: 1px solid var(--border-soft);
+  border-left: 3px solid transparent;
   transition: background .15s;
 
   &:hover { background: var(--c-primary-bg); }
 
-  &--loading {
-    opacity: .6;
-    pointer-events: none;
-  }
+  &--loading { opacity: .6; pointer-events: none; }
+
+  &[data-status="confirmado"]     { border-left-color: var(--c-primary); }
+  &[data-status="pendente"]       { border-left-color: var(--c-amber); }
+  &[data-status="cancelado"],
+  &[data-status="recusado"]       { border-left-color: var(--c-rose); }
+  &[data-status="finalizado"]     { border-left-color: var(--c-green); }
+  &[data-status="nao_compareceu"] { border-left-color: var(--c-gray); }
+  &[data-status="reagendado"]     { border-left-color: var(--c-purple); }
 }
 
 .ag-body {

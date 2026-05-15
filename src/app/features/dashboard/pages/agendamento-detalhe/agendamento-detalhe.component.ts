@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectorRef, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -32,6 +32,7 @@ export class AgendamentoDetalheComponent implements OnInit {
   private router  = inject(Router);
   private fb      = inject(FormBuilder);
   private snack   = inject(MatSnackBar);
+  private cdr     = inject(ChangeDetectorRef);
   private agStore = inject(AgendamentosStore);
   private svStore = inject(ServicosStore);
   private agRepo  = inject(AgendamentosRepository);
@@ -40,6 +41,7 @@ export class AgendamentoDetalheComponent implements OnInit {
   salvando           = signal(false);
   mostrarCampoMotivo = signal(false);
   motivoRecusa       = signal('');
+  editarExpandido    = signal(false);
 
   agendamento = computed(() => {
     const id = this.route.snapshot.paramMap.get('id');
@@ -82,8 +84,10 @@ export class AgendamentoDetalheComponent implements OnInit {
         cliente_wpp:  ag.cliente_wpp,
         observacoes:  ag.observacoes ?? '',
       });
+      this.form.markAllAsTouched();
     } finally {
       this.loading.set(false);
+      this.cdr.detectChanges();
     }
   }
 

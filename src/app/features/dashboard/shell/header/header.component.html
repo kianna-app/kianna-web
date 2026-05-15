@@ -8,6 +8,12 @@
 
   <!-- ── Direita: ícones de ação ────────────────────────── -->
   <div class="header-actions">
+    <div class="plano-badge" [attr.data-plano]="user()?.plano"
+         routerLink="/dashboard/perfil"
+         matTooltip="Seu plano atual">
+      <span class="plano-badge-text">{{ planoBadge() }}</span>
+    </div>
+
     <div class="pending-card" routerLink="/dashboard/agenda"
          [class.has-pending]="pendentesCount() > 0"
          [matTooltip]="pendentesCount() > 0 ? pendentesCount() + ' pendentes' : 'Sem pendentes'">

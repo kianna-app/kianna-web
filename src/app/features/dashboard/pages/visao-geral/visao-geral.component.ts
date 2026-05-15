@@ -56,17 +56,6 @@ export class VisaoGeralComponent implements OnInit {
       .sort((a, b) => a.data_hora.localeCompare(b.data_hora));
   });
 
-  // ── Confirmações pendentes (passados sem status final) ──
-  readonly confirmacoesPendentes = computed<AgendamentoComServico[]>(() => {
-    const agora = new Date();
-    return this.agendamentosStore.agendamentos()
-      .filter(a => {
-        const dt = new Date(a.data_hora);
-        return dt < agora && ['pendente', 'confirmado'].includes(a.status);
-      })
-      .sort((a, b) => b.data_hora.localeCompare(a.data_hora));
-  });
-
   get linkPublico(): string {
     return `${APP.URL_BASE}/${this.user()?.slug ?? ''}`;
   }
@@ -130,42 +119,6 @@ export class VisaoGeralComponent implements OnInit {
       this.snack.open('Agendamento recusado.', 'OK', { duration: 2500 });
     } catch {
       this.snack.open('Erro ao recusar', 'OK', { duration: 3000 });
-    } finally {
-      this._clearLoading(ag.id);
-    }
-  }
-
-  async marcarRealizado(ag: AgendamentoComServico): Promise<void> {
-    this._setLoading(ag.id, 'realizado');
-    try {
-      await this.agendamentosStore.atualizarStatus(ag.id, 'finalizado');
-      this.snack.open('Marcado como realizado!', 'OK', { duration: 2500 });
-    } catch {
-      this.snack.open('Erro ao atualizar', 'OK', { duration: 3000 });
-    } finally {
-      this._clearLoading(ag.id);
-    }
-  }
-
-  async marcarFaltou(ag: AgendamentoComServico): Promise<void> {
-    this._setLoading(ag.id, 'faltou');
-    try {
-      await this.agendamentosStore.atualizarStatus(ag.id, 'nao_compareceu');
-      this.snack.open('Marcado: cliente não compareceu.', 'OK', { duration: 2500 });
-    } catch {
-      this.snack.open('Erro ao atualizar', 'OK', { duration: 3000 });
-    } finally {
-      this._clearLoading(ag.id);
-    }
-  }
-
-  async marcarCancelado(ag: AgendamentoComServico): Promise<void> {
-    this._setLoading(ag.id, 'cancelado');
-    try {
-      await this.agendamentosStore.atualizarStatus(ag.id, 'cancelado');
-      this.snack.open('Agendamento cancelado.', 'OK', { duration: 2500 });
-    } catch {
-      this.snack.open('Erro ao cancelar', 'OK', { duration: 3000 });
     } finally {
       this._clearLoading(ag.id);
     }

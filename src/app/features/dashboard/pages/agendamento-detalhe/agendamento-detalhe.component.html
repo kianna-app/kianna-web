@@ -41,48 +41,60 @@
       </div>
     </div>
 
-    <form [formGroup]="form" class="edicao-form">
-      <h2 class="secao-titulo">Editar dados</h2>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Serviço</mat-label>
-        <mat-select formControlName="servico_id">
-          @for (s of servicos(); track s.id) {
-            <mat-option [value]="s.id">{{ s.nome }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Data e hora</mat-label>
-        <input matInput type="datetime-local" formControlName="data_hora" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Nome do cliente</mat-label>
-        <input matInput formControlName="cliente_nome" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>WhatsApp</mat-label>
-        <input matInput type="tel" formControlName="cliente_wpp" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Observações</mat-label>
-        <textarea matInput formControlName="observacoes" rows="3"></textarea>
-      </mat-form-field>
-
-      <button type="button" class="btn-primary full-width"
-              (click)="salvarEdicao()"
-              [disabled]="salvando() || form.invalid">
-        @if (salvando()) {
-          <mat-spinner diameter="16" />
-        } @else {
-          Salvar alterações
-        }
+    <div class="accordion-section">
+      <button type="button" class="accordion-header" (click)="editarExpandido.set(!editarExpandido())">
+        <div class="accordion-header-left">
+          <mat-icon class="accordion-icon-lead">edit_note</mat-icon>
+          <span class="accordion-titulo">Editar dados</span>
+        </div>
+        <mat-icon class="accordion-chevron" [class.open]="editarExpandido()">expand_more</mat-icon>
       </button>
-    </form>
+
+      @if (editarExpandido()) {
+        <form [formGroup]="form" class="accordion-body">
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Serviço</mat-label>
+            <mat-select formControlName="servico_id">
+              @for (s of servicos(); track s.id) {
+                <mat-option [value]="s.id">{{ s.nome }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Data e hora</mat-label>
+            <input matInput type="datetime-local" formControlName="data_hora" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nome do cliente</mat-label>
+            <input matInput formControlName="cliente_nome" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>WhatsApp</mat-label>
+            <input matInput type="tel" formControlName="cliente_wpp" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Observações</mat-label>
+            <textarea matInput formControlName="observacoes" rows="3"></textarea>
+          </mat-form-field>
+
+          <button type="button" class="btn-primary full-width"
+                  (click)="salvarEdicao()"
+                  [disabled]="salvando() || form.invalid">
+            @if (salvando()) {
+              <mat-spinner diameter="16" />
+            } @else {
+              Salvar alterações
+            }
+          </button>
+
+        </form>
+      }
+    </div>
 
     <div class="acoes-secao">
       <h2 class="secao-titulo">Ações</h2>

@@ -417,3 +417,80 @@ html, body {
 // Snackbar de aviso (cor âmbar)
 .snack-warn .mdc-snackbar__surface { background: #fff3cd !important; }
 .snack-warn .mat-mdc-snack-bar-label { color: #5d4037 !important; }
+
+// ── FullCalendar — estilos globais (página Calendário) ────────
+.cal-body .fc { font-family: 'Inter', sans-serif; }
+
+.cal-body .fc-theme-standard td,
+.cal-body .fc-theme-standard th,
+.cal-body .fc-theme-standard .fc-scrollgrid { border-color: vars.$kianna-slate-100; }
+
+.cal-body .fc-col-header-cell {
+  background: vars.$kianna-slate-50;
+  padding: 8px 0;
+}
+.cal-body .fc-col-header-cell-cushion {
+  font: 500 12px 'Inter';
+  color: vars.$kianna-slate-500;
+  text-decoration: none !important;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.cal-body .fc-timegrid-slot-label {
+  font: 400 11px 'Inter';
+  color: vars.$kianna-slate-400;
+  padding-right: 8px;
+}
+
+.cal-body .fc-day-today { background: rgba(29,158,117,.04) !important; }
+.cal-body .fc-day-today .fc-col-header-cell-cushion {
+  color: vars.$kianna-green-600 !important;
+  font-weight: 700 !important;
+}
+
+.cal-body .fc-timegrid-now-indicator-line { border-color: vars.$kianna-green-500; }
+.cal-body .fc-timegrid-now-indicator-arrow {
+  border-top-color: vars.$kianna-green-500;
+  border-bottom-color: vars.$kianna-green-500;
+}
+
+.cal-body .fc-event {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+.cal-body .fc-event-inner {
+  padding: 5px 8px 5px 10px;
+  border-radius: 6px;
+  border-left-width: 3px;
+  border-left-style: solid;
+  min-height: 36px;
+  overflow: hidden;
+  transition: filter .15s;
+}
+.cal-body .fc-event-inner:hover { filter: brightness(.95); }
+
+.cal-body .fc-ev-time { font: 600 10px 'Inter'; opacity: .7; letter-spacing: .3px; white-space: nowrap; }
+.cal-body .fc-ev-name { font: 600 12px 'Inter'; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-body .fc-ev-svc  { font: 400 11px 'Inter'; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.cal-body .fc-list-event { cursor: pointer; }
+.cal-body .fc-list-event:hover td { background: vars.$kianna-slate-50 !important; }
+.cal-body .fc-list-event-title a { text-decoration: none; color: vars.$kianna-slate-900; font-weight: 500; }
+.cal-body .fc-list-event-time { font: 500 12px 'Inter'; color: vars.$kianna-slate-500; }
+.cal-body .fc-list-day-cushion { background: vars.$kianna-slate-50 !important; }
+
+.cal-body .fc-highlight { background: rgba(29,158,117,.1) !important; }
+.cal-body .fc-daygrid-event { border-radius: 4px; }
+.cal-body .fc-daygrid-event .fc-event-inner { min-height: unset; padding: 2px 6px; }
+.cal-body .fc-daygrid-event .fc-ev-svc { display: none; }
+.cal-body .fc-more-link { font: 500 11px 'Inter'; color: vars.$kianna-green-600; }
+
+.cal-body .fc-scroller::-webkit-scrollbar { width: 4px; height: 4px; }
+.cal-body .fc-scroller::-webkit-scrollbar-thumb { background: vars.$kianna-slate-200; border-radius: 2px; }

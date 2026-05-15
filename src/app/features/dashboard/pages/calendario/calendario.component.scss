@@ -1,6 +1,5 @@
 @use 'styles/variables' as v;
 
-// ── Wrapper ─────────────────────────────────────────────────────
 .cal-page {
   display: flex;
   flex-direction: column;
@@ -8,7 +7,6 @@
   min-height: calc(100vh - 80px);
 }
 
-// ── Header ──────────────────────────────────────────────────────
 .cal-header {
   display: flex;
   align-items: center;
@@ -17,7 +15,6 @@
   gap: 12px;
   padding: 0 0 16px;
   border-bottom: 1px solid v.$kianna-slate-200;
-  margin-bottom: 0;
 }
 
 .cal-nav {
@@ -63,7 +60,6 @@
   color: v.$kianna-slate-900;
   letter-spacing: -.2px;
   text-transform: capitalize;
-
   .spinner-inline { opacity: .6; }
 }
 
@@ -84,9 +80,7 @@
   color: v.$kianna-slate-500;
   cursor: pointer;
   transition: all .15s;
-
   &:hover { color: v.$kianna-slate-900; }
-
   &.active {
     background: #fff;
     color: v.$kianna-green-600;
@@ -95,7 +89,6 @@
   }
 }
 
-// ── Filtros ─────────────────────────────────────────────────────
 .cal-filters {
   display: flex;
   align-items: center;
@@ -103,7 +96,6 @@
   gap: 6px;
   padding: 12px 0;
   border-bottom: 1px solid v.$kianna-slate-100;
-  margin-bottom: 0;
 }
 
 .filter-label {
@@ -122,9 +114,7 @@
   color: v.$kianna-slate-600;
   cursor: pointer;
   transition: all .15s;
-
   &:hover { border-color: v.$kianna-slate-300; background: v.$kianna-slate-50; }
-
   &.active {
     background: var(--chip-color, v.$kianna-green-500);
     border-color: var(--chip-color, v.$kianna-green-500);
@@ -132,160 +122,11 @@
   }
 }
 
-// ── Corpo do calendário ─────────────────────────────────────────
 .cal-body {
   flex: 1;
   padding-top: 0;
-
-  ::ng-deep {
-    // Reset FullCalendar defaults para visual limpo
-    .fc {
-      font-family: 'Inter', sans-serif;
-    }
-
-    .fc-theme-standard td,
-    .fc-theme-standard th,
-    .fc-theme-standard .fc-scrollgrid {
-      border-color: v.$kianna-slate-100;
-    }
-
-    // Cabeçalho dos dias
-    .fc-col-header-cell {
-      background: v.$kianna-slate-50;
-      padding: 8px 0;
-
-      .fc-col-header-cell-cushion {
-        font: 500 12px 'Inter';
-        color: v.$kianna-slate-500;
-        text-decoration: none !important;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-      }
-    }
-
-    // Horários laterais
-    .fc-timegrid-slot-label {
-      font: 400 11px 'Inter';
-      color: v.$kianna-slate-400;
-      padding-right: 8px;
-    }
-
-    // Hoje
-    .fc-day-today {
-      background: rgba(29, 158, 117, 0.04) !important;
-
-      .fc-col-header-cell-cushion {
-        color: v.$kianna-green-600 !important;
-        font-weight: 700 !important;
-      }
-    }
-
-    // Indicador de agora
-    .fc-timegrid-now-indicator-line {
-      border-color: v.$kianna-green-500;
-    }
-    .fc-timegrid-now-indicator-arrow {
-      border-top-color: v.$kianna-green-500;
-      border-bottom-color: v.$kianna-green-500;
-    }
-
-    // Eventos — sobrescrever o padrão do FC
-    .fc-event {
-      border: none !important;
-      background: transparent !important;
-      padding: 0 !important;
-      border-radius: 6px !important;
-      overflow: hidden;
-      cursor: pointer;
-      box-shadow: none !important;
-    }
-
-    .fc-event-inner {
-      padding: 5px 8px 5px 10px;
-      border-radius: 6px;
-      border-left-width: 3px;
-      border-left-style: solid;
-      min-height: 36px;
-      overflow: hidden;
-      transition: filter .15s;
-
-      &:hover { filter: brightness(.95); }
-    }
-
-    .fc-ev-time {
-      font: 600 10px 'Inter';
-      opacity: .7;
-      letter-spacing: .3px;
-      white-space: nowrap;
-    }
-
-    .fc-ev-name {
-      font: 600 12px 'Inter';
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .fc-ev-svc {
-      font: 400 11px 'Inter';
-      opacity: .65;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    // List view
-    .fc-list-event {
-      cursor: pointer;
-      &:hover td { background: v.$kianna-slate-50 !important; }
-    }
-
-    .fc-list-event-title a {
-      text-decoration: none;
-      color: v.$kianna-slate-900;
-      font-weight: 500;
-    }
-
-    .fc-list-event-time {
-      font: 500 12px 'Inter';
-      color: v.$kianna-slate-500;
-    }
-
-    .fc-list-day-cushion {
-      background: v.$kianna-slate-50 !important;
-    }
-
-    // Seleção de slot
-    .fc-highlight { background: rgba(29,158,117,.1) !important; }
-
-    // Daygrid eventos
-    .fc-daygrid-event {
-      border-radius: 4px;
-    }
-
-    .fc-daygrid-event .fc-event-inner {
-      min-height: unset;
-      padding: 2px 6px;
-    }
-
-    .fc-daygrid-event .fc-ev-svc { display: none; }
-
-    // More link
-    .fc-more-link {
-      font: 500 11px 'Inter';
-      color: v.$kianna-green-600;
-    }
-
-    // Scrollbar dentro do FC
-    .fc-scroller::-webkit-scrollbar { width: 4px; height: 4px; }
-    .fc-scroller::-webkit-scrollbar-thumb {
-      background: v.$kianna-slate-200;
-      border-radius: 2px;
-    }
-  }
 }
 
-// ── Drawer overlay ──────────────────────────────────────────────
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -312,10 +153,7 @@
   overflow-y: auto;
   animation: slideIn .25s cubic-bezier(.16,1,.3,1);
   box-shadow: -8px 0 40px rgba(0,0,0,.12);
-
-  @media (max-width: 480px) {
-    width: 100%;
-  }
+  @media (max-width: 480px) { width: 100%; }
 }
 
 @keyframes slideIn {
@@ -323,7 +161,6 @@
   to   { transform: translateX(0) }
 }
 
-// ── Drawer header ───────────────────────────────────────────────
 .drawer-header {
   padding: 24px 20px 20px;
   border-left: 4px solid v.$kianna-green-500;
@@ -354,19 +191,8 @@
   mat-icon { font-size: 18px; width: 18px; height: 18px; }
 }
 
-.drawer-cliente {
-  font: 700 20px 'Inter';
-  color: v.$kianna-slate-900;
-  margin: 0 0 4px;
-  letter-spacing: -.3px;
-}
-
-.drawer-data {
-  font: 400 13px 'Inter';
-  color: v.$kianna-slate-500;
-  margin: 0 0 4px;
-  text-transform: capitalize;
-}
+.drawer-cliente { font: 700 20px 'Inter'; color: v.$kianna-slate-900; margin: 0 0 4px; letter-spacing: -.3px; }
+.drawer-data    { font: 400 13px 'Inter'; color: v.$kianna-slate-500; margin: 0 0 4px; text-transform: capitalize; }
 
 .drawer-hora {
   display: flex;
@@ -375,16 +201,9 @@
   font: 600 14px 'Inter';
   color: v.$kianna-slate-700;
   margin: 0;
-
-  .icon-sm {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    color: v.$kianna-slate-400;
-  }
+  .icon-sm { font-size: 16px; width: 16px; height: 16px; color: v.$kianna-slate-400; }
 }
 
-// ── Status badges ───────────────────────────────────────────────
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -392,16 +211,16 @@
   border-radius: 99px;
   font: 600 11px 'Inter';
   letter-spacing: .2px;
-
-  &.confirmado     { background: #DCFCE7; color: #166534; }
-  &.pendente       { background: #FEF3C7; color: #92400E; }
-  &.cancelado      { background: #FFE4E6; color: #9F1239; }
-  &.reagendado     { background: #F3E8FF; color: #6B21A8; }
-  &.finalizado     { background: #D1FAE5; color: #065F46; }
-  &.nao_compareceu { background: #F1F5F9; color: #334155; }
+  background: var(--sb-bg);
+  color: var(--sb-c);
+  &.confirmado     { --sb-bg: #DCFCE7; --sb-c: #166534; }
+  &.pendente       { --sb-bg: #FEF3C7; --sb-c: #92400E; }
+  &.cancelado      { --sb-bg: #FFE4E6; --sb-c: #9F1239; }
+  &.reagendado     { --sb-bg: #F3E8FF; --sb-c: #6B21A8; }
+  &.finalizado     { --sb-bg: #D1FAE5; --sb-c: #065F46; }
+  &.nao_compareceu { --sb-bg: #F1F5F9; --sb-c: #334155; }
 }
 
-// ── Drawer body ─────────────────────────────────────────────────
 .drawer-body {
   flex: 1;
   padding: 20px;
@@ -417,11 +236,7 @@
   padding: 10px 0;
   border-bottom: 1px solid v.$kianna-slate-100;
   gap: 12px;
-
-  &.obs {
-    flex-direction: column;
-    gap: 4px;
-  }
+  &.obs { flex-direction: column; gap: 4px; }
 }
 
 .detail-label {
@@ -436,7 +251,6 @@
   font: 500 13px 'Inter';
   color: v.$kianna-slate-800;
   text-align: right;
-
   &.valor { color: v.$kianna-green-600; font-weight: 600; }
 }
 
@@ -456,7 +270,6 @@
   &:hover { background: #D1FAE5; }
 }
 
-// ── Ações ───────────────────────────────────────────────────────
 .drawer-actions {
   padding: 16px 20px 24px;
   border-top: 1px solid v.$kianna-slate-100;
@@ -471,11 +284,7 @@
   margin: 0 0 10px;
 }
 
-.action-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.action-grid { display: flex; flex-direction: column; gap: 8px; }
 
 .action-btn {
   display: flex;
@@ -483,72 +292,30 @@
   gap: 8px;
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid transparent;
+  border: 1px solid var(--ab-b, transparent);
   font: 600 13px 'Inter';
   cursor: pointer;
   transition: all .15s;
   width: 100%;
-
+  background: var(--ab-bg);
+  color: var(--ab-c);
   mat-icon { font-size: 18px; width: 18px; height: 18px; }
-
   &:disabled { opacity: .5; cursor: not-allowed; }
-
-  &.confirmar {
-    background: #DCFCE7;
-    color: #166534;
-    border-color: #A7F3D0;
-    &:hover:not(:disabled) { background: #BBF7D0; }
-  }
-
-  &.cancelar {
-    background: #FFE4E6;
-    color: #9F1239;
-    border-color: #FECDD3;
-    &:hover:not(:disabled) { background: #FECDD3; }
-  }
-
-  &.finalizar {
-    background: v.$kianna-green-500;
-    color: #fff;
-    border-color: v.$kianna-green-500;
-    &:hover:not(:disabled) { background: v.$kianna-green-600; }
-  }
-
-  &.faltou {
-    background: #F1F5F9;
-    color: #334155;
-    border-color: v.$kianna-slate-200;
-    &:hover:not(:disabled) { background: v.$kianna-slate-200; }
-  }
-
-  &.reagendar {
-    background: #EFF6FF;
-    color: #1D4ED8;
-    border-color: #BFDBFE;
-    &:hover:not(:disabled) { background: #DBEAFE; }
-  }
+  &:hover:not(:disabled) { background: var(--ab-hbg); }
+  &.confirmar  { --ab-bg: #DCFCE7; --ab-c: #166534; --ab-b: #A7F3D0; --ab-hbg: #BBF7D0; }
+  &.cancelar   { --ab-bg: #FFE4E6; --ab-c: #9F1239; --ab-b: #FECDD3; --ab-hbg: #FECDD3; }
+  &.finalizar  { --ab-bg: #{v.$kianna-green-500}; --ab-c: #fff; --ab-b: #{v.$kianna-green-500}; --ab-hbg: #{v.$kianna-green-600}; }
+  &.faltou     { --ab-bg: #F1F5F9; --ab-c: #334155; --ab-b: #{v.$kianna-slate-200}; --ab-hbg: #{v.$kianna-slate-200}; }
+  &.reagendar  { --ab-bg: #EFF6FF; --ab-c: #1D4ED8; --ab-b: #BFDBFE; --ab-hbg: #DBEAFE; }
 }
 
-// ── Mobile ──────────────────────────────────────────────────────
 @media (max-width: 768px) {
-  .cal-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .cal-titulo {
-    width: 100%;
-    justify-content: center;
-    font-size: 14px;
-  }
-
+  .cal-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .cal-titulo { width: 100%; justify-content: center; font-size: 14px; }
   .view-switcher { width: 100%; justify-content: center; }
   .view-btn { flex: 1; }
-
   .cal-filters { gap: 4px; }
   .filter-chip { font-size: 11px; height: 24px; padding: 0 8px; }
-
   .drawer-overlay { justify-content: stretch; }
   .drawer {
     width: 100%;
@@ -557,7 +324,6 @@
     border-radius: 16px 16px 0 0;
     animation: slideUp .3s cubic-bezier(.16,1,.3,1);
   }
-
   @keyframes slideUp {
     from { transform: translateY(100%) }
     to   { transform: translateY(0) }

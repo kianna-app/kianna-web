@@ -41,6 +41,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return nome.split(' ').slice(0, 2).map(n => n[0]?.toUpperCase()).join('');
   });
 
+  readonly planoBadge = computed(() => {
+    const plano = this.user()?.plano;
+    if (plano === 'pro')    return 'Pro';
+    if (plano === 'studio') return 'Studio';
+    return 'Gratuito';
+  });
+
   async ngOnInit(): Promise<void> {
     const profId = this.user()?.id;
     if (!profId) return;

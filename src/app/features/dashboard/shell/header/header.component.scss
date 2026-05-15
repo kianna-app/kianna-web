@@ -64,6 +64,38 @@
   &[disabled] mat-icon { color: v.$kianna-slate-400; }
 }
 
+.plano-badge {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1.5px solid #e9ecef;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all .15s;
+
+  &:hover { border-color: #1D9E75; }
+
+  &[data-plano="pro"] {
+    background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+    border-color: #BFDBFE;
+    .plano-badge-text { color: #1D4ED8; }
+  }
+
+  &[data-plano="studio"] {
+    background: linear-gradient(135deg, #F5F3FF, #EDE9FE);
+    border-color: #DDD6FE;
+    .plano-badge-text { color: #6D28D9; }
+  }
+}
+
+.plano-badge-text {
+  font: 600 11px 'Inter';
+  color: #495057;
+  letter-spacing: .03em;
+  text-transform: capitalize;
+}
+
 .pending-card {
   display: flex;
   flex-direction: column;

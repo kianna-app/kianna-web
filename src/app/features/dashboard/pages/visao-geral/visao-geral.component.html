@@ -80,7 +80,7 @@
       } @else {
         <div class="ag-list">
           @for (ag of proximosAgendamentos(); track ag.id) {
-            <div class="ag-item" [class.ag-item--loading]="isAnyLoading(ag.id)">
+            <div class="ag-item" [class.ag-item--loading]="isAnyLoading(ag.id)" [attr.data-status]="ag.status">
               <div class="ag-body">
                 <div class="ag-left">
                   <div class="ag-cliente">{{ ag.cliente_nome }}</div>
@@ -134,89 +134,6 @@
       }
     </div>
 
-    <!-- ── Card: Confirmações Pendentes ────────────────── -->
-    <div class="dash-card">
-      <div class="dash-card-header">
-        <div>
-          <h2 class="dash-card-title">Confirmações Pendentes</h2>
-          <p class="dash-card-sub">Agendamentos passados sem confirmação de status. Atualize com um clique.</p>
-        </div>
-        <button class="btn-reload"
-                (click)="recarregar()"
-                [disabled]="agendamentosStore.carregando()"
-                aria-label="Atualizar lista">
-          <mat-icon [class.spinning]="agendamentosStore.carregando()">refresh</mat-icon>
-        </button>
-      </div>
-
-      @if (agendamentosStore.carregando()) {
-        <div class="card-loading"><mat-spinner diameter="24" /></div>
-      } @else if (!confirmacoesPendentes().length) {
-        <div class="vazio-state">
-          <mat-icon class="vazio-icon vazio-icon--green">task_alt</mat-icon>
-          <p>Tudo em dia! Nenhuma confirmação pendente.</p>
-        </div>
-      } @else {
-        <div class="ag-list">
-          @for (ag of confirmacoesPendentes(); track ag.id) {
-            <div class="ag-item" [class.ag-item--loading]="isAnyLoading(ag.id)">
-              <div class="ag-body">
-                <div class="ag-left">
-                  <div class="ag-cliente">{{ ag.cliente_nome }}</div>
-                  <div class="ag-com">com {{ user()?.nome }}</div>
-                  <div class="ag-servico">{{ ag.servico?.nome ?? '—' }}</div>
-                  @if (ag.servico?.duracao_min) {
-                    <div class="ag-meta">{{ ag.servico!.duracao_min }} min</div>
-                  }
-                </div>
-                <div class="ag-right">
-                  <div class="ag-datetime">
-                    <span class="ag-data">{{ formatarData(ag.data_hora) }}</span>
-                    <span class="ag-hora">{{ formatarHora(ag.data_hora) }}</span>
-                  </div>
-                  @if (ag.servico?.preco) {
-                    <div class="ag-valor">R$ {{ ag.servico!.preco | number:'1.2-2' }}</div>
-                  }
-                </div>
-              </div>
-
-              <div class="ag-actions ag-actions--quick">
-                <button class="btn-quick btn-quick--realizado"
-                        (click)="marcarRealizado(ag)"
-                        [disabled]="isAnyLoading(ag.id)">
-                  @if (isLoadingAction(ag.id, 'realizado')) {
-                    <mat-spinner diameter="12" />
-                  } @else {
-                    <mat-icon>check_circle</mat-icon>
-                  }
-                  Realizado
-                </button>
-                <button class="btn-quick btn-quick--faltou"
-                        (click)="marcarFaltou(ag)"
-                        [disabled]="isAnyLoading(ag.id)">
-                  @if (isLoadingAction(ag.id, 'faltou')) {
-                    <mat-spinner diameter="12" />
-                  } @else {
-                    <mat-icon>person_off</mat-icon>
-                  }
-                  Cliente faltou
-                </button>
-                <button class="btn-quick btn-quick--cancelado"
-                        (click)="marcarCancelado(ag)"
-                        [disabled]="isAnyLoading(ag.id)">
-                  @if (isLoadingAction(ag.id, 'cancelado')) {
-                    <mat-spinner diameter="12" />
-                  } @else {
-                    <mat-icon>cancel</mat-icon>
-                  }
-                  Cancelado
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
 
   }
 </div>
