@@ -1,7 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
-import { CommonModule, DatePipe, TitleCasePipe, DecimalPipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,7 +18,7 @@ import { BookingConfirmationComponent } from '../../components/booking-confirmat
   providers: [BookingService],
   imports: [
     CommonModule, RouterLink, FormsModule,
-    DatePipe, TitleCasePipe, DecimalPipe,
+    DecimalPipe,
     MatIconModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule,
     ProfessionalHeaderComponent, BookingConfirmationComponent,
   ],
