@@ -4,5 +4,5 @@ export const environment = {
   production: false,
   supabaseUrl:    'COLE_AQUI_SUPABASE_URL',
   supabaseAnonKey:'COLE_AQUI_SUPABASE_ANON_KEY',
-  apiUrl:         'http://localhost:3000',
+  apiUrl:         'http://localhost:3333',
 };

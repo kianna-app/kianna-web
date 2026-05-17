@@ -20,6 +20,6 @@ import { getErrorMessage } from '@core/validators/error-messages'
   `],
 })
 export class FieldErrorComponent {
-  @Input() control!: AbstractControl
-  get message(): string { return getErrorMessage(this.control) }
+  @Input() control?: AbstractControl | null
+  get message(): string { return this.control ? getErrorMessage(this.control) : '' }
 }
