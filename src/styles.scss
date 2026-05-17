@@ -434,6 +434,10 @@ mat-form-field { max-width: 100%; }
 .snack-warn .mdc-snackbar__surface { background: #fff3cd !important; }
 .snack-warn .mat-mdc-snack-bar-label { color: #5d4037 !important; }
 
+// Snackbar de erro
+.snack-error .mdc-snackbar__surface { background: #FBEDEF !important; }
+.snack-error .mat-mdc-snack-bar-label { color: #C0392B !important; }
+
 // ── FullCalendar — estilos globais (página Calendário) ────────
 .cal-body .fc { font-family: 'Inter', sans-serif; }
 

@@ -1,18 +1,18 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { supabase } from '@core/supabase/supabase.client';
+import { ApiService } from '@core/services/api.service';
 import { Profissional, Servico, Disponibilidade, Bloqueio } from '@core/types/database.types';
 
 @Injectable({ providedIn: 'root' })
 export class BookingRepository {
+  private api = inject(ApiService);
 
   async getProfissionalBySlug(slug: string): Promise<Profissional | null> {
-    const { data } = await supabase
-      .from('profissionais')
-      .select('*, antecedencia_minima_horas, antecedencia_maxima_dias, timezone')
-      .eq('slug', slug)
-      .eq('ativo', true)
-      .maybeSingle();
-    return data;
+    try {
+      return await this.api.getPublic<Profissional>(`/api/profissionais/${slug}`);
+    } catch {
+      return null;
+    }
   }
 
   async getRedirectBySlug(slug: string): Promise<string | null> {
@@ -106,11 +106,18 @@ export class BookingRepository {
     data_hora: string;
     agendamento_origem_id?: string;
   }): Promise<{ id: string } | null> {
-    const { data } = await supabase
-      .from('agendamentos')
-      .insert({ ...payload, status: 'pendente' })
-      .select('id')
-      .single();
-    return data;
+    try {
+      if (payload.agendamento_origem_id) {
+        const { agendamento_origem_id, ...rest } = payload;
+        return await this.api.postPublic<{ id: string }>(
+          '/api/agendamentos/reagendar',
+          { agendamento_origem_id, ...rest },
+        );
+      }
+      return await this.api.postPublic<{ id: string }>('/api/agendamentos', payload);
+    } catch (err) {
+      console.error('[BookingRepository] criarAgendamento falhou:', err);
+      return null;
+    }
   }
 }

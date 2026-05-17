@@ -2,18 +2,16 @@
 @if (isMobile()) {
   <mat-sidenav-container class="dash-shell mobile" autosize>
     <mat-sidenav
-      #drawerMobile
       mode="over"
       position="start"
       class="mobile-drawer"
-      disableClose="false"
-      hasBackdrop="true"
+      [opened]="sidenavService.opened()"
       (openedChange)="onDrawerToggle($event)">
       <app-sidenav (itemClicked)="fecharDrawer()" />
     </mat-sidenav>
 
     <mat-sidenav-content>
-      <app-dashboard-header (abrirMenu)="abrirDrawer()" />
+      <app-dashboard-header />
       <main class="dash-content">
         <router-outlet />
       </main>

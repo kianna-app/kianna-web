@@ -3,11 +3,13 @@ import { Router } from '@angular/router';
 import { supabase } from '@core/supabase/supabase.client';
 import { currentUser, isLoading, authInitialized, AppUser } from '@core/signals/app.signals';
 import { SessionService } from './session.service';
+import { ProfissionaisRepository } from '@core/repositories/profissionais.repository';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private router  = inject(Router);
   private session = inject(SessionService);
+  private profissionaisRepo = inject(ProfissionaisRepository);
 
   async initialize(): Promise<void> {
     isLoading.set(true);
@@ -82,15 +84,11 @@ export class AuthService {
   }
 
   private async loadUserProfile(userId: string): Promise<void> {
-    const { data } = await supabase
-      .from('profissionais')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (data) {
-      currentUser.set(data as AppUser);
-    } else {
+    try {
+      const data = await this.profissionaisRepo.me();
+      currentUser.set(data as unknown as AppUser);
+    } catch (err) {
+      console.warn('[Auth] profissional não encontrado, montando placeholder:', err);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         currentUser.set({

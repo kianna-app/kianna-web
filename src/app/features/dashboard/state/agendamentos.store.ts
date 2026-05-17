@@ -18,6 +18,7 @@ export class AgendamentosStore {
   readonly pendentesCount = signal(0);
 
   private realtimeChannel?: RealtimeChannel;
+  private ultimoPeriodo?: { inicio: Date; fim: Date };
 
   subscribeRealtime(profissionalId: string): void {
     if (this.realtimeChannel) return;
@@ -27,8 +28,22 @@ export class AgendamentosStore {
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'agendamentos',
         filter: `profissional_id=eq.${profissionalId}`,
-      }, () => void this.carregarContagem(profissionalId))
+      }, () => {
+        void this.carregarContagem(profissionalId);
+        void this.recarregarPeriodoAtual();
+      })
       .subscribe();
+  }
+
+  private async recarregarPeriodoAtual(): Promise<void> {
+    const p = this.ultimoPeriodo;
+    if (!p) return;
+    try {
+      const lista = await this.repo.listarPorPeriodo(p.inicio, p.fim);
+      this.agendamentos.set(lista);
+    } catch {
+      // silencioso: o próximo carregar manual revalida
+    }
   }
 
   destruirRealtime(): void {
@@ -54,6 +69,7 @@ export class AgendamentosStore {
   async carregarPeriodo(inicio: Date, fim: Date): Promise<void> {
     this.carregando.set(true);
     this.erro.set(null);
+    this.ultimoPeriodo = { inicio, fim };
     try {
       const lista = await this.repo.listarPorPeriodo(inicio, fim);
       this.agendamentos.set(lista);

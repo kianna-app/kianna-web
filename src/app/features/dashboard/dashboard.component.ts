@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, inject, effect } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { BreakpointService } from '@core/services/breakpoint.service';
 import { SidenavService } from '@core/services/sidenav.service';
 import { SidenavComponent } from './shell/sidenav/sidenav.component';
@@ -21,23 +21,10 @@ import { currentUser } from '@core/signals/app.signals';
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
-  @ViewChild('drawerMobile') drawerMobile?: MatSidenav;
-
-  private bp              = inject(BreakpointService);
+  private bp               = inject(BreakpointService);
   private agendamentosRepo = inject(AgendamentosRepository);
-  private sidenavService  = inject(SidenavService);
-  readonly isMobile = this.bp.isMobile;
-
-  constructor() {
-    effect(() => {
-      const shouldOpen = this.sidenavService.opened();
-      if (shouldOpen && !this.drawerMobile?.opened) {
-        setTimeout(() => this.drawerMobile?.open());
-      } else if (!shouldOpen && this.drawerMobile?.opened) {
-        setTimeout(() => this.drawerMobile?.close());
-      }
-    });
-  }
+  readonly sidenavService  = inject(SidenavService);
+  readonly isMobile        = this.bp.isMobile;
 
   async ngOnInit(): Promise<void> {
     const profId = currentUser()?.id;
@@ -46,15 +33,12 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  abrirDrawer(): void {
-    this.drawerMobile?.open();
-  }
-
   fecharDrawer(): void {
-    this.drawerMobile?.close();
+    this.sidenavService.close();
   }
 
   onDrawerToggle(isOpen: boolean): void {
-    this.sidenavService[isOpen ? 'open' : 'close']();
+    if (isOpen) this.sidenavService.open();
+    else this.sidenavService.close();
   }
 }

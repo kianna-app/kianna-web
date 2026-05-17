@@ -1,11 +1,4 @@
 <header class="dash-header">
-  <!-- ── Esquerda: hamburguer (mobile) ─────────────────── -->
-  @if (isMobile()) {
-    <button mat-icon-button class="btn-menu" (click)="abrirMenu.emit()" aria-label="Abrir menu">
-      <mat-icon>menu</mat-icon>
-    </button>
-  }
-
   <!-- ── Direita: ícones de ação ────────────────────────── -->
   <div class="header-actions">
     <div class="plano-badge" [attr.data-plano]="user()?.plano"

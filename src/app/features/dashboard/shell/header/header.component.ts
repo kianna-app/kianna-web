@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, computed, EventEmitter, Output } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,8 +29,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly user          = currentUser;
   readonly isMobile      = this.bp.isMobile;
   readonly pendentesCount = this.agStore.pendentesCount;
-
-  @Output() abrirMenu = new EventEmitter<void>();
 
   readonly iniciais = computed(() => {
     const nome = this.user()?.nome ?? '';

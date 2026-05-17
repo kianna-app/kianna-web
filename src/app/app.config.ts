@@ -5,6 +5,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { routes } from './app.routes';
 import { authInterceptor } from '@core/auth/auth.interceptor';
+import { apiErrorInterceptor } from '@core/interceptors/api-error.interceptor';
 import { AuthService } from '@core/auth/auth.service';
 
 function initializeAuth(authService: AuthService) {
@@ -17,7 +18,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor])
+      withInterceptors([authInterceptor, apiErrorInterceptor])
     ),
     provideAnimationsAsync(),
     provideClientHydration(withEventReplay()),

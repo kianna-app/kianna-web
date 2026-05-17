@@ -1,24 +1,17 @@
-import { Injectable } from '@angular/core';
-import { supabase, profissionalIdOrThrow } from './base.repository';
+import { Injectable, inject } from '@angular/core';
+import { ApiService } from '@core/services/api.service';
 import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
 
 @Injectable({ providedIn: 'root' })
 export class AgendamentosRepository {
+  private api = inject(ApiService);
 
   async listarPorPeriodo(inicio: Date, fim: Date): Promise<AgendamentoComServico[]> {
-    const profissional_id = profissionalIdOrThrow();
-    const { data, error } = await supabase
-      .from('agendamentos')
-      .select(`
-        *,
-        servico:servicos ( id, nome, duracao_min, preco, modalidade )
-      `)
-      .eq('profissional_id', profissional_id)
-      .gte('data_hora', inicio.toISOString())
-      .lt('data_hora', fim.toISOString())
-      .order('data_hora', { ascending: true });
-    if (error) throw error;
-    return (data ?? []) as unknown as AgendamentoComServico[];
+    const inicioISO = encodeURIComponent(inicio.toISOString());
+    const fimISO    = encodeURIComponent(fim.toISOString());
+    return this.api.get<AgendamentoComServico[]>(
+      `/api/agendamentos?inicio=${inicioISO}&fim=${fimISO}`,
+    );
   }
 
   async atualizarStatus(
@@ -30,78 +23,36 @@ export class AgendamentosRepository {
     if (status === 'recusado' && motivo_recusa !== undefined) {
       payload['motivo_recusa'] = motivo_recusa;
     }
-    const { error } = await supabase
-      .from('agendamentos')
-      .update(payload)
-      .eq('id', id);
-    if (error) throw error;
+    await this.api.patch(`/api/agendamentos/${id}/status`, payload);
   }
 
   async criar(payload: {
     profissional_id: string; servico_id: string; cliente_nome: string;
     cliente_wpp: string; data_hora: string; status: string; observacoes?: string;
   }): Promise<{ id: string }> {
-    const { data, error } = await supabase
-      .from('agendamentos').insert(payload).select('id').single();
-    if (error) throw error;
-    return data as { id: string };
+    const { status: _status, ...body } = payload;
+    return this.api.post<{ id: string }>('/api/agendamentos', body);
   }
 
   async atualizar(id: string, payload: Partial<{
     servico_id: string; cliente_nome: string; cliente_wpp: string;
     data_hora: string; status: string; observacoes: string;
   }>): Promise<void> {
-    const profissional_id = profissionalIdOrThrow();
-    const { error } = await supabase
-      .from('agendamentos').update(payload)
-      .eq('id', id).eq('profissional_id', profissional_id);
-    if (error) throw error;
+    const { status: _status, ...body } = payload;
+    await this.api.patch(`/api/agendamentos/${id}`, body);
   }
 
   async excluir(id: string): Promise<void> {
-    const profissional_id = profissionalIdOrThrow();
-    const { error } = await supabase
-      .from('agendamentos').delete()
-      .eq('id', id).eq('profissional_id', profissional_id);
-    if (error) throw error;
+    await this.api.delete(`/api/agendamentos/${id}`);
   }
 
-  async contarDoMesAtual(): Promise<number> {
-    const profissional_id = profissionalIdOrThrow();
-    const inicio = new Date();
-    inicio.setDate(1); inicio.setHours(0, 0, 0, 0);
-    const fim = new Date(inicio);
-    fim.setMonth(fim.getMonth() + 1);
-
-    const { count, error } = await supabase
-      .from('agendamentos')
-      .select('*', { count: 'exact', head: true })
-      .eq('profissional_id', profissional_id)
-      .gte('data_hora', inicio.toISOString())
-      .lt('data_hora', fim.toISOString())
-      .neq('status', 'cancelado');
-    if (error) throw error;
-    return count ?? 0;
+  async contarPendentes(_profissionalId: string): Promise<number> {
+    const r = await this.api.get<{ count: number }>('/api/agendamentos/pendentes/count');
+    return r.count ?? 0;
   }
 
-  async contarPendentes(profissionalId: string): Promise<number> {
-    const { count, error } = await supabase
-      .from('agendamentos')
-      .select('*', { count: 'exact', head: true })
-      .eq('profissional_id', profissionalId)
-      .eq('status', 'pendente');
-    if (error) throw error;
-    return count ?? 0;
-  }
-
-  async finalizarVencidos(profissionalId: string): Promise<void> {
-    const { error } = await supabase
-      .from('agendamentos')
-      .update({ status: 'finalizado' })
-      .eq('profissional_id', profissionalId)
-      .eq('status', 'confirmado')
-      .lt('data_hora', new Date().toISOString());
-    if (error) throw error;
+  async finalizarVencidos(_profissionalId: string): Promise<void> {
+    await this.api.patch('/api/agendamentos/finalizar-vencidos', {});
   }
 
   async reagendar(
@@ -114,28 +65,20 @@ export class AgendamentosRepository {
       data_hora: string;
     },
   ): Promise<{ id: string }> {
-    await this.atualizarStatus(agendamentoOrigemId, 'reagendado');
-    try {
-      const { data, error } = await supabase
-        .from('agendamentos')
-        .insert({ ...payload, status: 'pendente', agendamento_origem_id: agendamentoOrigemId })
-        .select('id')
-        .single();
-      if (error) throw error;
-      return data as { id: string };
-    } catch (e) {
-      // Rollback: desfaz o status 'reagendado' se o INSERT falhar
-      await this.atualizarStatus(agendamentoOrigemId, 'confirmado').catch(() => null);
-      throw e;
-    }
+    return this.api.postPublic<{ id: string }>('/api/agendamentos/reagendar', {
+      agendamento_origem_id: agendamentoOrigemId,
+      ...payload,
+    });
   }
 
   async getById(id: string): Promise<{ id: string; servico_id: string | null } | null> {
-    const { data } = await supabase
-      .from('agendamentos_publicos')
-      .select('id, servico_id')
-      .eq('id', id)
-      .maybeSingle();
-    return data as { id: string; servico_id: string | null } | null;
+    try {
+      const ag = await this.api.get<{ id: string; servico_id: string | null }>(
+        `/api/agendamentos/${id}`,
+      );
+      return ag ?? null;
+    } catch {
+      return null;
+    }
   }
 }
