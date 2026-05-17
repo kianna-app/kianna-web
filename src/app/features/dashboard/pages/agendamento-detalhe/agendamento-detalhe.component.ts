@@ -15,6 +15,7 @@ import { AgendamentosRepository } from '@core/repositories/agendamentos.reposito
 import { currentUser } from '@core/signals/app.signals';
 import { APP } from '@core/constants/app.constants';
 import { StatusAgend } from '@core/types/database.types';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-agendamento-detalhe',
@@ -23,6 +24,7 @@ import { StatusAgend } from '@core/types/database.types';
     CommonModule, DatePipe, TitleCasePipe,
     ReactiveFormsModule, FormsModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatIconModule, MatProgressSpinnerModule,
+    SkeletonComponent,
   ],
   templateUrl: './agendamento-detalhe.component.html',
   styleUrl: './agendamento-detalhe.component.scss',

@@ -6,26 +6,6 @@
   .page-sub { font-size: 13px; color: v.$kianna-slate-500; margin: 4px 0 0; }
 }
 
-.preview-card {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  padding: 16px !important;
-  margin-bottom: 24px;
-
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
-}
-
-.preview-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-
-  .pv-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: v.$kianna-slate-500; }
-  .pv-value { font-size: 22px; font-weight: 700; color: v.$kianna-green-700; margin-top: 4px; }
-}
-
 // ── Lista de dias ─────────────────────────────────────
 .dias-list {
   display: flex;
@@ -171,4 +151,21 @@
 
   .dia-label { font-size: 14px; }
   .dia-status { font-size: 12px; }
+}
+
+.horarios-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.horario-sk-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e9ecef;
 }

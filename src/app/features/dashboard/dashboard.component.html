@@ -1,7 +1,14 @@
 <!-- ── Mobile: drawer lateral ─────────────────────── -->
 @if (isMobile()) {
   <mat-sidenav-container class="dash-shell mobile" autosize>
-    <mat-sidenav #drawerMobile mode="over" position="start" class="mobile-drawer">
+    <mat-sidenav
+      #drawerMobile
+      mode="over"
+      position="start"
+      class="mobile-drawer"
+      disableClose="false"
+      hasBackdrop="true"
+      (openedChange)="onDrawerToggle($event)">
       <app-sidenav (itemClicked)="fecharDrawer()" />
     </mat-sidenav>
 

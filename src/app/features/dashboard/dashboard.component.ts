@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { BreakpointService } from '@core/services/breakpoint.service';
+import { SidenavService } from '@core/services/sidenav.service';
 import { SidenavComponent } from './shell/sidenav/sidenav.component';
 import { BottomNavComponent } from './shell/bottom-nav/bottom-nav.component';
 import { HeaderComponent } from './shell/header/header.component';
@@ -24,7 +25,19 @@ export class DashboardComponent implements OnInit {
 
   private bp              = inject(BreakpointService);
   private agendamentosRepo = inject(AgendamentosRepository);
+  private sidenavService  = inject(SidenavService);
   readonly isMobile = this.bp.isMobile;
+
+  constructor() {
+    effect(() => {
+      const shouldOpen = this.sidenavService.opened();
+      if (shouldOpen && !this.drawerMobile?.opened) {
+        setTimeout(() => this.drawerMobile?.open());
+      } else if (!shouldOpen && this.drawerMobile?.opened) {
+        setTimeout(() => this.drawerMobile?.close());
+      }
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     const profId = currentUser()?.id;
@@ -34,10 +47,14 @@ export class DashboardComponent implements OnInit {
   }
 
   abrirDrawer(): void {
-    this.drawerMobile?.toggle();
+    this.drawerMobile?.open();
   }
 
   fecharDrawer(): void {
     this.drawerMobile?.close();
+  }
+
+  onDrawerToggle(isOpen: boolean): void {
+    this.sidenavService[isOpen ? 'open' : 'close']();
   }
 }

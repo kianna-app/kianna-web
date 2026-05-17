@@ -210,3 +210,35 @@
   justify-content: center;
   padding: 60px;
 }
+
+.detalhe-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resumo-sk-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resumo-sk-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-sk-block {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

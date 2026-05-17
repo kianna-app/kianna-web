@@ -20,15 +20,25 @@ export class SlotCalculatorService {
     bloqueios: Bloqueio[],
     timezone: string,
     antecedenciaMinHoras: number,
+    antecedenciaMaximaDias?: number | null,
   ): SlotInfo[] {
     const tz = timezone || 'America/Sao_Paulo';
     const antecedencia = antecedenciaMinHoras ?? 24;
+    const janelaMaxima = antecedenciaMaximaDias ?? 30;
 
     const diaSemana = data.getDay();
     const disp = disponibilidades.find(d => d.dia_semana === diaSemana);
     if (!disp) return [];
 
     const diaISO = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(data);
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() + janelaMaxima);
+    const dataLimiteISO = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(dataLimite);
+
+    // Filtrar se data está além do limite de antecedência máxima
+    if (diaISO > dataLimiteISO) {
+      return [];
+    }
 
     const bloqueiosDoDia = bloqueios.filter(b => b.data === diaISO);
     if (bloqueiosDoDia.some(b => b.hora_inicio === null)) return [];
@@ -74,17 +84,20 @@ export class SlotCalculatorService {
     bloqueios: Bloqueio[],
     timezone: string,
     antecedenciaMinHoras: number,
-    diasAFrente = 30,
+    antecedenciaMaximaDias?: number | null,
+    diasAFrente?: number,
   ): Date[] {
     const hoje = startOfDay(new Date());
+    const janelaMaxima = antecedenciaMaximaDias ?? 30;
+    const diasAVerificar = Math.min(diasAFrente ?? 30, janelaMaxima);
     const diasValidos: Date[] = [];
 
-    for (let i = 0; i < diasAFrente; i++) {
+    for (let i = 0; i < diasAVerificar; i++) {
       const dia = new Date(hoje);
       dia.setDate(hoje.getDate() + i);
       const slots = this.calcularSlotsParaDia(
         dia, servico, disponibilidades, agendamentosConfirmados,
-        bloqueios, timezone, antecedenciaMinHoras,
+        bloqueios, timezone, antecedenciaMinHoras, antecedenciaMaximaDias,
       );
       if (slots.some(s => s.disponivel)) {
         diasValidos.push(dia);

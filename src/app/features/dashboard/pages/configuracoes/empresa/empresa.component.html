@@ -152,6 +152,53 @@
     </div>
   </div>
 
+  <!-- ── Card 6: Antecedência para agendamentos ──────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-amber">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">Antecedência para agendamentos</h3>
+        <p class="cfg-card-desc">Defina com quanto tempo de antecedência os clientes podem solicitar horários</p>
+      </div>
+    </div>
+    <div class="cfg-card-body">
+      <div class="cfg-row">
+        <div class="cfg-field">
+          <label class="cfg-label">Antecedência mínima</label>
+          <p class="cfg-hint">
+            Tempo mínimo antes do atendimento que o cliente pode agendar.
+          </p>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Selecione o tempo</mat-label>
+            <mat-select formControlName="antecedencia_minima_horas">
+              @for (opt of antecedenciaMinimaOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="cfg-field">
+          <label class="cfg-label">Antecedência máxima</label>
+          <p class="cfg-hint">
+            Até quantos dias à frente o cliente pode agendar.
+            "Sem limite" usa a janela padrão de 30 dias.
+          </p>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Selecione o limite</mat-label>
+            <mat-select formControlName="antecedencia_maxima_dias">
+              @for (opt of antecedenciaMaximaOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Botão salvar ────────────────────────────────────────── -->
   <div class="cfg-actions-sticky">
     <app-loading-button

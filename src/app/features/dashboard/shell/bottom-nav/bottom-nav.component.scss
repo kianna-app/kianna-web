@@ -30,3 +30,10 @@
 
   &.ativo { color: v.$kianna-green-500; }
 }
+
+.bn-item-menu {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}

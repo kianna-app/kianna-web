@@ -6,11 +6,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
 import { supabase } from '@core/supabase/supabase.client';
 import { currentUser, AppUser } from '@core/signals/app.signals';
 import { gerarSlug } from '@core/utils/slug.util';
+import { ANTECEDENCIA_MINIMA_OPTIONS, ANTECEDENCIA_MAXIMA_OPTIONS } from '@core/constants/app.constants';
 import { differenceInDays, addDays } from 'date-fns';
 
 @Component({
@@ -18,7 +20,7 @@ import { differenceInDays, addDays } from 'date-fns';
   standalone: true,
   imports: [
     CommonModule, DatePipe, ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatIconModule,
+    MatFormFieldModule, MatInputModule, MatIconModule, MatSelectModule,
     MatButtonModule, MatProgressBarModule, LoadingButtonComponent,
   ],
   templateUrl: './empresa.component.html',
@@ -34,12 +36,16 @@ export class EmpresaComponent implements OnInit {
   readonly user          = currentUser;
 
   readonly fotoPreview = computed(() => this.user()?.foto_url ?? null);
+  readonly antecedenciaMinimaOptions = ANTECEDENCIA_MINIMA_OPTIONS;
+  readonly antecedenciaMaximaOptions = ANTECEDENCIA_MAXIMA_OPTIONS;
 
   form = this.fb.group({
-    nome:                  ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
-    bio:                   ['', Validators.maxLength(200)],
-    slug:                  ['', [Validators.required, Validators.minLength(3)]],
-    politica_cancelamento: [''],
+    nome:                      ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
+    bio:                       ['', Validators.maxLength(200)],
+    slug:                      ['', [Validators.required, Validators.minLength(3)]],
+    politica_cancelamento:     [''],
+    antecedencia_minima_horas: [0],
+    antecedencia_maxima_dias:  [null as number | null],
   });
 
   readonly nomeLen = computed(() => (this.form.get('nome')?.value ?? '').length);
@@ -66,10 +72,12 @@ export class EmpresaComponent implements OnInit {
     const u = this.user();
     if (!u) return;
     this.form.patchValue({
-      nome:                  u.nome,
-      bio:                   u.bio ?? '',
-      slug:                  u.slug,
-      politica_cancelamento: u.politica_cancelamento ?? '',
+      nome:                      u.nome,
+      bio:                       u.bio ?? '',
+      slug:                      u.slug,
+      politica_cancelamento:     u.politica_cancelamento ?? '',
+      antecedencia_minima_horas: u.antecedencia_minima_horas ?? 24,
+      antecedencia_maxima_dias:  u.antecedencia_maxima_dias ?? null,
     });
 
     if (!this.podeAlterarSlug()) {
@@ -203,9 +211,11 @@ export class EmpresaComponent implements OnInit {
       }
 
       const updates: Record<string, unknown> = {
-        nome:                  v.nome,
-        bio:                   v.bio || null,
-        politica_cancelamento: v.politica_cancelamento || null,
+        nome:                      v.nome,
+        bio:                       v.bio || null,
+        politica_cancelamento:     v.politica_cancelamento || null,
+        antecedencia_minima_horas: v.antecedencia_minima_horas ?? 24,
+        antecedencia_maxima_dias:  v.antecedencia_maxima_dias ?? null,
       };
       if (slugMudou) {
         updates['slug']            = v.slug;

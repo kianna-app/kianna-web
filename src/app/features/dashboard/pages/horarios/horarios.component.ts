@@ -15,6 +15,7 @@ import { HorariosStore } from '../../state/horarios.store';
 import { DiaSemana, DisponibilidadeInput } from '@core/types/database.types';
 import { DIAS_SEMANA } from '@core/constants/app.constants';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { BloqueiosComponent } from './bloqueios/bloqueios.component';
 
 interface DiaConfig {
@@ -33,7 +34,7 @@ interface DiaConfig {
     CommonModule, FormsModule, MatCardModule, MatSlideToggleModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    MatTabsModule,  BloqueiosComponent,
+    MatTabsModule, SkeletonComponent, BloqueiosComponent,
   ],
   templateUrl: './horarios.component.html',
   styleUrl: './horarios.component.scss',
@@ -45,18 +46,6 @@ export class HorariosComponent implements OnInit {
   readonly intervalos = [15, 30, 45, 60];
   readonly config          = signal<DiaConfig[]>(this.configPadrao());
   readonly temAlteracoes   = signal(false);
-
-  readonly diasAtivosCount = computed(() => this.config().filter(c => c.ativo).length);
-  readonly horasSemanais   = computed(() =>
-    this.config()
-      .filter(c => c.ativo)
-      .reduce((acc, c) => acc + this.minutosEntre(c.hora_inicio, c.hora_fim) / 60, 0)
-  );
-  readonly slotsSemanais = computed(() =>
-    this.config()
-      .filter(c => c.ativo)
-      .reduce((acc, c) => acc + Math.floor(this.minutosEntre(c.hora_inicio, c.hora_fim) / c.intervalo_min), 0)
-  );
 
   ngOnInit(): void {
     this.store.carregar().then(() => {

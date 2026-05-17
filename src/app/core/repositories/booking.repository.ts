@@ -8,7 +8,7 @@ export class BookingRepository {
   async getProfissionalBySlug(slug: string): Promise<Profissional | null> {
     const { data } = await supabase
       .from('profissionais')
-      .select('*')
+      .select('*, antecedencia_minima_horas, antecedencia_maxima_dias, timezone')
       .eq('slug', slug)
       .eq('ativo', true)
       .maybeSingle();

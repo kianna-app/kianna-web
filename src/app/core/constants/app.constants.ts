@@ -33,3 +33,20 @@ export const DIAS_SEMANA = [
   { dia: 6, label: 'Sábado',   curto: 'Sáb' },
   { dia: 0, label: 'Domingo',  curto: 'Dom' },
 ] as const;
+
+export const ANTECEDENCIA_MINIMA_OPTIONS: { label: string; value: number }[] = [
+  { label: 'Sem antecedência (agendamento imediato)', value: 0 },
+  { label: '2 horas antes',                           value: 2 },
+  { label: '4 horas antes',                           value: 4 },
+  { label: '8 horas antes',                           value: 8 },
+  { label: '12 horas antes',                          value: 12 },
+  { label: '24 horas antes',                          value: 24 },
+];
+
+export const ANTECEDENCIA_MAXIMA_OPTIONS: { label: string; value: number | null }[] = [
+  { label: 'Sem limite',  value: null },
+  { label: '7 dias',      value: 7 },
+  { label: '15 dias',     value: 15 },
+  { label: '30 dias',     value: 30 },
+  { label: '60 dias',     value: 60 },
+];

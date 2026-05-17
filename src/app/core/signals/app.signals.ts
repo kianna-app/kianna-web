@@ -29,6 +29,11 @@ export interface AppUser {
   youtube_url?: string | null;
   links_personalizados?: LinkPersonalizado[];
   slug_alterado_em?: string | null;
+
+  // ── Módulo 3 (fluxo v2) ──
+  antecedencia_minima_horas?: number;
+  antecedencia_maxima_dias?: number | null;
+  timezone?: string;
 }
 
 export const currentUser     = signal<AppUser | null>(null);

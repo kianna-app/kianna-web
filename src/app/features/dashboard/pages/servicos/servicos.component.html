@@ -30,7 +30,17 @@
   }
 
   @if (store.carregando()) {
-    <div class="loading-state"><mat-spinner diameter="40"></mat-spinner></div>
+    <div class="servicos-skeleton">
+      @for (i of [1,2,3]; track i) {
+        <div class="servico-sk-card">
+          <div class="servico-sk-body">
+            <app-skeleton height="15px" width="55%" radius="4px" />
+            <app-skeleton height="12px" width="35%" radius="4px" style="margin-top:8px" />
+          </div>
+          <app-skeleton height="28px" width="60px" radius="6px" />
+        </div>
+      }
+    </div>
   } @else if (store.erro()) {
     <div class="empty-state">
       <mat-icon>wifi_off</mat-icon>

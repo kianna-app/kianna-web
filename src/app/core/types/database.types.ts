@@ -51,6 +51,7 @@ export interface Profissional {
 
   // ── Módulo 3 (fluxo v2) ──
   antecedencia_minima_horas: number;
+  antecedencia_maxima_dias: number | null;
   timezone: string;
 }
 

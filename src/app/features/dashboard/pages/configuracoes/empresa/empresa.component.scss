@@ -204,6 +204,37 @@
   display: none;
 }
 
+// ── Campos de configuração ─────────────────────────────────────
+.cfg-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cfg-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.cfg-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #495057;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.cfg-hint {
+  font-weight: 400;
+  font-size: 12px;
+  color: #adb5bd;
+  margin: 0 0 8px;
+}
+
 // ── Ação ───────────────────────────────────────────────────────
 .cfg-actions-sticky {
   display: flex;

@@ -49,7 +49,7 @@ export class BookingService {
     if (!data || !servico || !prof) return [];
     return this.slotCalc.calcularSlotsParaDia(
       data, servico, this.disponibilidades(), this.agendamentosConfirmados(),
-      this.bloqueios(), prof.timezone, prof.antecedencia_minima_horas,
+      this.bloqueios(), prof.timezone, prof.antecedencia_minima_horas, prof.antecedencia_maxima_dias,
     );
   });
 
@@ -59,7 +59,7 @@ export class BookingService {
     if (!servico || !prof) return [];
     return this.slotCalc.diasComSlots(
       this.disponibilidades(), this.agendamentosConfirmados(), servico,
-      this.bloqueios(), prof.timezone, prof.antecedencia_minima_horas,
+      this.bloqueios(), prof.timezone, prof.antecedencia_minima_horas, prof.antecedencia_maxima_dias,
     );
   });
 

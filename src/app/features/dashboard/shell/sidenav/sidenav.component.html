@@ -1,6 +1,11 @@
-<div class="sidenav-logo">
-  <span class="logo-emoji">{{ APP.EMOJI }}</span>
-  <span class="logo-text">{{ APP.NOME }}</span>
+<div class="sidenav-header">
+  <div class="sidenav-logo">
+    <span class="logo-emoji">{{ APP.EMOJI }}</span>
+    <span class="logo-text">{{ APP.NOME }}</span>
+  </div>
+  <button mat-icon-button class="close-btn" (click)="fecharMenu()" aria-label="Fechar menu">
+    <mat-icon>close</mat-icon>
+  </button>
 </div>
 
 <!-- Painel -->

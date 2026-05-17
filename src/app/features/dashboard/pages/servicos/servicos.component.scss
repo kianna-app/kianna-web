@@ -167,3 +167,26 @@
     button { flex: 0 1 auto; }
   }
 }
+
+.servicos-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.servico-sk-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+}
+
+.servico-sk-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}

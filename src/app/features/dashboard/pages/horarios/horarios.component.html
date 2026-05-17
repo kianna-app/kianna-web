@@ -9,23 +9,16 @@
   <!-- Aba 1: Disponibilidade semanal -->
   <mat-tab label="Disponibilidade semanal">
     @if (store.carregando()) {
-      <div class="loading-state"><mat-spinner diameter="40"></mat-spinner></div>
+      <div class="horarios-skeleton">
+        @for (i of [1,2,3,4]; track i) {
+          <div class="horario-sk-row">
+            <app-skeleton height="14px" width="80px" radius="4px" />
+            <app-skeleton height="32px" width="120px" radius="8px" />
+            <app-skeleton height="32px" width="120px" radius="8px" />
+          </div>
+        }
+      </div>
     } @else {
-      <mat-card class="preview-card">
-        <div class="preview-item">
-          <span class="pv-label">Dias ativos</span>
-          <span class="pv-value">{{ diasAtivosCount() }}</span>
-        </div>
-        <div class="preview-item">
-          <span class="pv-label">Horas/semana</span>
-          <span class="pv-value">{{ horasSemanais() | number: '1.0-1' }}h</span>
-        </div>
-        <div class="preview-item">
-          <span class="pv-label">Slots/semana</span>
-          <span class="pv-value">{{ slotsSemanais() }}</span>
-        </div>
-      </mat-card>
-
       @if (temAlteracoes()) {
         <div class="alteracoes-banner">
           <mat-icon>edit_note</mat-icon>

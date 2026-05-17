@@ -9,7 +9,21 @@
   </div>
 
   @if (loading()) {
-    <div class="loading-center"><mat-spinner diameter="32" /></div>
+    <div class="detalhe-skeleton">
+      <div class="resumo-sk-card">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="resumo-sk-row">
+            <app-skeleton height="12px" width="70px" radius="3px" />
+            <app-skeleton height="14px" width="45%" radius="3px" />
+          </div>
+        }
+      </div>
+      <div class="form-sk-block">
+        @for (i of [1,2,3,4]; track i) {
+          <app-skeleton height="52px" width="100%" radius="8px" />
+        }
+      </div>
+    </div>
   }
 
   @if (!loading() && agendamento(); as ag) {

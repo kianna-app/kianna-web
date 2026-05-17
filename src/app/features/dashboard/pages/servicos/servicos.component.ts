@@ -14,6 +14,7 @@ import { ServicosStore } from '../../state/servicos.store';
 import { Servico, MODALIDADE_LABELS } from '@core/types/database.types';
 import { ServicoDialogComponent, ServicoDialogData } from './servico-dialog/servico-dialog.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -22,7 +23,7 @@ import { firstValueFrom } from 'rxjs';
   imports: [
     CommonModule, MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatSlideToggleModule,
-    MatProgressSpinnerModule, MatTooltipModule,
+    MatProgressSpinnerModule, MatTooltipModule, SkeletonComponent,
   ],
   templateUrl: './servicos.component.html',
   styleUrl: './servicos.component.scss',
