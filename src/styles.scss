@@ -17,7 +17,23 @@ html, body {
   background-color: vars.$kianna-slate-50;
   color: vars.$kianna-slate-900;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
+
+// ── Mobile — scroll touch suave nos strips ────────────────────
+.date-strip, .time-strip, .week-strip {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+}
+
+// ── Mobile — safe area para booking footer ────────────────────
+.booking-footer {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+// ── Campos responsivos ────────────────────────────────────────
+mat-form-field { max-width: 100%; }
 
 // ── Utilitários globais ───────────────────────────────────────
 .text-primary    { color: vars.$kianna-green-500 !important; }

@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { FieldErrorComponent } from '@shared/components/field-error/field-error.component';
+import { KiannaValidators } from '@core/validators/form.validators';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -21,6 +23,7 @@ export interface ServicoDialogData {
     CommonModule, ReactiveFormsModule,
     MatDialogModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatButtonModule, MatIconModule,
+    FieldErrorComponent,
   ],
   templateUrl: './servico-dialog.component.html',
   styleUrl: './servico-dialog.component.scss',
@@ -41,9 +44,9 @@ export class ServicoDialogComponent {
 
   form = this.fb.group({
     nome:        [this.data.servico?.nome ?? '', [Validators.required, Validators.minLength(2)]],
-    duracao_min: [this.data.servico?.duracao_min ?? 60, [Validators.required, Validators.min(15)]],
+    duracao_min: [this.data.servico?.duracao_min ?? 60, KiannaValidators.duracao()],
     modalidade:  [this.data.servico?.modalidade ?? 'presencial' as ModalidadeAtendimento, Validators.required],
-    preco:       [this.data.servico?.preco ?? 0, [Validators.required, Validators.min(0)]],
+    preco:       [this.data.servico?.preco ?? 0, KiannaValidators.preco()],
     ativo:       [this.data.servico?.ativo ?? true],
   });
 

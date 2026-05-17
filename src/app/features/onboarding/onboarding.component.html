@@ -35,11 +35,7 @@
           <mat-label>Nome do negócio ou profissional</mat-label>
           <input matInput formControlName="nome" placeholder="Ex: Studio Ana Lima, Barbearia Central">
           <mat-hint>Será seu nome público e fará parte do seu link de agendamento</mat-hint>
-          @if (perfilForm.get('nome')?.hasError('required') && perfilForm.get('nome')?.touched) {
-            <mat-error>Nome é obrigatório</mat-error>
-          } @else if (perfilForm.get('nome')?.hasError('minlength')) {
-            <mat-error>Mínimo 3 caracteres</mat-error>
-          }
+          <app-field-error [control]="perfilForm.controls.nome" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -64,11 +60,8 @@
                  type="tel" autocomplete="tel">
           <mat-icon matPrefix>phone</mat-icon>
           <mat-hint align="start">Pode digitar com ou sem parênteses</mat-hint>
-          @if (perfilForm.get('whatsapp')?.hasError('required') && perfilForm.get('whatsapp')?.touched) {
-            <mat-error>WhatsApp é obrigatório</mat-error>
-          } @else if (perfilForm.get('whatsapp')?.hasError('whatsappInvalido')) {
-            <mat-error>Digite um WhatsApp válido (10 ou 11 dígitos)</mat-error>
-          } @else if (perfilForm.get('whatsapp')?.hasError('jaCadastrado')) {
+          <app-field-error [control]="perfilForm.controls.whatsapp" />
+          @if (perfilForm.get('whatsapp')?.hasError('jaCadastrado')) {
             <mat-error>Este número já está cadastrado em outra conta</mat-error>
           }
         </mat-form-field>

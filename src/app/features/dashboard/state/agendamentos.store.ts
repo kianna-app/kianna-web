@@ -4,15 +4,44 @@ import { isAuthError } from '@core/repositories/base.repository';
 import { SessionService } from '@core/auth/session.service';
 import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
 import { currentUser } from '@core/signals/app.signals';
+import { supabase } from '@core/supabase/supabase.client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 @Injectable({ providedIn: 'root' })
 export class AgendamentosStore {
   private repo    = inject(AgendamentosRepository);
   private session = inject(SessionService);
 
-  readonly agendamentos = signal<AgendamentoComServico[]>([]);
-  readonly carregando   = signal(false);
-  readonly erro         = signal<string | null>(null);
+  readonly agendamentos   = signal<AgendamentoComServico[]>([]);
+  readonly carregando     = signal(false);
+  readonly erro           = signal<string | null>(null);
+  readonly pendentesCount = signal(0);
+
+  private realtimeChannel?: RealtimeChannel;
+
+  subscribeRealtime(profissionalId: string): void {
+    if (this.realtimeChannel) return;
+    void this.carregarContagem(profissionalId);
+    this.realtimeChannel = supabase
+      .channel('agendamentos-store')
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'agendamentos',
+        filter: `profissional_id=eq.${profissionalId}`,
+      }, () => void this.carregarContagem(profissionalId))
+      .subscribe();
+  }
+
+  destruirRealtime(): void {
+    if (this.realtimeChannel) {
+      supabase.removeChannel(this.realtimeChannel);
+      this.realtimeChannel = undefined;
+    }
+  }
+
+  private async carregarContagem(profissionalId: string): Promise<void> {
+    const n = await this.repo.contarPendentes(profissionalId);
+    this.pendentesCount.set(n);
+  }
 
   readonly confirmados = computed(() =>
     this.agendamentos().filter(a => a.status === 'confirmado')

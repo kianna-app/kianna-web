@@ -9,6 +9,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
+import { FieldErrorComponent } from '@shared/components/field-error/field-error.component';
+import { KiannaValidators } from '@core/validators/form.validators';
 import { supabase } from '@core/supabase/supabase.client';
 import { currentUser, AppUser } from '@core/signals/app.signals';
 import { gerarSlug } from '@core/utils/slug.util';
@@ -21,7 +23,7 @@ import { differenceInDays, addDays } from 'date-fns';
   imports: [
     CommonModule, DatePipe, ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatIconModule, MatSelectModule,
-    MatButtonModule, MatProgressBarModule, LoadingButtonComponent,
+    MatButtonModule, MatProgressBarModule, LoadingButtonComponent, FieldErrorComponent,
   ],
   templateUrl: './empresa.component.html',
   styleUrl: './empresa.component.scss',
@@ -42,7 +44,7 @@ export class EmpresaComponent implements OnInit {
   form = this.fb.group({
     nome:                      ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
     bio:                       ['', Validators.maxLength(200)],
-    slug:                      ['', [Validators.required, Validators.minLength(3)]],
+    slug:                      ['', KiannaValidators.slug()],
     politica_cancelamento:     [''],
     antecedencia_minima_horas: [0],
     antecedencia_maxima_dias:  [null as number | null],

@@ -16,6 +16,8 @@ import { currentUser } from '@core/signals/app.signals';
 import { APP } from '@core/constants/app.constants';
 import { StatusAgend } from '@core/types/database.types';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
+import { FieldErrorComponent } from '@shared/components/field-error/field-error.component';
+import { KiannaValidators } from '@core/validators/form.validators';
 
 @Component({
   selector: 'app-agendamento-detalhe',
@@ -24,7 +26,7 @@ import { SkeletonComponent } from '@shared/components/skeleton/skeleton.componen
     CommonModule, DatePipe, TitleCasePipe,
     ReactiveFormsModule, FormsModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatIconModule, MatProgressSpinnerModule,
-    SkeletonComponent,
+    SkeletonComponent, FieldErrorComponent,
   ],
   templateUrl: './agendamento-detalhe.component.html',
   styleUrl: './agendamento-detalhe.component.scss',
@@ -55,8 +57,8 @@ export class AgendamentoDetalheComponent implements OnInit {
   form = this.fb.group({
     servico_id:   ['', Validators.required],
     data_hora:    ['', Validators.required],
-    cliente_nome: ['', Validators.required],
-    cliente_wpp:  ['', Validators.required],
+    cliente_nome: ['', KiannaValidators.nome()],
+    cliente_wpp:  ['', KiannaValidators.whatsapp()],
     observacoes:  [''],
   });
 

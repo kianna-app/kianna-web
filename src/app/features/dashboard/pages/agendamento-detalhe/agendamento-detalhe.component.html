@@ -84,11 +84,13 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nome do cliente</mat-label>
             <input matInput formControlName="cliente_nome" />
+            <app-field-error [control]="form.controls.cliente_nome" />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>WhatsApp</mat-label>
             <input matInput type="tel" formControlName="cliente_wpp" />
+            <app-field-error [control]="form.controls.cliente_wpp" />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">

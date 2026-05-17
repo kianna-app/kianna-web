@@ -19,12 +19,7 @@
         <mat-hint align="end" [class.counter-warn]="nomeLen() > 70">
           {{ nomeLen() }}/80
         </mat-hint>
-        @if (form.get('nome')?.hasError('required') && form.get('nome')?.touched) {
-          <mat-error>Nome é obrigatório</mat-error>
-        }
-        @if (form.get('nome')?.hasError('minlength')) {
-          <mat-error>Mínimo de 2 caracteres</mat-error>
-        }
+        <app-field-error [control]="form.controls.nome" />
       </mat-form-field>
     </div>
   </div>
@@ -128,6 +123,7 @@
         } @else {
           <mat-hint>Pode alterar 1× por mês. O link antigo redireciona por 90 dias.</mat-hint>
         }
+        <app-field-error [control]="form.controls.slug" />
       </mat-form-field>
     </div>
   </div>

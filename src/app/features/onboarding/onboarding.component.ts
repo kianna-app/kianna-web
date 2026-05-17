@@ -16,7 +16,9 @@ import { currentUser } from '@core/signals/app.signals';
 import { gerarSlug, slugComSufixo } from '@core/utils/slug.util';
 import { APP } from '@core/constants/app.constants';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
-import { whatsAppValidator, limparWhatsApp } from '@core/utils/whatsapp.util';
+import { FieldErrorComponent } from '@shared/components/field-error/field-error.component';
+import { KiannaValidators } from '@core/validators/form.validators';
+import { limparWhatsApp } from '@core/utils/whatsapp.util';
 
 @Component({
   selector: 'app-onboarding',
@@ -26,7 +28,7 @@ import { whatsAppValidator, limparWhatsApp } from '@core/utils/whatsapp.util';
     MatStepperModule, MatButtonModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatIconModule,
     MatProgressSpinnerModule, MatChipsModule,
-    LoadingButtonComponent,
+    LoadingButtonComponent, FieldErrorComponent,
   ],
   providers: [{
     provide: STEPPER_GLOBAL_OPTIONS,
@@ -48,14 +50,14 @@ export class OnboardingComponent {
   perfilForm = this.fb.group({
     nome:          ['', [Validators.required, Validators.minLength(3)]],
     especialidade: ['', Validators.required],
-    whatsapp:      ['', [Validators.required, whatsAppValidator]],
+    whatsapp:      ['', KiannaValidators.whatsapp()],
     bio:           [''],
   });
 
   servicosForm = this.fb.group({
     nomeServico: ['', Validators.required],
     duracaoMin:  [60, Validators.required],
-    preco:       [0, [Validators.required, Validators.min(0)]],
+    preco:       [0, KiannaValidators.preco()],
   });
   servicosCadastrados = signal<Array<{nome: string; duracao: number; preco: number}>>([]);
 

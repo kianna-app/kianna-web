@@ -6,9 +6,7 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Nome do serviço</mat-label>
       <input matInput formControlName="nome" placeholder="Ex: Corte feminino">
-      @if (form.get('nome')?.hasError('minlength')) {
-        <mat-error>Mínimo 2 caracteres</mat-error>
-      }
+      <app-field-error [control]="form.controls.nome" />
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
@@ -35,9 +33,7 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Preço (R$)</mat-label>
       <input matInput formControlName="preco" type="number" min="0" step="0.01">
-      @if (form.get('preco')?.hasError('min')) {
-        <mat-error>Preço não pode ser negativo</mat-error>
-      }
+      <app-field-error [control]="form.controls.preco" />
     </mat-form-field>
 
   </form>
