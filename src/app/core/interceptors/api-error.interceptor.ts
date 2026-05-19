@@ -1,9 +1,17 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, throwError } from 'rxjs';
+import { catchError, throwError, timeout, TimeoutError } from 'rxjs';
 import { environment } from '@environments/environment';
 
+/**
+ * Erros tratados globalmente (snackbar):
+ *  - Sem conexão / timeout / status 0
+ *  - 401 (sessão) e 500+ (servidor)
+ *
+ * Erros 4xx (400, 404, 409, 422) são repassados ao componente,
+ * que mostra a mensagem contextual da API.
+ */
 export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.startsWith(environment.apiUrl)) {
     return next(req);
@@ -12,25 +20,35 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const snack = inject(MatSnackBar);
 
   return next(req).pipe(
-    catchError((err: HttpErrorResponse) => {
-      let msg = 'Erro ao conectar com o servidor.';
-
-      if (err.status === 0) {
-        msg = 'Sem conexão com o servidor. Verifique sua internet.';
-      } else if (err.status === 401) {
-        msg = 'Sessão expirada. Faça login novamente.';
-      } else if (err.status === 403) {
-        msg = err.error?.message || 'Sem permissão para esta ação.';
-      } else if (err.status === 404) {
-        msg = 'Recurso não encontrado.';
-      } else if (err.status >= 500) {
-        msg = 'Erro interno do servidor. Tente novamente.';
-      } else if (err.error?.message) {
-        msg = err.error.message;
+    timeout({ each: 30_000 }),
+    catchError((err: unknown) => {
+      if (err instanceof TimeoutError) {
+        snack.open('A requisição demorou demais para responder. Tente novamente.', '',
+          { duration: 4000, panelClass: 'snack-error' });
+        return throwError(() => err);
       }
 
-      console.error('[API]', err.status, err.url, err.error);
-      snack.open(msg, '', { duration: 4000, panelClass: 'snack-error' });
+      if (err instanceof HttpErrorResponse) {
+        let mostrarSnack = false;
+        let msg = '';
+
+        if (err.status === 0) {
+          msg = 'Sem conexão com o servidor. Verifique sua internet.';
+          mostrarSnack = true;
+        } else if (err.status === 401) {
+          msg = 'Sessão expirada. Faça login novamente.';
+          mostrarSnack = true;
+        } else if (err.status >= 500) {
+          msg = (err.error?.message as string) || 'Erro interno do servidor. Tente novamente.';
+          mostrarSnack = true;
+        }
+
+        if (mostrarSnack) {
+          snack.open(msg, '', { duration: 4000, panelClass: 'snack-error' });
+        }
+
+        console.error('[API]', err.status, err.url, err.error);
+      }
 
       return throwError(() => err);
     }),

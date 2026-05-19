@@ -8,6 +8,7 @@ export interface ConfirmDialogData {
   mensagem: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmIcon?: string;
   tipo?: 'warn' | 'primary';
   ocultarCancelar?: boolean;
 }
@@ -21,11 +22,17 @@ export interface ConfirmDialogData {
     <mat-dialog-content>
       <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6">{{ data.mensagem }}</p>
     </mat-dialog-content>
-    <mat-dialog-actions align="end" style="gap: 8px; padding: 16px">
+    <mat-dialog-actions align="end">
       @if (!data.ocultarCancelar) {
-        <button mat-button (click)="ref.close(false)">{{ data.cancelLabel ?? 'Cancelar' }}</button>
+        <button type="button" class="btn-ghost" (click)="ref.close(false)">
+          <mat-icon>close</mat-icon> {{ data.cancelLabel ?? 'Cancelar' }}
+        </button>
       }
-      <button mat-raised-button [color]="data.tipo ?? 'warn'" (click)="ref.close(true)">
+      <button
+        type="button"
+        [class]="(data.tipo ?? 'warn') === 'warn' ? 'btn-danger' : 'btn-primary'"
+        (click)="ref.close(true)">
+        <mat-icon>{{ iconeConfirmar }}</mat-icon>
         {{ data.confirmLabel ?? 'Confirmar' }}
       </button>
     </mat-dialog-actions>
@@ -34,4 +41,9 @@ export interface ConfirmDialogData {
 export class ConfirmDialogComponent {
   data = inject<ConfirmDialogData>(MAT_DIALOG_DATA);
   ref  = inject(MatDialogRef<ConfirmDialogComponent>);
+
+  get iconeConfirmar(): string {
+    if (this.data.confirmIcon) return this.data.confirmIcon;
+    return (this.data.tipo ?? 'warn') === 'warn' ? 'delete_outline' : 'check_circle';
+  }
 }

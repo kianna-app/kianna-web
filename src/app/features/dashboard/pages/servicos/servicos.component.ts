@@ -1,15 +1,15 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ServicosStore } from '../../state/servicos.store';
 import { Servico, MODALIDADE_LABELS } from '@core/types/database.types';
 import { ServicoDialogComponent, ServicoDialogData } from './servico-dialog/servico-dialog.component';
@@ -21,8 +21,8 @@ import { firstValueFrom } from 'rxjs';
   selector: 'app-servicos',
   standalone: true,
   imports: [
-    CommonModule, MatCardModule, MatButtonModule, MatIconModule,
-    MatFormFieldModule, MatInputModule, MatSlideToggleModule,
+    CommonModule, MatButtonModule, MatIconModule,
+    MatFormFieldModule, MatInputModule, MatButtonToggleModule,
     MatProgressSpinnerModule, MatTooltipModule, SkeletonComponent,
   ],
   templateUrl: './servicos.component.html',
@@ -35,7 +35,21 @@ export class ServicosComponent implements OnInit {
 
   readonly MODALIDADE_LABELS = MODALIDADE_LABELS;
   readonly busca = signal('');
-  readonly servicoExpandido = signal<string | null>(null);
+
+  private readonly VIEW_STORAGE_KEY = 'kianna:servicos:view';
+  readonly viewMode = signal<'lista' | 'card'>(this.recuperarViewMode());
+
+  setViewMode(modo: 'lista' | 'card'): void {
+    this.viewMode.set(modo);
+    try { localStorage.setItem(this.VIEW_STORAGE_KEY, modo); } catch { /* private mode */ }
+  }
+
+  private recuperarViewMode(): 'lista' | 'card' {
+    try {
+      const v = localStorage.getItem(this.VIEW_STORAGE_KEY);
+      return v === 'card' ? 'card' : 'lista';
+    } catch { return 'lista'; }
+  }
 
   readonly servicosFiltrados = computed(() => {
     const termo = this.busca().toLowerCase().trim();
@@ -48,10 +62,6 @@ export class ServicosComponent implements OnInit {
   });
 
   ngOnInit(): void { this.store.carregar(); }
-
-  toggleExpandir(id: string): void {
-    this.servicoExpandido.update(atual => atual === id ? null : id);
-  }
 
   formatarPreco(v: number): string {
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -87,7 +97,8 @@ export class ServicosComponent implements OnInit {
       await this.store.criar(input);
       this.snack.open('Serviço criado', 'OK', { duration: 2000 });
     } catch (e: unknown) {
-      this.snack.open(e instanceof Error ? e.message : 'Erro ao criar', 'OK', { duration: 3000 });
+      this.snack.open(this.mensagemErro(e, 'Erro ao criar serviço'), 'OK',
+        { duration: 4000, panelClass: 'snack-error' });
     }
   }
 
@@ -101,7 +112,8 @@ export class ServicosComponent implements OnInit {
       await this.store.atualizar(servico.id, input);
       this.snack.open('Serviço atualizado', 'OK', { duration: 2000 });
     } catch (e: unknown) {
-      this.snack.open(e instanceof Error ? e.message : 'Erro ao atualizar', 'OK', { duration: 3000 });
+      this.snack.open(this.mensagemErro(e, 'Erro ao atualizar serviço'), 'OK',
+        { duration: 4000, panelClass: 'snack-error' });
     }
   }
 
@@ -113,8 +125,9 @@ export class ServicosComponent implements OnInit {
         novoAtivo ? `"${servico.nome}" ativado` : `"${servico.nome}" desativado`,
         'OK', { duration: 2000 }
       );
-    } catch {
-      this.snack.open('Erro ao alterar status', 'OK', { duration: 2000 });
+    } catch (e: unknown) {
+      this.snack.open(this.mensagemErro(e, 'Erro ao alterar status'), 'OK',
+        { duration: 3000, panelClass: 'snack-error' });
     }
   }
 
@@ -132,18 +145,46 @@ export class ServicosComponent implements OnInit {
     try {
       await this.store.excluir(servico.id);
       this.snack.open('Serviço excluído', 'OK', { duration: 2000 });
-    } catch (e: any) {
-      if (e?.code === '23503' || e?.message?.includes('foreign key')) {
-        this.snack.open(
-          'Não é possível excluir este serviço pois ele possui agendamentos vinculados. ' +
-          'Cancele ou conclua os agendamentos antes de excluir.',
-          'Entendi',
-          { duration: 8000, panelClass: 'snack-warn' }
-        );
-      } else {
-        this.snack.open('Erro ao excluir serviço. Tente novamente.', 'OK', { duration: 3000 });
-        console.error('[Serviços] erro ao excluir:', e);
-      }
+    } catch (e: unknown) {
+      const { mensagem, vinculado } = this.mapearErroExclusao(e);
+      this.snack.open(
+        mensagem,
+        vinculado ? 'Entendi' : 'OK',
+        { duration: vinculado ? 7000 : 4000, panelClass: vinculado ? 'snack-warn' : 'snack-error' },
+      );
+      console.error('[Serviços] erro ao excluir:', e);
     }
+  }
+
+  private mensagemErro(e: unknown, fallback: string): string {
+    if (e instanceof HttpErrorResponse) {
+      return (e.error?.message as string) || (e.error?.error as string) || fallback;
+    }
+    return e instanceof Error && e.message ? e.message : fallback;
+  }
+
+  private mapearErroExclusao(e: unknown): { mensagem: string; vinculado: boolean } {
+    const err = e as any;
+    const code = err?.code ?? err?.error?.code;
+    const msgApi = err instanceof HttpErrorResponse
+      ? (err.error?.message as string) || (err.error?.error as string)
+      : err?.message as string | undefined;
+
+    const ehVinculo =
+      code === '23503' ||
+      err?.status === 409 ||
+      (typeof msgApi === 'string' &&
+        (msgApi.toLowerCase().includes('foreign key') ||
+         msgApi.toLowerCase().includes('agendamento')));
+
+    if (ehVinculo) {
+      return {
+        mensagem: 'Não é possível excluir: serviço possui agendamentos vinculados. Cancele ou conclua os agendamentos antes de excluir.',
+        vinculado: true,
+      };
+    }
+
+    if (msgApi) return { mensagem: msgApi, vinculado: false };
+    return { mensagem: 'Não foi possível excluir o serviço. Tente novamente.', vinculado: false };
   }
 }

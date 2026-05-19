@@ -40,8 +40,11 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="fechar()">Cancelar</button>
-  <button mat-raised-button color="primary" (click)="salvar()" [disabled]="form.invalid">
+  <button type="button" class="btn-ghost" (click)="fechar()">
+    <mat-icon>close</mat-icon> Cancelar
+  </button>
+  <button type="button" class="btn-primary" (click)="salvar()" [disabled]="form.invalid">
+    <mat-icon>{{ isEdicao ? 'save' : 'add' }}</mat-icon>
     {{ isEdicao ? 'Salvar' : 'Criar' }}
   </button>
 </mat-dialog-actions>

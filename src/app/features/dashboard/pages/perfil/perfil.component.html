@@ -57,7 +57,7 @@
 
         <div class="link-box">
           <span class="link-url">{{ linkPublico }}</span>
-          <button mat-stroked-button color="primary" (click)="copiarLink()">
+          <button type="button" class="btn-primary btn-sm" (click)="copiarLink()">
             <mat-icon>{{ copiado() ? 'check' : 'content_copy' }}</mat-icon>
             {{ copiado() ? 'Copiado!' : 'Copiar' }}
           </button>
@@ -67,7 +67,7 @@
       <mat-card class="sair-card">
         <h3><mat-icon>logout</mat-icon> Sair da conta</h3>
         <p>Você será redirecionado para a tela de login.</p>
-        <button mat-stroked-button color="warn" (click)="logout()">
+        <button type="button" class="btn-danger" (click)="logout()">
           <mat-icon>logout</mat-icon> Sair
         </button>
       </mat-card>

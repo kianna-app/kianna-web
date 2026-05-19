@@ -15,123 +15,187 @@
     </button>
   </div>
 
-  <!-- Campo de busca -->
+  <!-- Toolbar: busca + alternador de visualização -->
   @if (store.servicos().length > 0) {
-    <mat-form-field appearance="outline" class="busca-field">
-      <mat-icon matPrefix>search</mat-icon>
-      <input matInput type="search" placeholder="Buscar por nome ou modalidade..."
-             [value]="busca()" (input)="busca.set($any($event.target).value)">
-      @if (busca()) {
-        <button mat-icon-button matSuffix (click)="busca.set('')" aria-label="Limpar busca">
-          <mat-icon>close</mat-icon>
-        </button>
-      }
-    </mat-form-field>
+    <div class="toolbar">
+      <mat-form-field appearance="outline" class="busca-field">
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput type="search" placeholder="Buscar por nome ou modalidade..."
+               [value]="busca()" (input)="busca.set($any($event.target).value)"
+               aria-label="Buscar serviço">
+        @if (busca()) {
+          <button mat-icon-button matSuffix (click)="busca.set('')" aria-label="Limpar busca">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <mat-button-toggle-group
+        class="view-toggle"
+        [value]="viewMode()"
+        (change)="setViewMode($event.value)"
+        aria-label="Modo de visualização">
+        <mat-button-toggle value="lista" matTooltip="Visualizar como lista" aria-label="Lista">
+          <mat-icon>format_list_bulleted</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="card" matTooltip="Visualizar como cards" aria-label="Cards">
+          <mat-icon>apps</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
   }
 
   @if (store.carregando()) {
-    <div class="servicos-skeleton">
-      @for (i of [1,2,3]; track i) {
+    <div class="servicos-grid">
+      @for (i of [1,2,3,4]; track i) {
         <div class="servico-sk-card">
-          <div class="servico-sk-body">
-            <app-skeleton height="15px" width="55%" radius="4px" />
-            <app-skeleton height="12px" width="35%" radius="4px" style="margin-top:8px" />
+          <app-skeleton height="18px" width="60%" radius="6px" />
+          <div class="servico-sk-meta">
+            <app-skeleton height="20px" width="80px" radius="99px" />
+            <app-skeleton height="14px" width="60px" radius="4px" />
           </div>
-          <app-skeleton height="28px" width="60px" radius="6px" />
+          <app-skeleton height="14px" width="40%" radius="4px" />
+          <div class="servico-sk-foot">
+            <app-skeleton height="32px" width="32px" radius="8px" />
+            <app-skeleton height="32px" width="32px" radius="8px" />
+          </div>
         </div>
       }
     </div>
   } @else if (store.erro()) {
     <div class="empty-state">
-      <mat-icon>wifi_off</mat-icon>
+      <div class="empty-illustration erro">
+        <mat-icon>wifi_off</mat-icon>
+      </div>
       <h3>Erro ao carregar serviços</h3>
       <p>{{ store.erro() }}</p>
-      <button mat-stroked-button (click)="store.carregar()">Tentar novamente</button>
+      <button class="btn-ghost btn-sm" (click)="store.carregar()">
+        <mat-icon>refresh</mat-icon> Tentar novamente
+      </button>
     </div>
   } @else if (store.servicos().length === 0) {
     <div class="empty-state">
-      <mat-icon>cut</mat-icon>
+      <div class="empty-illustration">
+        <mat-icon>content_cut</mat-icon>
+      </div>
       <h3>Nenhum serviço cadastrado</h3>
-      <p>Adicione seus serviços para começar a receber agendamentos</p>
+      <p>Adicione seus serviços para começar a receber agendamentos pela sua página pública</p>
       <button class="btn-primary" (click)="abrirDialogNovo()">
         <mat-icon>add</mat-icon> Adicionar primeiro serviço
       </button>
     </div>
   } @else if (servicosFiltrados().length === 0) {
     <div class="empty-state">
-      <mat-icon>search_off</mat-icon>
+      <div class="empty-illustration">
+        <mat-icon>search_off</mat-icon>
+      </div>
       <h3>Nenhum serviço encontrado</h3>
       <p>Tente buscar por outro termo</p>
+      <button class="btn-ghost btn-sm" (click)="busca.set('')">
+        <mat-icon>close</mat-icon> Limpar busca
+      </button>
     </div>
-  }  @else {
-    <div class="servicos-list">
+  } @else if (viewMode() === 'card') {
+    <!-- ── Visualização em CARDS ── -->
+    <div class="servicos-grid">
       @for (s of servicosFiltrados(); track s.id) {
-        <mat-card class="servico-card" [class.inativo]="!s.ativo"
-                  [class.expandido]="servicoExpandido() === s.id">
+        <article class="servico-card" [class.inativo]="!s.ativo">
+          <header class="card-head">
+            <h3 class="card-titulo">{{ s.nome }}</h3>
+            @if (!s.ativo) {
+              <span class="tag-inativo" title="Não aparece na página pública">Inativo</span>
+            }
+          </header>
 
-          <!-- Cabeçalho clicável -->
-          <div class="card-head" (click)="toggleExpandir(s.id)">
-            <div class="card-head-info">
-              <div class="card-head-titulo">
-                <h3>{{ s.nome }}</h3>
-                @if (!s.ativo) {
-                  <span class="tag-inativo">Inativo</span>
-                }
-              </div>
-              <div class="card-head-meta">
-                <span class="meta-item">
-                  <mat-icon>schedule</mat-icon>
-                  {{ formatarDuracao(s.duracao_min) }}
-                </span>
-                <span class="meta-item modalidade">
-                  <mat-icon>{{ MODALIDADE_LABELS[s.modalidade].icone }}</mat-icon>
-                  {{ MODALIDADE_LABELS[s.modalidade].label }}
-                </span>
-                <span class="meta-item preco">{{ formatarPreco(s.preco) }}</span>
-              </div>
-            </div>
-            <button mat-icon-button class="btn-expandir" aria-label="Expandir">
-              <mat-icon>{{ servicoExpandido() === s.id ? 'expand_less' : 'expand_more' }}</mat-icon>
-            </button>
+          <div class="card-meta">
+            <span class="chip-modalidade" [attr.data-modalidade]="s.modalidade">
+              <mat-icon>{{ MODALIDADE_LABELS[s.modalidade].icone }}</mat-icon>
+              {{ MODALIDADE_LABELS[s.modalidade].label }}
+            </span>
+            <span class="meta-duracao">
+              <mat-icon>schedule</mat-icon>
+              {{ formatarDuracao(s.duracao_min) }}
+            </span>
           </div>
 
-          <!-- Conteúdo expansível -->
-          @if (servicoExpandido() === s.id) {
-            <div class="card-body">
-              <div class="card-toggle">
-                <mat-slide-toggle color="primary" [checked]="s.ativo" (change)="toggle(s)">
-                  {{ s.ativo ? 'Serviço ativo' : 'Serviço inativo' }}
-                </mat-slide-toggle>
-                <p class="toggle-help">
-                  {{ s.ativo
-                    ? 'Aparece na sua página pública pra clientes agendarem'
-                    : 'Não aparece na página. Clientes não conseguem escolher.' }}
-                </p>
-              </div>
+          <div class="card-preco">{{ formatarPreco(s.preco) }}</div>
 
-              <div class="card-actions">
-                <button class="btn-ghost btn-sm" (click)="abrirDialogEdicao(s); $event.stopPropagation()">
-                  <mat-icon>edit</mat-icon> Editar
-                </button>
-                <button class="btn-danger btn-sm" (click)="excluir(s); $event.stopPropagation()">
-                  <mat-icon>delete_outline</mat-icon> Excluir
-                </button>
-              </div>
+          <footer class="card-actions">
+            <button class="action-btn toggle-btn" [class.ativo]="s.ativo"
+                    (click)="toggle(s)"
+                    [matTooltip]="s.ativo ? 'Desativar serviço' : 'Ativar serviço'"
+                    [attr.aria-label]="s.ativo ? 'Desativar' : 'Ativar'">
+              <mat-icon>{{ s.ativo ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <button class="action-btn" (click)="abrirDialogEdicao(s)"
+                    matTooltip="Editar serviço" aria-label="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button class="action-btn danger" (click)="excluir(s)"
+                    matTooltip="Excluir serviço" aria-label="Excluir">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </footer>
+        </article>
+      }
+    </div>
+  } @else {
+    <!-- ── Visualização em LISTA (padrão) ── -->
+    <div class="servicos-lista">
+      @for (s of servicosFiltrados(); track s.id) {
+        <div class="lista-item" [class.inativo]="!s.ativo">
+          <div class="lista-info">
+            <div class="lista-titulo-row">
+              <h3 class="lista-titulo">{{ s.nome }}</h3>
+              @if (!s.ativo) {
+                <span class="tag-inativo">Inativo</span>
+              }
             </div>
-          }
-        </mat-card>
+            <div class="lista-meta">
+              <span class="chip-modalidade" [attr.data-modalidade]="s.modalidade">
+                <mat-icon>{{ MODALIDADE_LABELS[s.modalidade].icone }}</mat-icon>
+                {{ MODALIDADE_LABELS[s.modalidade].label }}
+              </span>
+              <span class="meta-duracao">
+                <mat-icon>schedule</mat-icon>
+                {{ formatarDuracao(s.duracao_min) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="lista-preco">{{ formatarPreco(s.preco) }}</div>
+
+          <div class="lista-actions">
+            <button class="action-btn toggle-btn" [class.ativo]="s.ativo"
+                    (click)="toggle(s)"
+                    [matTooltip]="s.ativo ? 'Desativar serviço' : 'Ativar serviço'"
+                    [attr.aria-label]="s.ativo ? 'Desativar' : 'Ativar'">
+              <mat-icon>{{ s.ativo ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <button class="action-btn" (click)="abrirDialogEdicao(s)"
+                    matTooltip="Editar serviço" aria-label="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button class="action-btn danger" (click)="excluir(s)"
+                    matTooltip="Excluir serviço" aria-label="Excluir">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        </div>
       }
     </div>
   }
 
 
-  @if(store.atingiuLimite()) {
-    <div class="empty-state">
+  @if(store.atingiuLimite() && store.servicos().length > 0) {
+    <div class="limite-banner">
       <mat-icon>lock</mat-icon>
-      <h3>Limite de serviços atingido</h3>
-      <p>Faça upgrade para um plano superior e adicione mais serviços</p>
-      <button class="btn-primary" >
-        Ver planos
+      <div>
+        <strong>Limite de serviços atingido</strong>
+        <p>Faça upgrade para adicionar mais serviços</p>
+      </div>
+      <button class="btn-primary btn-sm">
+        <mat-icon>upgrade</mat-icon> Ver planos
       </button>
     </div>
   }

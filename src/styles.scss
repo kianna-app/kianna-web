@@ -379,56 +379,93 @@ mat-form-field { max-width: 100%; }
 // KIANNA — PADRÃO DE BOTÕES
 // =============================================
 
-.btn-primary {
-  background: #1D9E75 !important;
-  color: #fff !important;
-  border: none !important;
+// Referência canônica: botão "+ Adicionar bloqueio"
+%btn-base {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 18px !important;
   border-radius: 10px !important;
-  padding: 10px 20px !important;
   font: 600 14px 'Inter', sans-serif !important;
   cursor: pointer;
-  transition: background .15s, box-shadow .15s;
-  display: inline-flex; align-items: center; gap: 8px;
-  &:hover:not(:disabled) { background: #178a65 !important; }
-  &:disabled { opacity: 0.55; cursor: not-allowed; }
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
+  white-space: nowrap;
+  user-select: none;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+  }
+  &:focus-visible {
+    outline: 2px solid rgba(29, 158, 117, .35);
+    outline-offset: 2px;
+  }
+  &:disabled { opacity: .55; cursor: not-allowed; }
+}
+
+.btn-primary {
+  @extend %btn-base;
+  background: #1D9E75 !important;
+  color: #fff !important;
+  border: 1px solid #1D9E75 !important;
+  box-shadow: 0 1px 2px rgba(29,158,117,.18);
+  &:hover:not(:disabled) {
+    background: #178a65 !important;
+    border-color: #178a65 !important;
+  }
 }
 
 .btn-danger {
+  @extend %btn-base;
   background: #fff !important;
   color: #dc3545 !important;
   border: 1.5px solid #dc3545 !important;
-  border-radius: 10px !important;
-  padding: 10px 20px !important;
-  font: 600 14px 'Inter', sans-serif !important;
-  cursor: pointer;
-  transition: all .15s;
-  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 600 !important;
   &:hover:not(:disabled) { background: #fdecea !important; }
-  &:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .btn-ghost {
+  @extend %btn-base;
   background: transparent !important;
   color: #495057 !important;
   border: 1.5px solid #dee2e6 !important;
-  border-radius: 10px !important;
-  padding: 10px 20px !important;
-  font: 500 14px 'Inter', sans-serif !important;
-  cursor: pointer;
-  transition: all .15s;
-  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 500 !important;
   &:hover:not(:disabled) { background: #f8f9fa !important; border-color: #adb5bd !important; }
-  &:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
-.btn-sm { padding: 6px 12px !important; font-size: 12px !important; border-radius: 8px !important; }
-.btn-lg { padding: 13px 28px !important; font-size: 15px !important; border-radius: 12px !important; }
+.btn-sm {
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  min-height: 32px !important;
+  mat-icon { font-size: 15px !important; width: 15px !important; height: 15px !important; }
+}
+.btn-lg {
+  padding: 13px 28px !important;
+  font-size: 15px !important;
+  border-radius: 12px !important;
+  min-height: 48px !important;
+  mat-icon { font-size: 20px !important; width: 20px !important; height: 20px !important; }
+}
 
 .btn-icon {
   width: 36px; height: 36px; padding: 0 !important;
   display: grid; place-items: center;
   border-radius: 8px !important;
+  min-height: 36px !important;
 }
+
+// Espaçamento padrão entre botões adjacentes em dialogs/footers/ações
+.mat-mdc-dialog-actions,
+mat-dialog-actions {
+  gap: 16px !important;
+  padding: 16px 24px !important;
+}
+.dialog-actions { gap: 16px !important; }
 
 // Snackbar de aviso (cor âmbar)
 .snack-warn .mdc-snackbar__surface { background: #fff3cd !important; }
