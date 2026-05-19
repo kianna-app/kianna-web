@@ -19,13 +19,13 @@
   @if (store.servicos().length > 0) {
     <div class="toolbar">
       <mat-form-field appearance="outline" class="busca-field">
-        <mat-icon matPrefix>search</mat-icon>
+        <mat-icon matPrefix class="toolbar-icon">search</mat-icon>
         <input matInput type="search" placeholder="Buscar por nome ou modalidade..."
                [value]="busca()" (input)="busca.set($any($event.target).value)"
                aria-label="Buscar serviço">
         @if (busca()) {
           <button mat-icon-button matSuffix (click)="busca.set('')" aria-label="Limpar busca">
-            <mat-icon>close</mat-icon>
+            <mat-icon class="toolbar-icon">close</mat-icon>
           </button>
         }
       </mat-form-field>
@@ -34,12 +34,13 @@
         class="view-toggle"
         [value]="viewMode()"
         (change)="setViewMode($event.value)"
+        hideSingleSelectionIndicator
         aria-label="Modo de visualização">
         <mat-button-toggle value="lista" matTooltip="Visualizar como lista" aria-label="Lista">
-          <mat-icon>format_list_bulleted</mat-icon>
+          <mat-icon class="toolbar-icon">reorder</mat-icon>
         </mat-button-toggle>
         <mat-button-toggle value="card" matTooltip="Visualizar como cards" aria-label="Cards">
-          <mat-icon>apps</mat-icon>
+          <mat-icon class="toolbar-icon">grid_view</mat-icon>
         </mat-button-toggle>
       </mat-button-toggle-group>
     </div>
