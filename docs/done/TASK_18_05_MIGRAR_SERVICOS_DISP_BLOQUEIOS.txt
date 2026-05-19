@@ -1,0 +1,506 @@
+KIANNA — TASK: MIGRAR SERVIÇOS, DISPONIBILIDADES E BLOQUEIOS PARA O BACKEND
+Branch: feat/migrar-servicos-disp-bloqueios
+Gerado em: Maio/2026
+========================================
+
+CONTEXTO
+--------
+Frontend: Angular 17+ no Vercel
+Backend: NestJS no Railway (kianna-api-production.up.railway.app)
+ApiService já existe (criado na task anterior).
+Agendamentos e profissionais já migrados.
+
+OBJETIVO: migrar os 3 módulos restantes para usar o backend.
+Após esta task, o frontend NÃO faz mais queries diretas ao Supabase
+(exceto Auth e Realtime).
+
+
+========================================
+=== BLOCO A — MIGRAR SERVIÇOS ===
+========================================
+
+
+--- A1: servicos.repository.ts ---
+
+ARQUIVO: src/app/core/repositories/servicos.repository.ts
+
+Injetar ApiService, remover referências ao SupabaseClient.
+
+MIGRAR MÉTODOS:
+
+  // Listar serviços do profissional
+  async getServicos(): Promise<Servico[]>
+    ANTES: supabase.from('servicos').select('*').eq('profissional_id', profId)
+    DEPOIS: this.api.get('/api/servicos')
+
+  // Buscar por ID
+  async getById(id: string): Promise<Servico>
+    ANTES: supabase.from('servicos').select('*').eq('id', id).single()
+    DEPOIS: this.api.get(`/api/servicos/${id}`)
+
+  // Criar
+  async criar(payload: CriarServicoDto): Promise<Servico>
+    ANTES: supabase.from('servicos').insert({ ...payload, profissional_id: profId })
+    DEPOIS: this.api.post('/api/servicos', payload)
+    NOTA: profissional_id é injetado pelo backend via JWT, não enviar do front.
+
+  // Atualizar
+  async atualizar(id: string, payload: Partial<Servico>): Promise<Servico>
+    ANTES: supabase.from('servicos').update(payload).eq('id', id)
+    DEPOIS: this.api.patch(`/api/servicos/${id}`, payload)
+
+  // Excluir
+  async excluir(id: string): Promise<void>
+    ANTES: supabase.from('servicos').delete().eq('id', id)
+    DEPOIS: this.api.delete(`/api/servicos/${id}`)
+    NOTA: backend já retorna 403 com mensagem quando há FK (agendamentos vinculados).
+          O apiErrorInterceptor exibe no snackbar automaticamente.
+
+  // Listar ativos por profissional (público — página de booking)
+  // Se existe método separado para a página pública:
+  async listarAtivosPorSlug(slug: string): Promise<ServicoPublico[]>
+    ANTES: supabase.from('servicos').select('...').eq('profissional_id', profId).eq('ativo', true)
+    DEPOIS: this.api.getPublic(`/api/profissionais/${slug}/servicos`)
+    NOTA: verificar se endpoint existe no backend.
+          Se não, usar o endpoint GET /api/booking/:slug (criado na task anterior)
+          que retorna serviços junto com os outros dados.
+
+
+--- A2: servicos.store.ts ---
+
+Verificar que o store chama os métodos do repository (não Supabase direto).
+Se o store faz queries Supabase inline, migrar para chamar o repository.
+
+Verificar:
+  carregar()   → deve chamar this.repo.getServicos()
+  criar()      → deve chamar this.repo.criar(payload)
+  atualizar()  → deve chamar this.repo.atualizar(id, payload)
+  excluir()    → deve chamar this.repo.excluir(id)
+
+Se já usa o repository: nenhuma mudança necessária no store.
+
+
+--- A3: Limpar imports ---
+
+No servicos.repository.ts:
+  - Remover import de supabase.client.ts
+  - Remover inject de SupabaseClient
+  - Remover profissionalIdOrThrow() se existir (backend resolve via JWT)
+  - Manter apenas: inject(ApiService)
+
+
+========================================
+=== BLOCO B — MIGRAR DISPONIBILIDADES ===
+========================================
+
+
+--- B1: disponibilidades.repository.ts ---
+
+ARQUIVO: src/app/core/repositories/disponibilidades.repository.ts
+
+MIGRAR MÉTODOS:
+
+  // Listar disponibilidades do profissional
+  async getDisponibilidades(): Promise<Disponibilidade[]>
+    ANTES: supabase.from('disponibilidades').select('*').eq('profissional_id', profId)
+    DEPOIS: this.api.get('/api/disponibilidades')
+
+  // Criar
+  async criar(payload: CriarDisponibilidadeDto): Promise<Disponibilidade>
+    ANTES: supabase.from('disponibilidades').insert({ ...payload, profissional_id: profId })
+    DEPOIS: this.api.post('/api/disponibilidades', payload)
+
+  // Atualizar
+  async atualizar(id: string, payload: Partial<Disponibilidade>): Promise<Disponibilidade>
+    ANTES: supabase.from('disponibilidades').update(payload).eq('id', id)
+    DEPOIS: this.api.patch(`/api/disponibilidades/${id}`, payload)
+
+  // Excluir
+  async excluir(id: string): Promise<void>
+    ANTES: supabase.from('disponibilidades').delete().eq('id', id)
+    DEPOIS: this.api.delete(`/api/disponibilidades/${id}`)
+
+  // Listar por profissional (público — slot-calculator)
+  async listarPorProfissional(profissionalId: string): Promise<DisponibilidadePublica[]>
+    ANTES: supabase.from('disponibilidades').select('...').eq('profissional_id', profissionalId)
+    DEPOIS: this.api.getPublic(`/api/profissionais/${slug}/disponibilidades`)
+    NOTA: este método é chamado pelo booking.service / slot-calculator.
+          Verificar se o endpoint público existe no backend.
+          Se não, criar:
+
+          // profissionais.controller.ts
+          @Get(':slug/disponibilidades')
+          @ApiOperation({ summary: 'Disponibilidades públicas por slug' })
+          async disponibilidades(@Param('slug') slug: string) {
+            const prof = await this.profService.buscarPorSlug(slug)
+            return this.dispService.listarPorProfissional(prof.id)
+          }
+
+          OU usar o endpoint consolidado GET /api/booking/:slug
+
+
+--- B2: horarios.store.ts ---
+
+Mesmo padrão de A2: verificar que o store chama o repository, não Supabase direto.
+
+
+--- B3: Limpar imports ---
+
+Mesmo padrão de A3: remover Supabase, manter ApiService.
+
+
+========================================
+=== BLOCO C — MIGRAR BLOQUEIOS ===
+========================================
+
+
+--- C1: bloqueios.repository.ts ---
+
+ARQUIVO: src/app/core/repositories/bloqueios.repository.ts
+
+Se o arquivo não existir ainda (bloqueios pode ser funcionalidade nova),
+criar com os métodos abaixo. Se existir, migrar.
+
+MÉTODOS:
+
+  private api = inject(ApiService)
+
+  // Listar bloqueios futuros do profissional
+  async getBloqueios(): Promise<Bloqueio[]>
+    DEPOIS: this.api.get('/api/bloqueios')
+
+  // Criar bloqueio
+  async criar(payload: { data: string; hora_inicio?: string; hora_fim?: string; motivo?: string }): Promise<Bloqueio>
+    DEPOIS: this.api.post('/api/bloqueios', payload)
+
+  // Excluir bloqueio
+  async excluir(id: string): Promise<void>
+    DEPOIS: this.api.delete(`/api/bloqueios/${id}`)
+
+  // Listar bloqueios por período (público — slot-calculator)
+  async listarPorPeriodo(slug: string, dataInicio: string, dataFim: string): Promise<BloqueioPublico[]>
+    DEPOIS: this.api.getPublic(`/api/profissionais/${slug}/bloqueios?data_inicio=${dataInicio}&data_fim=${dataFim}`)
+    NOTA: verificar se endpoint existe no backend.
+          Se não, criar:
+
+          // profissionais.controller.ts
+          @Get(':slug/bloqueios')
+          @ApiOperation({ summary: 'Bloqueios públicos por slug e período' })
+          async bloqueios(
+            @Param('slug') slug: string,
+            @Query('data_inicio') dataInicio: string,
+            @Query('data_fim') dataFim: string,
+          ) {
+            const prof = await this.profService.buscarPorSlug(slug)
+            return this.bloqueiosService.listarPorPeriodo(prof.id, dataInicio, dataFim)
+          }
+
+          OU usar o endpoint consolidado GET /api/booking/:slug
+
+
+--- C2: bloqueios.store.ts ---
+
+Se existir: verificar que chama o repository.
+Se não existir: criar com signals (bloqueios, loading, erro) e métodos (carregar, criar, excluir).
+
+
+--- C3: Limpar imports ---
+
+Mesmo padrão: remover Supabase, manter ApiService.
+
+
+========================================
+=== BLOCO D — ENDPOINT CONSOLIDADO /api/booking/:slug (recomendado) ===
+========================================
+
+Em vez de 4 chamadas públicas separadas na página de booking,
+criar um endpoint que retorna tudo junto.
+
+Verificar se já foi criado na task anterior.
+Se não, criar no backend:
+
+ARQUIVO: src/modules/booking/booking.controller.ts (novo módulo)
+
+@ApiTags('Booking')
+@Controller('api/booking')
+export class BookingController {
+  constructor(
+    private profService: ProfissionaisService,
+    private servicosService: ServicosService,
+    private dispService: DisponibilidadesService,
+    private bloqueiosService: BloqueiosService,
+  ) {}
+
+  @Get(':slug')
+  @ApiOperation({ summary: 'Dados completos para página de booking' })
+  async dadosBooking(@Param('slug') slug: string) {
+    const prof = await this.profService.buscarPorSlug(slug)
+    if (!prof) throw new NotFoundException('Profissional não encontrado')
+
+    const hoje = new Date().toISOString().split('T')[0]
+    const janela = prof.antecedencia_maxima_dias ?? 30
+    const dataFim = new Date()
+    dataFim.setDate(dataFim.getDate() + janela)
+    const dataFimISO = dataFim.toISOString().split('T')[0]
+
+    const [servicos, disponibilidades, bloqueios] = await Promise.all([
+      this.servicosService.listarAtivos(prof.id),
+      this.dispService.listarPorProfissional(prof.id),
+      this.bloqueiosService.listarPorPeriodo(prof.id, hoje, dataFimISO),
+    ])
+
+    return {
+      profissional: {
+        id: prof.id,
+        nome: prof.nome,
+        slug: prof.slug,
+        foto_url: prof.foto_url,
+        especialidade: prof.especialidade,
+        bio: prof.bio,
+        whatsapp: prof.whatsapp,
+        antecedencia_minima_horas: prof.antecedencia_minima_horas,
+        antecedencia_maxima_dias: prof.antecedencia_maxima_dias,
+        timezone: prof.timezone,
+      },
+      servicos,
+      disponibilidades,
+      bloqueios,
+    }
+  }
+}
+
+ARQUIVO: src/modules/booking/booking.module.ts
+
+@Module({
+  imports: [ProfissionaisModule, ServicosModule, DisponibilidadesModule, BloqueiosModule],
+  controllers: [BookingController],
+})
+export class BookingModule {}
+
+Registrar no AppModule imports[].
+
+NO FRONTEND — booking.service.ts ou booking.repository.ts:
+
+  // Substituir múltiplas chamadas por uma só:
+  async carregarDadosBooking(slug: string): Promise<DadosBooking> {
+    return this.api.getPublic(`/api/booking/${slug}`)
+  }
+
+  // Interface:
+  interface DadosBooking {
+    profissional: ProfissionalPublico
+    servicos: ServicoPublico[]
+    disponibilidades: DisponibilidadePublica[]
+    bloqueios: BloqueioPublico[]
+  }
+
+
+========================================
+=== BLOCO E — LIMPEZA FINAL ===
+========================================
+
+
+--- E1: Verificar que nenhum repository migrado usa Supabase ---
+
+Após migrar os 3 módulos, rodar busca no código:
+
+  grep -rn "supabase" src/app/core/repositories/
+
+Resultado esperado: ZERO ocorrências nos arquivos migrados:
+  - agendamentos.repository.ts  (migrado na task anterior)
+  - profissionais.repository.ts (migrado na task anterior)
+  - servicos.repository.ts      (migrado agora)
+  - disponibilidades.repository.ts (migrado agora)
+  - bloqueios.repository.ts     (migrado agora)
+  - booking.repository.ts       (migrado na task anterior)
+
+Ocorrências PERMITIDAS:
+  - base.repository.ts (pode manter se outros usam — mas verificar)
+  - estatisticas.repository.ts (se existir e não foi migrado)
+
+Se base.repository.ts não é mais usado por nenhum repository: remover.
+
+
+--- E2: Verificar supabase.client.ts ---
+
+O arquivo supabase.client.ts ainda é necessário para:
+  - Auth (login, cadastro, refresh token, getSession)
+  - Realtime (subscription de agendamentos)
+
+NÃO REMOVER o supabase.client.ts.
+Mas verificar que ele NÃO é importado nos repositories migrados.
+
+
+--- E3: Remover base.repository.ts se órfão ---
+
+Se base.repository.ts tinha métodos genéricos de query Supabase
+e nenhum repository migrado o usa mais: remover.
+Verificar antes: grep -rn "BaseRepository" src/app/
+
+
+========================================
+=== BLOCO F — TESTES VISUAIS ===
+========================================
+
+
+--- F1: Serviços ---
+
+  [ ] Abrir /dashboard/servicos - OK
+  [ ] Lista de serviços carrega (skeleton enquanto carrega) - OK
+  [ ] Console: GET vai para /api/servicos (não Supabase) - OK
+  [ ] Clicar "Novo serviço" → formulário abre  - OK
+  [ ] Preencher nome, duração, preço, modalidade → salvar  - ERRO
+          {
+        "statusCode": 400,
+        "timestamp": "2026-05-19T00:49:34.272Z",
+        "path": "/api/servicos",
+        "message": [
+            "property ativo should not exist"
+        ],
+        "error": "Bad Request"
+    }
+  [ ] Serviço aparece na lista - OK
+  [ ] Console: POST foi para /api/servicos - OK
+  [ ] Clicar editar → dados carregam no formulário - OK
+  [ ] Alterar nome → salvar → nome atualizado na lista - OK
+  [ ] Console: PATCH foi para /api/servicos/:id - OK
+  [ ] Clicar excluir (serviço sem agendamentos) → serviço removido- OK
+  [ ] Console: DELETE foi para /api/servicos/:id- OK
+  [ ] Clicar excluir (serviço COM agendamentos) → snackbar erro FK aparece- OK
+  [ ] Plano grátis: atingiu limite → botão desabilitado + banner amarelo
+
+   Melhorar o visual da listagem dos serviços, tornar mais moderno, responsivo, com mais informações e sempre buscando uma melhor experiência do usuário.
+
+
+
+--- F2: Horários / Disponibilidades ---
+
+  [ ] Abrir /dashboard/horarios - OK
+  [ ] Lista de disponibilidades carrega por dia da semana - OK
+  [ ] Console: GET vai para /api/disponibilidades (não Supabase) - OK
+  [ ] Adicionar horário: Segunda 08:00-12:00 intervalo 30min → salvar - OK
+  [ ] Horário aparece na lista  - OK
+  [ ] Console: POST foi para /api/disponibilidades   - OK
+  [ ] Editar horário → alterar hora_fim → salvar → atualizado  - OK
+  [ ] Console: PATCH foi para /api/disponibilidades/:id  - OK 
+  [ ] Excluir horário → removido da lista  - OK
+  [ ] Console: DELETE foi para /api/disponibilidades/:id  - OK
+  [ ] Card de resumo (Dias Ativos etc.) removido (task anterior)  - OK
+
+
+--- F3: Bloqueios ---
+
+  [ ] Abrir aba/seção de bloqueios (dentro de /dashboard/horarios ou rota própri a)  - OK
+  [ ] Lista de bloqueios futuros carrega  - OK
+  [ ] Console: GET vai para /api/bloqueios - OK
+  [ ] Adicionar bloqueio dia inteiro (ex: amanhã) → salvar  - OK
+  [ ] Bloqueio aparece na lista com "Dia inteiro"  - OK
+  [ ] Console: POST foi para /api/bloqueios  - OK
+  [ ] Adicionar bloqueio período (14:00-16:00) → salvar  - OK
+  [ ] Bloqueio aparece com horário  - OK
+  [ ] Excluir bloqueio → removido  - OK
+  [ ] Console: DELETE foi para /api/bloqueios/:id  - OK
+     Modal Novo Bloqueio: Melhorar o espaçamento entre os campos de data e hora. 
+                          Padronizar o campo de data e hora. padronizar os botões, otimizar UX.
+     Lista de Bloqueios agendados:
+      Melhorar o visual da listagem dos bloqueios, tornar mais moderno, responsivo, com mais informações e sempre buscando uma melhor experiência do usuário.
+
+
+
+--- F4: Página pública — reflexo dos dados ---
+
+  [ ] Acessar /:slug  - OK
+  [ ] Serviços ativos aparecem (dados vieram do backend)  - OK
+  [ ] Serviço desativado no dashboard NÃO aparece na página pública  - OK
+  [ ] Datas com disponibilidade habilitadas no strip  - OK
+  [ ] Data bloqueada (dia inteiro) NÃO aparece no strip  - OK
+  [ ] Horários bloqueados (período) NÃO aparecem no strip de horários  - OK
+  [ ] Console: chamada foi para /api/booking/:slug (ou rotas públicas separadas)  - OK
+
+
+--- F5: Consistência entre dashboard e página pública ---
+    
+    *Não foi possível criar serviço, erro reportado mais acima.
+
+  [ ] No dashboard: criar novo serviço
+  [ ] Na página pública: recarregar → serviço aparece
+  [ ] No dashboard: desativar serviço  - OK
+  [ ] Na página pública: recarregar → serviço some  - OK
+  [ ] No dashboard: adicionar horário nova faixa (ex: sábado 09:00-13:00)  - OK
+  [ ] Na página pública: sábado aparece com slots  - OK
+  [ ] No dashboard: criar bloqueio para amanhã (dia inteiro)  - OK
+  [ ] Na página pública: amanhã desabilitado no strip de datas  - OK
+  [ ] No dashboard: excluir bloqueio   - OK
+  [ ] Na página pública: amanhã volta a ter slots  - OK
+
+
+--- F6: Erros e edge cases ---
+      * Não consegui para o backend para estes testes.
+  [ ] Backend offline → todas as páginas exibem snackbar "Sem conexão"
+  [ ] Token expirado → snackbar "Sessão expirada"
+  [ ] Criar serviço com campos inválidos → validação no frontend impede envio
+  [ ] Criar disponibilidade com hora_fim < hora_inicio → backend rejeita (400)
+  [ ] Criar bloqueio com hora_inicio sem hora_fim → backend rejeita (400)
+      Mensagens de erro:
+      Campo DATA. A mensagem foi Erro ao salvar bloqueio, nenhum indicativo visual que ajudasse o usuário identificar o erro.
+      Campo Hora inicio e fim - OK
+
+
+
+--- F7: Mobile ---
+
+  [ ] /dashboard/servicos: cards responsivos em 375px  - OK
+  [ ] /dashboard/horarios: tabela/lista legível em 375px - OK
+  [ ] Bloqueios: dialog/form usável em mobile - OK
+  [ ] Página pública: todos os dados carregam via backend sem erro - OK
+
+
+========================================
+=== ORDEM DE EXECUÇÃO ===
+========================================
+
+1.  D     — Criar endpoint /api/booking/:slug no backend (se não existe)
+2.  A1-A3 — Migrar servicos.repository.ts
+3.  B1-B3 — Migrar disponibilidades.repository.ts
+4.  C1-C3 — Migrar bloqueios.repository.ts
+5.  E1-E3 — Limpeza: verificar grep, remover base.repository se órfão
+6.  F1-F7 — Testes visuais
+7.        — Push + deploy Vercel + Railway
+
+
+========================================
+=== CHECKLIST FINAL ===
+========================================
+
+SERVIÇOS
+[ ] Todos os métodos chamam /api/servicos (não Supabase)
+[ ] CRUD funciona: listar, criar, editar, excluir
+[ ] Erro FK exibido ao excluir serviço com agendamentos
+[ ] profissional_id não é enviado do front (backend resolve via JWT)
+
+DISPONIBILIDADES
+[ ] Todos os métodos chamam /api/disponibilidades (não Supabase)
+[ ] CRUD funciona: listar, criar, editar, excluir
+[ ] Campo capacidade enviado corretamente
+[ ] Dados públicos via /api/booking/:slug ou rota pública
+
+BLOQUEIOS
+[ ] Todos os métodos chamam /api/bloqueios (não Supabase)
+[ ] Criar/listar/excluir funcionam
+[ ] Validação backend: rejeita hora_inicio sem hora_fim
+[ ] Dados públicos via /api/booking/:slug ou rota pública
+
+ENDPOINT CONSOLIDADO
+[ ] GET /api/booking/:slug retorna profissional + serviços + disponibilidades + bloqueios
+[ ] Página pública usa uma chamada só
+[ ] Sem chamadas Supabase na página pública (exceto Auth)
+
+LIMPEZA
+[ ] grep "supabase" nos repositories migrados retorna ZERO
+[ ] supabase.client.ts mantido apenas para Auth e Realtime
+[ ] base.repository.ts removido se órfão
+
+TESTES VISUAIS
+[ ] F1 a F7 todos OK
+[ ] Console sem chamadas Supabase nos módulos migrados
+[ ] Console sem erros CORS

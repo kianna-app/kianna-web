@@ -1,9 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { BookingRepository } from '@core/repositories/booking.repository';
+import { BookingRepository, isBookingRedirect } from '@core/repositories/booking.repository';
 import { SlotCalculatorService } from './slot-calculator.service';
 import { Profissional, Servico, Disponibilidade, Bloqueio } from '@core/types/database.types';
-import { PLAN_LIMITS } from '@core/constants/plan.limits';
-import { exceededLimit } from '@core/constants/plan.limits';
 
 export type BookingStep = 'servico' | 'data' | 'horario' | 'dados' | 'resumo' | 'confirmado' | 'lotado' | 'not-found';
 
@@ -106,36 +104,28 @@ export class BookingService {
   async inicializar(slug: string): Promise<void> {
     this.loading.set(true);
     try {
-      const prof = await this.repo.getProfissionalBySlug(slug);
+      const resposta = await this.repo.getDadosBooking(slug);
 
-      if (!prof) {
-        const novoSlug = await this.repo.getRedirectBySlug(slug);
-        if (novoSlug) {
-          window.location.replace(`/${novoSlug}`);
-          return;
-        }
+      if (!resposta) {
         this.step.set('not-found');
         return;
       }
 
-      this.profissional.set(prof);
-
-      if (prof.plano === 'gratis') {
-        const count = await this.repo.contarAgendamentosNoMes(prof.id);
-        if (exceededLimit(count, PLAN_LIMITS['gratis'].agendamentosMes)) {
-          this.step.set('lotado');
-          return;
-        }
+      if (isBookingRedirect(resposta)) {
+        window.location.replace(`/${resposta.redirect_slug}`);
+        return;
       }
 
-      const [servicos, disps] = await Promise.all([
-        this.repo.getServicos(prof.id),
-        this.repo.getDisponibilidades(prof.id),
-      ]);
+      this.profissional.set(resposta.profissional);
+      this.servicos.set(resposta.servicos);
+      this.disponibilidades.set(resposta.disponibilidades);
+      this.bloqueios.set(resposta.bloqueios);
+      this.agendamentosConfirmados.set(resposta.agendamentos_confirmados);
 
-      this.servicos.set(servicos);
-      this.disponibilidades.set(disps);
-      await this.carregarDadosPublicos(prof.id);
+      if (resposta.lotado) {
+        this.step.set('lotado');
+        return;
+      }
     } finally {
       this.loading.set(false);
     }
@@ -150,23 +140,6 @@ export class BookingService {
 
     this.agendamentoOrigemId.set(agendamentoId);
     this.step.set('data');
-  }
-
-  private async carregarDadosPublicos(profId: string): Promise<void> {
-    const hoje = new Date();
-    const em30 = new Date(hoje);
-    em30.setDate(hoje.getDate() + 30);
-
-    const de  = hoje.toISOString().split('T')[0];
-    const ate = em30.toISOString().split('T')[0];
-
-    const [confirmados, bloqueios] = await Promise.all([
-      this.repo.getAgendamentosConfirmados(profId, de, ate),
-      this.repo.getBloqueios(profId, de, ate),
-    ]);
-
-    this.agendamentosConfirmados.set(confirmados);
-    this.bloqueios.set(bloqueios);
   }
 
   selecionarServico(servico: Servico): void {

@@ -1,53 +1,32 @@
-import { Injectable } from '@angular/core';
-import { supabase, profissionalIdOrThrow } from './base.repository';
+import { Injectable, inject } from '@angular/core';
+import { ApiService } from '@core/services/api.service';
 import { Servico, ServicoInput } from '@core/types/database.types';
 
 @Injectable({ providedIn: 'root' })
 export class ServicosRepository {
+  private api = inject(ApiService);
 
   async listar(): Promise<Servico[]> {
-    const profissional_id = profissionalIdOrThrow();
-    const { data, error } = await supabase
-      .from('servicos')
-      .select('*')
-      .eq('profissional_id', profissional_id)
-      .order('created_at', { ascending: true });
-    if (error) throw error;
-    return (data ?? []) as Servico[];
+    return this.api.get<Servico[]>('/api/servicos');
+  }
+
+  async getById(id: string): Promise<Servico> {
+    return this.api.get<Servico>(`/api/servicos/${id}`);
   }
 
   async criar(input: ServicoInput): Promise<Servico> {
-    const profissional_id = profissionalIdOrThrow();
-    const { data, error } = await supabase
-      .from('servicos')
-      .insert({ ...input, profissional_id })
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Servico;
+    return this.api.post<Servico>('/api/servicos', input);
   }
 
   async atualizar(id: string, input: Partial<ServicoInput>): Promise<Servico> {
-    const { data, error } = await supabase
-      .from('servicos')
-      .update(input)
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Servico;
+    return this.api.patch<Servico>(`/api/servicos/${id}`, input);
   }
 
   async toggleAtivo(id: string, ativo: boolean): Promise<void> {
-    const { error } = await supabase
-      .from('servicos')
-      .update({ ativo })
-      .eq('id', id);
-    if (error) throw error;
+    await this.api.patch<Servico>(`/api/servicos/${id}`, { ativo });
   }
 
   async excluir(id: string): Promise<void> {
-    const { error } = await supabase.from('servicos').delete().eq('id', id);
-    if (error) throw error;
+    await this.api.delete<void>(`/api/servicos/${id}`);
   }
 }

@@ -1,34 +1,34 @@
-import { Injectable } from '@angular/core';
-import { supabase, profissionalIdOrThrow } from './base.repository';
+import { Injectable, inject } from '@angular/core';
+import { ApiService } from '@core/services/api.service';
 import { Disponibilidade, DisponibilidadeInput } from '@core/types/database.types';
 
 @Injectable({ providedIn: 'root' })
 export class DisponibilidadesRepository {
+  private api = inject(ApiService);
 
   async listar(): Promise<Disponibilidade[]> {
-    const profissional_id = profissionalIdOrThrow();
-    const { data, error } = await supabase
-      .from('disponibilidades')
-      .select('*')
-      .eq('profissional_id', profissional_id)
-      .order('dia_semana', { ascending: true });
-    if (error) throw error;
-    return (data ?? []) as Disponibilidade[];
+    return this.api.get<Disponibilidade[]>('/api/disponibilidades');
+  }
+
+  async criar(input: DisponibilidadeInput): Promise<Disponibilidade> {
+    return this.api.post<Disponibilidade>('/api/disponibilidades', input);
+  }
+
+  async atualizar(
+    id: string,
+    input: Partial<DisponibilidadeInput>,
+  ): Promise<Disponibilidade> {
+    return this.api.patch<Disponibilidade>(`/api/disponibilidades/${id}`, input);
+  }
+
+  async excluir(id: string): Promise<void> {
+    await this.api.delete<void>(`/api/disponibilidades/${id}`);
   }
 
   async substituirTodas(inputs: DisponibilidadeInput[]): Promise<void> {
-    const profissional_id = profissionalIdOrThrow();
-
-    const { error: delErr } = await supabase
-      .from('disponibilidades')
-      .delete()
-      .eq('profissional_id', profissional_id);
-    if (delErr) throw delErr;
-
+    const atuais = await this.listar();
+    await Promise.all(atuais.map(d => this.excluir(d.id)));
     if (inputs.length === 0) return;
-
-    const rows = inputs.map(i => ({ ...i, profissional_id }));
-    const { error: insErr } = await supabase.from('disponibilidades').insert(rows);
-    if (insErr) throw insErr;
+    await Promise.all(inputs.map(i => this.criar(i)));
   }
 }
