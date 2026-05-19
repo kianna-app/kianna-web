@@ -1,40 +1,45 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HorariosStore } from '../../state/horarios.store';
 import { DiaSemana, DisponibilidadeInput } from '@core/types/database.types';
 import { DIAS_SEMANA } from '@core/constants/app.constants';
-import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { BloqueiosComponent } from './bloqueios/bloqueios.component';
 
 interface DiaConfig {
   dia: DiaSemana;
   label: string;
+  curto: string;
   ativo: boolean;
   hora_inicio: string;
   hora_fim: string;
   intervalo_min: number;
 }
 
+const DEFAULT_INICIO = '09:00';
+const DEFAULT_FIM = '18:00';
+const DEFAULT_INTERVALO = 60;
+
 @Component({
   selector: 'app-horarios',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MatCardModule, MatSlideToggleModule,
+    CommonModule, FormsModule, MatSlideToggleModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    MatTabsModule, SkeletonComponent, BloqueiosComponent,
+    MatButtonModule, MatIconModule, MatMenuModule,
+    MatTabsModule, MatTooltipModule,
+    SkeletonComponent, BloqueiosComponent,
   ],
   templateUrl: './horarios.component.html',
   styleUrl: './horarios.component.scss',
@@ -44,8 +49,14 @@ export class HorariosComponent implements OnInit {
   private snack   = inject(MatSnackBar);
 
   readonly intervalos = [15, 30, 45, 60];
-  readonly config          = signal<DiaConfig[]>(this.configPadrao());
-  readonly temAlteracoes   = signal(false);
+  readonly config        = signal<DiaConfig[]>(this.configPadrao());
+  readonly temAlteracoes = signal(false);
+  readonly expanded      = signal<Record<number, boolean>>({});
+
+  readonly resumoSemana = computed(() => {
+    const ativos = this.config().filter(c => c.ativo).length;
+    return { ativos, total: this.config().length };
+  });
 
   ngOnInit(): void {
     this.store.carregar().then(() => {
@@ -69,18 +80,34 @@ export class HorariosComponent implements OnInit {
     return DIAS_SEMANA.map(d => ({
       dia:          d.dia as DiaSemana,
       label:        d.label,
+      curto:        d.curto,
       ativo:        d.dia >= 1 && d.dia <= 5,
-      hora_inicio:  '09:00',
-      hora_fim:     '18:00',
-      intervalo_min: 60,
+      hora_inicio:  DEFAULT_INICIO,
+      hora_fim:     DEFAULT_FIM,
+      intervalo_min: DEFAULT_INTERVALO,
     }));
   }
 
   private minutosEntre(inicio: string, fim: string): number {
     const [hi, mi] = inicio.split(':').map(Number);
     const [hf, mf] = fim.split(':').map(Number);
-    const diff = (hf * 60 + mf) - (hi * 60 + mi);
-    return Math.max(0, diff);
+    return (hf * 60 + mf) - (hi * 60 + mi);
+  }
+
+  isCustomizado(c: DiaConfig): boolean {
+    return c.ativo && (
+      c.hora_inicio !== DEFAULT_INICIO ||
+      c.hora_fim !== DEFAULT_FIM ||
+      c.intervalo_min !== DEFAULT_INTERVALO
+    );
+  }
+
+  isInvalido(c: DiaConfig): boolean {
+    return c.ativo && this.minutosEntre(c.hora_inicio, c.hora_fim) <= 0;
+  }
+
+  toggleExpand(dia: DiaSemana): void {
+    this.expanded.update(e => ({ ...e, [dia]: !e[dia] }));
   }
 
   toggleDia(dia: DiaSemana, ativo: boolean): void {
@@ -93,8 +120,36 @@ export class HorariosComponent implements OnInit {
     this.temAlteracoes.set(true);
   }
 
+  copiarParaTodos(origem: DiaSemana): void {
+    const ref = this.config().find(c => c.dia === origem);
+    if (!ref) return;
+    this.config.update(arr => arr.map(c => c.dia === origem ? c : {
+      ...c,
+      ativo: true,
+      hora_inicio:   ref.hora_inicio,
+      hora_fim:      ref.hora_fim,
+      intervalo_min: ref.intervalo_min,
+    }));
+    this.temAlteracoes.set(true);
+    this.snack.open('Aplicado a todos os dias', 'OK', { duration: 2000 });
+  }
+
+  copiarParaUteis(origem: DiaSemana): void {
+    const ref = this.config().find(c => c.dia === origem);
+    if (!ref) return;
+    this.config.update(arr => arr.map(c => (c.dia >= 1 && c.dia <= 5 && c.dia !== origem) ? {
+      ...c,
+      ativo: true,
+      hora_inicio:   ref.hora_inicio,
+      hora_fim:      ref.hora_fim,
+      intervalo_min: ref.intervalo_min,
+    } : c));
+    this.temAlteracoes.set(true);
+    this.snack.open('Aplicado aos dias úteis', 'OK', { duration: 2000 });
+  }
+
   async salvar(): Promise<void> {
-    const invalido = this.config().find(c => c.ativo && this.minutosEntre(c.hora_inicio, c.hora_fim) <= 0);
+    const invalido = this.config().find(c => this.isInvalido(c));
     if (invalido) {
       this.snack.open(`${invalido.label}: hora final deve ser maior que inicial`, 'OK', { duration: 3000 });
       return;

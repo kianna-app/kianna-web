@@ -1,0 +1,459 @@
+```txt
+# TASK CARD — Refatoração da Tela de Configuração de Horários
+
+## Objetivo
+Refatorar completamente a tela de configuração de horários de atendimento para um layout moderno, minimalista, intuitivo e altamente responsivo, alinhado visualmente com o restante do sistema.
+
+A nova experiência deve priorizar:
+- Clareza visual
+- Facilidade de configuração
+- Performance
+- Excelente UX no mobile
+- Escalabilidade futura
+
+Assuma que já existe Design System no projeto e utilize os padrões já existentes de:
+- cores
+- espaçamentos
+- tipografia
+- componentes
+- estados
+- shadows
+- bordas
+- responsividade
+
+Não criar identidade visual paralela.
+
+---
+
+# Problemas atuais identificados
+
+## UX/UI
+- Layout muito “administrativo” e antigo
+- Excesso de espaço vazio
+- Hierarquia visual fraca
+- Inputs muito grandes e pouco organizados
+- Experiência mobile ruim
+- Informações importantes sem destaque
+- Cards sem personalidade visual
+- Ações importantes pouco evidentes
+- Estrutura visual pesada e pouco moderna
+
+## Mobile
+- Componentes não aproveitam bem a largura
+- Fluxo vertical cansativo
+- Switch e status mal posicionados
+- Inputs de horário quebram usabilidade
+- Muito scroll desnecessário
+
+---
+
+# Objetivo da nova experiência
+
+Criar uma tela:
+- moderna
+- clean
+- elegante
+- rápida de configurar
+- inspirada em grandes apps SaaS modernos
+- com foco total em produtividade
+
+Referências de UX:
+- Google Calendar
+- Calendly
+- Notion
+- Stripe Dashboard
+- Linear
+- Slack Preferences
+- Hubspot Scheduling
+- ClickUp
+
+---
+
+# Estrutura esperada da nova tela
+
+## Cabeçalho da página
+Refatorar o topo atual.
+
+### Deve conter:
+- título da página
+- breve descrição auxiliar
+- botão principal de salvar fixo e destacado
+- feedback visual elegante de alterações pendentes
+
+### Melhorias:
+- botão salvar sempre visível no desktop
+- no mobile utilizar botão sticky inferior ou FAB adaptado
+- feedback de “alterações não salvas” mais discreto e moderno
+
+Exemplo:
+- badge informativa
+- toast persistente leve
+- indicator no botão salvar
+
+Evitar alertas amarelos pesados como o atual.
+
+---
+
+# Tabs superiores
+
+## Melhorar visual das tabs:
+Atual:
+- simples
+- pouco moderno
+- sem profundidade visual
+
+Novo:
+- tabs modernas
+- animação suave
+- indicador visual elegante
+- hover states
+- active states modernos
+
+Tabs:
+- Disponibilidade semanal
+- Bloqueios de agenda
+
+No mobile:
+- tabs scrolláveis horizontalmente
+OU
+- segmented control moderno
+
+---
+
+# Estrutura dos dias da semana
+
+## Refatorar completamente os cards dos dias
+
+Cada dia deve ser um card moderno independente.
+
+### Estrutura sugerida:
+- Nome do dia
+- Status visual
+- Toggle de ativação
+- Configurações compactas
+- Layout clean
+
+---
+
+# Layout Desktop
+
+## Estrutura ideal
+Cada dia deve ficar em card horizontal elegante:
+
+[ DIA + STATUS ]
+[ HORÁRIO ]
+[ INTERVALO ]
+[ AÇÕES ]
+
+### Melhorias:
+- melhor alinhamento
+- menos altura
+- mais densidade visual inteligente
+- leitura rápida
+
+---
+
+# Layout Mobile
+
+## Estrutura mobile-first
+
+Os cards devem virar blocos verticais.
+
+### Prioridades:
+- toque fácil
+- boa leitura
+- inputs grandes o suficiente
+- espaçamento confortável
+- evitar scroll excessivo
+
+### Ordem sugerida:
+1. Nome do dia
+2. Toggle ativo/inativo
+3. Horários
+4. Intervalo
+5. Ações extras
+
+---
+
+# Componentes de horário
+
+## Melhorar inputs de hora
+
+Atual:
+- aparência simples
+- pouco moderna
+
+Novo:
+- time pickers modernos
+- visual clean
+- melhor feedback de foco
+- ícones sutis
+- microinterações suaves
+
+---
+
+# Recomendação importante
+
+## Utilizar bibliotecas prontas modernas
+
+Objetivo:
+- reduzir código customizado
+- melhorar confiabilidade
+- acelerar implementação
+
+Pesquisar e utilizar soluções modernas compatíveis com stack atual do projeto.
+
+### Priorizar bibliotecas:
+- acessíveis
+- responsivas
+- bem mantidas
+- leves
+- com suporte mobile
+
+---
+
+# Sugestões de bibliotecas
+
+## Time Picker
+Pesquisar opções como:
+- react-day-picker
+- react-datepicker
+- MUI Pickers
+- shadcn calendar
+- headless ui
+- radix ui
+- react-time-picker
+
+Escolher a melhor compatível com:
+- performance
+- design system atual
+- experiência mobile
+
+---
+
+# Funcionalidades UX desejadas
+
+## Melhorias importantes
+
+### 1. Copiar horários
+Permitir:
+- copiar configuração para outros dias
+- aplicar para semana inteira
+
+Exemplo:
+“Aplicar para todos”
+
+---
+
+### 2. Estados visuais melhores
+Cada dia deve ter:
+- aberto
+- fechado
+- pausado
+- customizado
+
+Com indicadores sutis.
+
+---
+
+### 3. Collapse inteligente
+Permitir expandir/recolher configurações do dia.
+
+No mobile isso ajuda muito.
+
+---
+
+### 4. Feedback instantâneo
+Ao alterar:
+- salvar automático opcional
+OU
+- feedback elegante de mudanças pendentes
+
+---
+
+### 5. Animações suaves
+Adicionar:
+- transitions leves
+- hover elegante
+- microinterações modernas
+
+Sem exageros.
+
+---
+
+# Design Guidelines
+
+## Visual esperado
+
+### Deve ser:
+- minimalista
+- sofisticado
+- clean
+- moderno
+- leve
+- altamente utilizável
+
+### Não deve ser:
+- corporativo antigo
+- pesado
+- cheio de bordas
+- exageradamente colorido
+- visual de ERP antigo
+
+---
+
+# Espaçamentos
+
+Seguir spacing consistente:
+- 8px
+- 12px
+- 16px
+- 24px
+- 32px
+
+Evitar blocos gigantes vazios.
+
+---
+
+# Tipografia
+
+Melhorar:
+- hierarquia
+- peso visual
+- contraste
+- legibilidade
+
+---
+
+# Estados
+
+Implementar:
+- hover
+- active
+- focus
+- disabled
+- loading
+- success
+- dirty state
+
+Todos alinhados ao Design System.
+
+---
+
+# Responsividade
+
+## Breakpoints obrigatórios
+
+### Mobile
+- 320px+
+- 375px+
+- 425px+
+
+### Tablet
+- 768px+
+
+### Desktop
+- 1024px+
+- 1440px+
+
+---
+
+# Performance
+
+## Prioridades
+- evitar renders desnecessários
+- evitar componentes pesados
+- lazy load se necessário
+- manter fluidez no mobile
+
+---
+
+# Acessibilidade
+
+Garantir:
+- navegação por teclado
+- aria labels
+- contraste adequado
+- targets de toque corretos
+- foco visível
+
+---
+
+# Resultado esperado
+
+A nova tela deve transmitir:
+- produto premium
+- modernidade
+- simplicidade
+- produtividade
+- confiança
+
+O usuário deve conseguir:
+- entender rapidamente
+- configurar rapidamente
+- editar facilmente no mobile
+
+---
+
+# Entregáveis
+
+## Implementar:
+- novo layout completo
+- responsividade completa
+- melhorias UX
+- componentes modernos
+- animações suaves
+- integração com Design System
+- adaptação desktop/mobile
+
+---
+
+# Critérios de aceitação
+
+## Desktop
+- layout moderno
+- leitura rápida
+- alinhamento consistente
+- ótima hierarquia visual
+
+## Mobile
+- excelente usabilidade
+- sem quebra visual
+- sem scroll excessivo
+- fácil configuração com dedos
+
+## UX
+- fluxo intuitivo
+- feedback claro
+- interação fluida
+
+## Código
+- reutilizável
+- escalável
+- limpo
+- componentizado
+
+---
+
+# Observações importantes
+
+- Não alterar identidade visual do sistema
+- Utilizar os tokens já existentes
+- Reaproveitar componentes globais quando possível
+- Priorizar reutilização
+- Evitar overengineering
+- Evitar excesso de efeitos visuais
+- Priorizar UX acima de estética exagerada
+
+---
+
+# Extra (Opcional, diferencial)
+
+Se fizer sentido para o projeto:
+- drag and drop de horários
+- presets rápidos
+- templates de horários
+- duplicação inteligente
+- configuração avançada por períodos
+- visualização resumida semanal
+```

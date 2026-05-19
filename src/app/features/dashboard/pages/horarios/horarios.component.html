@@ -1,102 +1,177 @@
-<div class="page-header">
-  <div>
-    <h1>Horários de atendimento</h1>
-    <p class="page-sub">Configure quando você está disponível para receber clientes</p>
-  </div>
-</div>
+<div class="horarios-page">
+  <!-- Cabeçalho da página -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Horários de atendimento</h1>
+      <p class="page-sub">
+        Configure quando você está disponível para receber clientes
+      </p>
+    </div>
 
-<mat-tab-group animationDuration="200ms">
-  <!-- Aba 1: Disponibilidade semanal -->
-  <mat-tab label="Disponibilidade semanal">
-    @if (store.carregando()) {
-      <div class="horarios-skeleton">
-        @for (i of [1,2,3,4]; track i) {
-          <div class="horario-sk-row">
-            <app-skeleton height="14px" width="80px" radius="4px" />
-            <app-skeleton height="32px" width="120px" radius="8px" />
-            <app-skeleton height="32px" width="120px" radius="8px" />
-          </div>
-        }
-      </div>
-    } @else {
+    <div class="page-header-actions">
       @if (temAlteracoes()) {
-        <div class="alteracoes-banner">
-          <mat-icon>edit_note</mat-icon>
-          <span>Você tem alterações não salvas</span>
+        <span class="dirty-indicator" aria-live="polite">
+          <span class="dot"></span>
+          Alterações não salvas
+        </span>
+      }
+      <button
+        class="btn-primary"
+        [disabled]="!temAlteracoes() || store.salvando()"
+        (click)="salvar()"
+      >
+        <mat-icon>check</mat-icon>
+        <span>{{ store.salvando() ? 'Salvando...' : 'Salvar' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <mat-tab-group animationDuration="200ms" class="horarios-tabs">
+    <!-- Aba 1: Disponibilidade semanal -->
+    <mat-tab label="Disponibilidade semanal">
+      @if (store.carregando()) {
+        <div class="horarios-skeleton">
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="horario-sk-row">
+              <app-skeleton height="36px" width="36px" radius="999px" />
+              <app-skeleton height="14px" width="90px" radius="4px" />
+              <app-skeleton height="36px" width="110px" radius="10px" />
+              <app-skeleton height="36px" width="110px" radius="10px" />
+              <app-skeleton height="36px" width="120px" radius="10px" />
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Resumo da semana -->
+        <div class="resumo-bar">
+          <div class="resumo-info">
+            <mat-icon>event_available</mat-icon>
+            <span>
+              <strong>{{ resumoSemana().ativos }}</strong>
+              de {{ resumoSemana().total }} dias ativos
+            </span>
+          </div>
+        </div>
+
+        <!-- Lista de dias -->
+        <div class="dias-list">
+          @for (c of config(); track c.dia) {
+            <div
+              class="dia-card"
+              [class.inativo]="!c.ativo"
+              [class.invalido]="isInvalido(c)"
+            >
+              <!-- Linha principal (sempre visível) -->
+              <div class="dia-row">
+                <!-- Toggle + nome -->
+                <div class="dia-identidade">
+                  <mat-slide-toggle
+                    color="primary"
+                    [checked]="c.ativo"
+                    (change)="toggleDia(c.dia, $event.checked)"
+                    [attr.aria-label]="'Ativar ' + c.label"
+                  />
+                  <div class="dia-nome">
+                    <span class="dia-label">{{ c.label }}</span>
+                    <span class="dia-status" [class.aberto]="c.ativo" [class.fechado]="!c.ativo">
+                      {{ c.ativo ? 'Aberto' : 'Fechado' }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Inputs (apenas desktop quando ativo) -->
+                @if (c.ativo) {
+                  <div class="dia-inputs">
+                    <div class="time-group" role="group" aria-label="Horário">
+                      <input
+                        class="time-input"
+                        type="time"
+                        [value]="c.hora_inicio"
+                        (change)="atualizar(c.dia, 'hora_inicio', $any($event.target).value)"
+                        [attr.aria-label]="c.label + ' início'"
+                      />
+                      <span class="time-sep" aria-hidden="true">—</span>
+                      <input
+                        class="time-input"
+                        type="time"
+                        [value]="c.hora_fim"
+                        (change)="atualizar(c.dia, 'hora_fim', $any($event.target).value)"
+                        [attr.aria-label]="c.label + ' fim'"
+                      />
+                    </div>
+
+                    <mat-form-field appearance="outline" class="intervalo-field" subscriptSizing="dynamic">
+                      <mat-icon matPrefix>schedule</mat-icon>
+                      <mat-select
+                        [value]="c.intervalo_min"
+                        (selectionChange)="atualizar(c.dia, 'intervalo_min', $event.value)"
+                        panelClass="intervalo-panel"
+                        [attr.aria-label]="'Intervalo entre horários de ' + c.label"
+                      >
+                        @for (i of intervalos; track i) {
+                          <mat-option [value]="i">{{ i }} min</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+
+                    <button
+                      class="btn-ghost btn-icon dia-menu-btn"
+                      [matMenuTriggerFor]="diaMenu"
+                      matTooltip="Mais ações"
+                      aria-label="Mais ações"
+                    >
+                      <mat-icon>more_horiz</mat-icon>
+                    </button>
+
+                    <mat-menu #diaMenu="matMenu" xPosition="before">
+                      <button mat-menu-item (click)="copiarParaTodos(c.dia)">
+                        <mat-icon>content_copy</mat-icon>
+                        <span>Aplicar a todos os dias</span>
+                      </button>
+                      <button mat-menu-item (click)="copiarParaUteis(c.dia)">
+                        <mat-icon>work_outline</mat-icon>
+                        <span>Aplicar aos dias úteis</span>
+                      </button>
+                    </mat-menu>
+                  </div>
+                } @else {
+                  <span class="dia-fechado-hint">Sem atendimento</span>
+                }
+              </div>
+
+              @if (isInvalido(c)) {
+                <div class="dia-erro">
+                  <mat-icon>error_outline</mat-icon>
+                  <span>A hora final deve ser maior que a inicial.</span>
+                </div>
+              }
+            </div>
+          }
         </div>
       }
+    </mat-tab>
 
-      <div class="actions py-4">
-        <button [disabled]="!temAlteracoes()" class="btn-primary btn-lg" (click)="salvar()">
-          <mat-icon> save </mat-icon>
-          <span> {{ store.salvando() ? 'Salvando...' : 'Salvar horários' }}</span>
-        </button>
-      </div>
+    <!-- Aba 2: Bloqueios de agenda -->
+    <mat-tab label="Bloqueios de agenda">
+      <app-bloqueios />
+    </mat-tab>
+  </mat-tab-group>
 
-      <div class="dias-list">
-        @for (c of config(); track c.dia) {
-          <div class="dia-card" [class.inativo]="!c.ativo">
-            <div class="dia-header">
-              <span class="dia-label">{{ c.label }}</span>
-              <span class="dia-status" [class.aberto]="c.ativo">
-                ({{ c.ativo ? 'ABERTO' : 'FECHADO' }})
-              </span>
-              <mat-slide-toggle
-                color="primary"
-                [checked]="c.ativo"
-                (change)="toggleDia(c.dia, $event.checked)"
-                aria-label="Ativar dia"
-              />
-            </div>
-
-            @if (c.ativo) {
-              <div class="dia-body">
-                <span class="campos-label">Horário de Funcionamento</span>
-                <div class="horario-row">
-                  <mat-form-field appearance="outline" class="campo-hora">
-                    <input
-                      matInput
-                      type="time"
-                      [value]="c.hora_inicio"
-                      (change)="atualizar(c.dia, 'hora_inicio', $any($event.target).value)"
-                    />
-                  </mat-form-field>
-
-                  <span class="ate-label">até</span>
-
-                  <mat-form-field appearance="outline" class="campo-hora">
-                    <input
-                      matInput
-                      type="time"
-                      [value]="c.hora_fim"
-                      (change)="atualizar(c.dia, 'hora_fim', $any($event.target).value)"
-                    />
-                  </mat-form-field>
-                </div>
-
-                <div class="intervalo-row">
-                  <span class="intervalo-label">Intervalo entre horários</span>
-                  <mat-form-field appearance="outline" class="campo-intervalo">
-                    <mat-select
-                      [value]="c.intervalo_min"
-                      (selectionChange)="atualizar(c.dia, 'intervalo_min', $event.value)"
-                    >
-                      @for (i of intervalos; track i) {
-                        <mat-option [value]="i">{{ i }} min</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-    }
-  </mat-tab>
-
-  <!-- Aba 2: Bloqueios de agenda -->
-  <mat-tab label="Bloqueios de agenda">
-    <app-bloqueios />
-  </mat-tab>
-</mat-tab-group>
+  <!-- Barra de salvar sticky (mobile) -->
+  @if (temAlteracoes() && !store.carregando()) {
+    <div class="save-bar-mobile">
+      <span class="dirty-indicator">
+        <span class="dot"></span>
+        Alterações não salvas
+      </span>
+      <button
+        class="btn-primary btn-lg"
+        [disabled]="store.salvando()"
+        (click)="salvar()"
+      >
+        <mat-icon>check</mat-icon>
+        <span>{{ store.salvando() ? 'Salvando...' : 'Salvar' }}</span>
+      </button>
+    </div>
+  }
+</div>
