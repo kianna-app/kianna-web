@@ -1,6 +1,8 @@
 export type Plano       = 'gratis' | 'pro' | 'studio';
 export type StatusAgend = 'pendente' | 'confirmado' | 'recusado' | 'cancelado' | 'reagendado' | 'finalizado' | 'nao_compareceu';
 export type DiaSemana   = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type WppStatus   = 'desconectado' | 'conectando' | 'conectado' | 'erro';
+export type ConfirmacaoPresenca = 'confirmou' | 'cancelou';
 
 // ── Modalidades ───────────────────────────────────────────────
 export type ModalidadeAtendimento = 'presencial' | 'domiciliar' | 'online';
@@ -27,6 +29,10 @@ export interface Profissional {
   bio: string | null;
   plano: Plano;
   wpp_instance_id: string | null;
+  wpp_token: string | null;
+  wpp_status: WppStatus;
+  lembrete_horas: number | null;
+  cancelamento_auto_cliente: boolean;
   stripe_subscription_id: string | null;
   onboarding_concluido: boolean;
   ativo: boolean;
@@ -86,6 +92,7 @@ export interface Agendamento {
   data_hora: string;
   status: StatusAgend;
   lembrete_enviado: boolean;
+  confirmacao_presenca: ConfirmacaoPresenca | null;
   observacoes: string | null;
   motivo_recusa: string | null;
   agendamento_origem_id: string | null;

@@ -8,6 +8,24 @@
     </div>
   </div>
 
+  <!-- ── Banner: WhatsApp não conectado ───────────────────── -->
+  @if (user() && user()?.wpp_status !== 'conectado') {
+    <div class="wpp-banner" role="status">
+      <div class="wpp-banner-icon">
+        <mat-icon>chat</mat-icon>
+      </div>
+      <div class="wpp-banner-text">
+        <strong>Conecte seu WhatsApp</strong>
+        <span>Ative notificações automáticas e lembretes para seus clientes.</span>
+      </div>
+      <a class="btn-primary btn-sm wpp-banner-cta"
+         routerLink="/dashboard/configuracoes"
+         [queryParams]="{ aba: 'whatsapp' }">
+        Conectar
+      </a>
+    </div>
+  }
+
   <!-- ── Card link público ─────────────────────────────── -->
   <mat-card class="link-publico-card">
     <div class="lp-content">

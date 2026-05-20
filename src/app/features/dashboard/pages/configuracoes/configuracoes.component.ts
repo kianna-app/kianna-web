@@ -7,14 +7,16 @@ import { EmpresaComponent } from './empresa/empresa.component';
 import { EnderecoComponent } from './endereco/endereco.component';
 import { RedesSociaisComponent } from './redes-sociais/redes-sociais.component';
 import { PerfilComponent } from './perfil/perfil.component';
+import { WhatsappComponent } from './whatsapp/whatsapp.component';
 
-const ABAS = ['empresa', 'endereco', 'redes', 'perfil'] as const;
+const ABAS = ['empresa', 'endereco', 'redes', 'whatsapp', 'perfil'] as const;
 type Aba = typeof ABAS[number];
 
 const TABS_CONFIG = [
-  { id: 'empresa',  label: 'Empresa',  icon: 'storefront'   },
-  { id: 'endereco', label: 'Endereço', icon: 'location_on'  },
-  { id: 'redes',    label: 'Redes',    icon: 'share'        },
+  { id: 'empresa',  label: 'Empresa',  icon: 'storefront'      },
+  { id: 'endereco', label: 'Endereço', icon: 'location_on'     },
+  { id: 'redes',    label: 'Redes',    icon: 'share'           },
+  { id: 'whatsapp', label: 'WhatsApp', icon: 'chat'            },
   { id: 'perfil',   label: 'Perfil',   icon: 'manage_accounts' },
 ] as const;
 
@@ -23,7 +25,7 @@ const TABS_CONFIG = [
   standalone: true,
   imports: [
     CommonModule, MatIconModule,
-    EmpresaComponent, EnderecoComponent, RedesSociaisComponent, PerfilComponent,
+    EmpresaComponent, EnderecoComponent, RedesSociaisComponent, WhatsappComponent, PerfilComponent,
   ],
   template: `
     <div class="cfg-page">
@@ -51,7 +53,8 @@ const TABS_CONFIG = [
           @case (0) { <app-cfg-empresa /> }
           @case (1) { <app-cfg-endereco /> }
           @case (2) { <app-cfg-redes-sociais /> }
-          @case (3) { <app-cfg-perfil /> }
+          @case (3) { <app-cfg-whatsapp /> }
+          @case (4) { <app-cfg-perfil /> }
         }
       </div>
     </div>

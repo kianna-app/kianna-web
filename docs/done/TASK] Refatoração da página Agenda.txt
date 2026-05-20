@@ -1,0 +1,393 @@
+[TASK] Refatoração da página Agenda + Migração da visualização "Agenda" da página Calendário
+
+CONTEXTO
+A IA já conhece:
+- Estrutura do projeto
+- Stack utilizada
+- Sistema de agendamentos
+- Página Calendário já implementada
+- Fluxo de edição de agendamento
+- Componentes existentes
+- Design system do projeto
+
+Objetivo:
+Reestruturar a página "Agenda" utilizando a visualização de agenda/listagem criada dentro da página "Calendário".
+
+A ideia principal é:
+- Remover o modo "Agenda" da página Calendário
+- Transformar a página "Agenda" em uma versão mais moderna
+- Reutilizar o visual/listagem já criada no calendário
+- Mesclar com a lógica de edição de agendamento já existente
+
+====================================================================
+1. REMOVER OPÇÃO "AGENDA" DA PÁGINA CALENDÁRIO
+====================================================================
+
+Atualmente a página Calendário possui:
+
+- Mês
+- Semana
+- Dia
+- Agenda
+
+====================================================================
+AÇÃO
+====================================================================
+
+Remover completamente:
+- Aba/botão "Agenda"
+- Visualização "Agenda"
+- Qualquer lógica relacionada exclusivamente a essa visualização
+
+====================================================================
+MANTER NO CALENDÁRIO
+====================================================================
+
+Continuar apenas com:
+- Mês
+- Semana
+- Dia
+
+====================================================================
+IMPORTANTE
+====================================================================
+
+A página Calendário deve continuar:
+- Funcional
+- Responsiva
+- Moderna
+- Sem regressões visuais
+
+====================================================================
+2. TRANSFERIR VISUALIZAÇÃO "AGENDA" PARA A PÁGINA AGENDA
+====================================================================
+
+A visualização/listagem atualmente existente no modo:
+"Agenda"
+
+Da página Calendário deverá virar o novo layout principal da página:
+"Agenda"
+
+====================================================================
+OBJETIVO
+====================================================================
+
+A página Agenda deve se tornar:
+- Mais moderna
+- Mais organizada
+- Mais operacional
+- Mais intuitiva
+
+Inspirada em:
+- Google Calendar Agenda
+- Calendly
+- Linear
+- Notion Calendar
+
+====================================================================
+3. NOVO LAYOUT DA PÁGINA AGENDA
+====================================================================
+
+A página Agenda deverá exibir:
+
+- Agendamentos agrupados por dia
+- Separação visual clara entre datas
+- Cards/listas organizadas
+- Timeline/listagem moderna
+
+====================================================================
+ESTRUTURA
+====================================================================
+
+HEADER SUPERIOR:
+- Botão Hoje
+- Navegação anterior/próximo
+- Intervalo de datas
+- Filtros de status
+- Botão "Novo Agendamento"
+
+====================================================================
+4. MANTER BOTÃO "NOVO AGENDAMENTO"
+====================================================================
+
+O botão:
+"Novo Agendamento"
+
+Deve continuar existindo.
+
+====================================================================
+MELHORIAS UX
+====================================================================
+
+Adicionar:
+- Destaque visual
+- Hover suave
+- Ícone moderno
+- Boa área de clique
+- Responsividade
+
+====================================================================
+5. ESTRUTURA DOS AGENDAMENTOS
+====================================================================
+
+Cada grupo de data deve possuir:
+
+--------------------------------------------------
+Nome do dia
+Data completa
+--------------------------------------------------
+
+Exemplo:
+- quarta-feira
+- 13 de maio de 2026
+
+====================================================================
+6. ESTRUTURA DOS ITENS
+====================================================================
+
+Cada agendamento deve possuir:
+
+- Horário inicial/final
+- Indicador visual de status
+- Nome do cliente
+- Serviço
+- Status visual
+
+====================================================================
+ESTILO VISUAL
+====================================================================
+
+Cada item deve possuir:
+- Background suave
+- Border radius moderno
+- Borda lateral/status
+- Excelente legibilidade
+
+====================================================================
+7. CORES POR STATUS
+====================================================================
+
+Manter o padrão criado no calendário.
+
+Exemplos:
+- Confirmado
+- Pendente
+- Cancelado
+- Recusado
+- Reagendado
+- Finalizado
+- Não compareceu
+
+====================================================================
+IMPORTANTE
+====================================================================
+
+As cores devem:
+- Ser suaves
+- Elegantes
+- Não poluir visualmente
+
+====================================================================
+8. FILTROS DE STATUS
+====================================================================
+
+Manter filtros rápidos:
+
+- Todos
+- Confirmado
+- Pendente
+- Cancelado
+- Recusado
+- Reagendado
+- Finalizado
+- Não compareceu
+
+====================================================================
+UX DOS FILTROS
+====================================================================
+
+- Pills/chips modernas
+- Estado ativo elegante
+- Hover suave
+- Responsividade mobile
+
+====================================================================
+9. EDIÇÃO DO AGENDAMENTO
+====================================================================
+
+IMPORTANTE:
+Manter toda lógica de edição já existente.
+
+====================================================================
+OBJETIVO
+====================================================================
+
+Mesclar:
+- Visual moderno da Agenda
+COM
+- Fluxo de edição já existente
+
+====================================================================
+COMPORTAMENTO
+====================================================================
+
+Ao clicar em um agendamento:
+
+Abrir:
+- Modal
+ou
+- Drawer lateral moderno
+
+Contendo:
+- Resumo do agendamento
+- Cliente
+- WhatsApp
+- Serviço
+- Data/Hora
+- Status
+
+====================================================================
+10. FORMULÁRIO DE EDIÇÃO
+====================================================================
+
+A edição deve continuar funcionando como atualmente.
+
+Porém:
+- Integrada visualmente ao novo layout
+- Mais moderna
+- Melhor organizada
+
+====================================================================
+SUGESTÃO UX
+====================================================================
+
+Utilizar:
+- Accordion
+ou
+- Expanded section
+
+Para:
+"Editar dados"
+
+====================================================================
+MANTER FUNCIONALIDADES
+====================================================================
+
+- Editar data
+- Editar horário
+- Editar observações
+- Alterar status
+- Cancelar
+- Confirmar
+- Finalizar
+
+====================================================================
+11. RESPONSIVIDADE MOBILE
+====================================================================
+
+PRIORIDADE ALTÍSSIMA.
+
+No mobile:
+- Lista vertical otimizada
+- Excelente área de toque
+- Cards organizados
+- Filtros responsivos
+- Drawer funcional
+
+====================================================================
+EVITAR
+====================================================================
+
+- Overflow horizontal
+- Conteúdo apertado
+- Cards pequenos
+- Informações ilegíveis
+
+====================================================================
+12. UX E MICROINTERAÇÕES
+====================================================================
+
+Adicionar:
+- Hover suave
+- Feedback visual
+- Loading states
+- Skeleton loading
+- Transições discretas
+
+====================================================================
+13. PERFORMANCE
+====================================================================
+
+Reutilizar:
+- Componentes existentes
+- Estruturas do calendário já feitas
+- Lógica já implementada
+
+Evitar:
+- Código duplicado
+- Re-renderizações desnecessárias
+
+====================================================================
+14. ACESSIBILIDADE
+====================================================================
+
+Garantir:
+- Navegação por teclado
+- Estados de foco
+- Contraste adequado
+- Labels acessíveis
+
+====================================================================
+15. PADRÃO VISUAL
+====================================================================
+
+Utilizar:
+- Cores do projeto
+- Design system atual
+- Componentes existentes
+
+Priorizar:
+- Modern SaaS
+- Clean UI
+- UX refinada
+- Visual premium
+
+====================================================================
+16. RESULTADO ESPERADO
+====================================================================
+
+Após a implementação:
+
+- A página Calendário ficará focada apenas em:
+  - Mês
+  - Semana
+  - Dia
+
+- A página Agenda se tornará:
+  - Moderna
+  - Operacional
+  - Visualmente organizada
+  - Mais útil no dia a dia
+
+- O profissional conseguirá:
+  - Visualizar rapidamente os agendamentos
+  - Editar com facilidade
+  - Operar mais rápido
+  - Ter melhor experiência mobile
+
+====================================================================
+17. IMPORTANTE
+====================================================================
+
+NÃO:
+- Criar visual genérico
+- Poluir visualmente
+- Quebrar funcionalidades existentes
+- Duplicar lógica desnecessariamente
+
+PRIORIZAR:
+- Reutilização inteligente
+- Performance
+- UX moderna
+- Mobile-first
+- Excelente legibilidade

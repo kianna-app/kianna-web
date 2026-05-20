@@ -395,7 +395,8 @@ export class VisaoGeralComponent implements OnInit {
       <div class="lp-info">
         <span class="lp-label">🔗 Seu link de agendamento</span>
         <code class="lp-url">{{ linkPublico }}</code>
-        <p class="lp-help">Compartilhe este link no Instagram, WhatsApp, cartão de visita. É por aqui que seus clientes agendam.</p>
+        <p class="lp-help">Compartilhe este link no Instagram, 
+        App, cartão de visita. É por aqui que seus clientes agendam.</p>
       </div>
       <div class="lp-actions">
         <button mat-flat-button color="primary" (click)="copiarLink()">

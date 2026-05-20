@@ -1,0 +1,714 @@
+
+KIANNA — TASK: BACKEND NESTJS + REALTIME + INFRA
+Branch(es): feat/backend-setup, fix/realtime-pendentes, feat/validacao-centralizada, feat/mobile-refinamento
+Gerado em: Maio/2026
+
+
+========================================
+=== BLOCO A — BACKEND NESTJS (ESTRUTURA BASE) ===
+========================================
+Repo novo: https://github.com/kianna-app/kianna-api.git
+Deploy: Railway
+Domínio: agendazap.tech (registrado na Hostinger)
+Pasta API: /home/wagner/Develop/kianna/kianna-api
+
+--- A1: Scaffold do projeto ---
+
+npx @nestjs/cli new kianna-api --package-manager npm --strict
+cd kianna-api
+
+Instalar dependências essenciais:
+  npm install @supabase/supabase-js @nestjs/config @nestjs/swagger swagger-ui-express class-validator class-transformer
+  npm install -D @types/node
+
+Estrutura de pastas a criar:
+  src/
+    common/
+      guards/           → auth.guard.ts, roles.guard.ts
+      decorators/        → current-user.decorator.ts, roles.decorator.ts
+      filters/           → http-exception.filter.ts
+      interceptors/      → logging.interceptor.ts
+      pipes/             → validation.pipe.ts
+    config/
+      supabase.config.ts
+      app.config.ts
+    modules/
+      auth/              → auth.module, controller, service
+      agendamentos/      → module, controller, service, dto/
+      servicos/          → module, controller, service, dto/
+      disponibilidades/  → module, controller, service, dto/
+      bloqueios/         → module, controller, service, dto/
+      profissionais/     → module, controller, service, dto/
+      webhooks/          → (preparação para Z-API — Módulo 4)
+
+
+--- A2: Configuração Supabase ---
+
+ARQUIVO: src/config/supabase.config.ts
+
+  import { createClient } from '@supabase/supabase-js'
+  import { ConfigService } from '@nestjs/config'
+
+  export const createSupabaseClient = (config: ConfigService) =>
+    createClient(
+      config.get('SUPABASE_URL'),
+      config.get('SUPABASE_SERVICE_ROLE_KEY'), // service_role no backend
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+
+ARQUIVO: .env (NÃO commitar — adicionar ao .gitignore)
+
+  SUPABASE_URL=https://ocjsscsfggzwkgitzqlk.supabase.co
+  SUPABASE_SERVICE_ROLE_KEY=<pegar no painel Supabase → Settings → API → service_role>
+  SUPABASE_ANON_KEY=<anon key>
+  PORT=3333
+  NODE_ENV=development
+  FRONTEND_URL=https://www.kianna.com.br
+  API_BASE_URL=https://agendazap.tech
+
+ARQUIVO: .env.example (commitar — sem valores reais)
+
+  SUPABASE_URL=
+  SUPABASE_SERVICE_ROLE_KEY=
+  SUPABASE_ANON_KEY=
+  PORT=3333
+  NODE_ENV=development
+  FRONTEND_URL=https://www.kianna.com.br
+  API_BASE_URL=https://agendazap.tech
+
+ATENÇÃO: backend usa service_role key (acesso total, sem RLS).
+Nunca expor essa key no frontend.
+
+
+--- A3: Módulo de Auth (validação do JWT Supabase) ---
+
+ARQUIVO: src/modules/auth/auth.guard.ts
+
+  O backend recebe o JWT do Supabase no header Authorization.
+  Validar com supabase.auth.getUser(token):
+
+  @Injectable()
+  export class SupabaseAuthGuard implements CanActivate {
+    constructor(private config: ConfigService) {}
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+      const req = context.switchToHttp().getRequest()
+      const token = req.headers.authorization?.replace('Bearer ', '')
+      if (!token) throw new UnauthorizedException()
+
+      const supabase = createClient(
+        this.config.get('SUPABASE_URL'),
+        this.config.get('SUPABASE_ANON_KEY')
+      )
+      const { data, error } = await supabase.auth.getUser(token)
+      if (error || !data.user) throw new UnauthorizedException()
+
+      req.user = data.user
+      return true
+    }
+  }
+
+ARQUIVO: src/common/decorators/current-user.decorator.ts
+
+  export const CurrentUser = createParamDecorator(
+    (data: string, ctx: ExecutionContext) => {
+      const req = ctx.switchToHttp().getRequest()
+      return data ? req.user?.[data] : req.user
+    }
+  )
+
+
+--- A4: Role admin vs profissional ---
+
+SQL no Supabase (rodar agora):
+
+  ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'profissional';
+  ALTER TABLE profissionais ADD CONSTRAINT profissionais_role_check
+    CHECK (role IN ('admin', 'profissional'));
+
+  -- Tornar o seu usuário admin:
+  -- UPDATE profissionais SET role = 'admin' WHERE user_id = '<seu_user_id>';
+
+ARQUIVO: src/common/decorators/roles.decorator.ts
+
+  export const Roles = (...roles: string[]) => SetMetadata('roles', roles)
+
+ARQUIVO: src/common/guards/roles.guard.ts
+
+  @Injectable()
+  export class RolesGuard implements CanActivate {
+    constructor(private reflector: Reflector, private config: ConfigService) {}
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+      const roles = this.reflector.get<string[]>('roles', context.getHandler())
+      if (!roles) return true // sem decorator = acesso livre
+
+      const req = context.switchToHttp().getRequest()
+      const userId = req.user?.id
+      if (!userId) return false
+
+      const supabase = createSupabaseClient(this.config)
+      const { data } = await supabase
+        .from('profissionais')
+        .select('role')
+        .eq('user_id', userId)
+        .single()
+
+      return roles.includes(data?.role)
+    }
+  }
+
+  // Uso em controllers:
+  // @Roles('admin')
+  // @UseGuards(SupabaseAuthGuard, RolesGuard)
+
+
+--- A5: Swagger ---
+
+ARQUIVO: src/main.ts
+
+  import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
+
+  async function bootstrap() {
+    const app = await NestFactory.create(AppModule)
+
+    app.enableCors({
+      origin: [process.env.FRONTEND_URL, 'http://localhost:4200'],
+      credentials: true,
+    })
+
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
+    app.useGlobalFilters(new HttpExceptionFilter())
+
+    const config = new DocumentBuilder()
+      .setTitle('Kianna API')
+      .setDescription('API do sistema de agendamento Kianna')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build()
+
+    const doc = SwaggerModule.createDocument(app, config)
+    SwaggerModule.setup('api/docs', app, doc)
+
+    await app.listen(process.env.PORT || 3333)
+  }
+  bootstrap()
+
+
+--- A6: Primeiras rotas (espelhar operações críticas do frontend) ---
+
+Criar controllers com DTOs validados. Não migrar a lógica do frontend ainda —
+apenas expor as rotas que o Módulo 4 (webhooks Z-API) vai precisar:
+
+MÓDULO: agendamentos
+  POST   /api/agendamentos           → criar (público, sem auth)
+  GET    /api/agendamentos/:id        → detalhe (auth)
+  PATCH  /api/agendamentos/:id/status → atualizar status (auth)
+  GET    /api/agendamentos/pendentes/count → contagem pendentes (auth)
+
+MÓDULO: webhooks (preparação Módulo 4)
+  POST   /api/webhooks/zapi           → receber mensagens Z-API (sem auth, validação por token)
+
+MÓDULO: profissionais
+  GET    /api/profissionais/me        → dados do profissional logado (auth)
+  GET    /api/profissionais/:slug     → dados públicos por slug (sem auth)
+
+Exemplo de DTO com validação:
+
+  // src/modules/agendamentos/dto/criar-agendamento.dto.ts
+  export class CriarAgendamentoDto {
+    @IsUUID()
+    profissional_id: string
+
+    @IsUUID()
+    servico_id: string
+
+    @IsString() @MinLength(2)
+    cliente_nome: string
+
+    @IsString() @MinLength(10)
+    cliente_wpp: string
+
+    @IsISO8601()
+    data_hora: string
+  }
+
+
+--- A7: Deploy no Railway ---
+
+Passos manuais (não são código):
+  1. Criar conta Railway (railway.app) se não tiver
+  2. New Project → Deploy from GitHub repo → selecionar kianna-api
+  3. Add variables: copiar .env
+  4. Railway auto-detecta Node.js e roda npm start
+  5. Gerar domínio: kianna-api.up.railway.app (temporário)
+  6. Configurar custom domain: agendazap.tech
+     → No painel Hostinger: DNS Zone Editor
+       - Remover registros A/CNAME existentes para @ (raiz) se houver
+       - Adicionar CNAME: @ → <domínio railway>.up.railway.app
+       - Se Hostinger não aceitar CNAME na raiz, usar registro A
+         com o IP do Railway (ver Settings → Networking no Railway)
+     → No Railway: Settings → Custom Domain → agendazap.tech
+  7. SSL automático pelo Railway
+  8. Testar: curl https://agendazap.tech/api/docs → Swagger deve abrir
+
+
+--- A8: Migração gradual (instruções, não implementar agora) ---
+
+Após o backend estar rodando, a migração do frontend segue esta ordem:
+
+  FASE 1 (agora): backend existe, frontend continua usando Supabase direto.
+    Backend serve apenas as rotas que o frontend não pode fazer (webhooks,
+    cron jobs, integrações externas).
+
+  FASE 2 (Módulo 4): frontend começa a chamar o backend para agendamentos.
+    Criar um ApiService no Angular que aponta para agendazap.tech.
+    Substituir chamadas Supabase por chamadas HTTP ao backend uma a uma.
+
+  FASE 3 (pós-MVP): migrar tudo para o backend.
+    Frontend nunca mais fala direto com Supabase (exceto Auth).
+    Benefícios: lógica centralizada, logs, rate limiting, cache.
+
+  ATENÇÃO: durante a fase 1-2, RLS do Supabase continua protegendo
+  os dados no frontend. No backend, service_role ignora RLS —
+  validar permissões manualmente nos services do NestJS.
+
+
+========================================
+=== BLOCO B — SUPABASE REALTIME (PENDENTES) ===
+========================================
+Aplicar no frontend Angular (repo kianna-web).
+
+
+--- B1: Corrigir contagem de pendentes ---
+
+ARQUIVO: src/app/features/dashboard/shell/header/header.component.ts
+
+O card de pendentes está mostrando sempre "1". Causas prováveis:
+  a) O signal pendentesCount nunca é atualizado após a primeira query
+  b) A query de contagem não filtra por profissional_id
+  c) O Realtime não está subscrito
+
+Verificar e corrigir:
+
+  // 1. Garantir que a query conta corretamente:
+  async carregarPendentes(): Promise<void> {
+    const profId = this.currentUser()?.profissional_id
+    if (!profId) return
+
+    const { count, error } = await this.supabase
+      .from('agendamentos')
+      .select('*', { count: 'exact', head: true })
+      .eq('profissional_id', profId)
+      .eq('status', 'pendente')
+
+    if (!error && count !== null) {
+      this.pendentesCount.set(count)
+    }
+  }
+
+  // 2. Chamar ao inicializar:
+  async ngOnInit(): Promise<void> {
+    await this.carregarPendentes()
+    this.subscribeRealtime()
+  }
+
+
+--- B2: Subscription Realtime ---
+
+ARQUIVO: header.component.ts (continuação)
+
+  private channel: any
+
+  private subscribeRealtime(): void {
+    const profId = this.currentUser()?.profissional_id
+    if (!profId) return
+
+    this.channel = this.supabase
+      .channel('pendentes-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',     // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'agendamentos',
+          filter: `profissional_id=eq.${profId}`
+        },
+        (_payload: any) => {
+          // Qualquer mudança → recontar
+          this.carregarPendentes()
+        }
+      )
+      .subscribe()
+  }
+
+  ngOnDestroy(): void {
+    if (this.channel) {
+      this.supabase.removeChannel(this.channel)
+    }
+  }
+
+
+--- B3: Habilitar Realtime no Supabase ---
+
+Painel Supabase → Database → Replication:
+  Verificar se a tabela "agendamentos" está habilitada para Realtime.
+  Se não estiver:
+    1. Ir em Database → Replication
+    2. Clicar em "Source" → supabase_realtime
+    3. Adicionar tabela "agendamentos"
+
+  OU via SQL:
+    ALTER PUBLICATION supabase_realtime ADD TABLE agendamentos;
+
+
+--- B4: Atualizar store de agendamentos junto ---
+
+ARQUIVO: agendamentos.store.ts
+
+Quando o Realtime dispara no header, a lista de agendamentos no store
+pode estar desatualizada. Duas opções:
+
+  OPÇÃO A (simples): o header emite um evento/signal e o store recarrega.
+  OPÇÃO B (centralizada): mover a subscription para o store e expor
+    tanto a lista quanto a contagem de pendentes.
+
+Recomendação: OPÇÃO B — centralizar no store.
+
+  // agendamentos.store.ts
+  readonly pendentesCount = computed(() =>
+    this.agendamentos().filter(a => a.status === 'pendente').length
+  )
+
+  // Subscription Realtime no store.init():
+  subscribeRealtime(profissionalId: string): void {
+    this.channel = this.supabase
+      .channel('agendamentos-store')
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'agendamentos',
+        filter: `profissional_id=eq.${profissionalId}`
+      }, () => this.carregar())
+      .subscribe()
+  }
+
+  // Header usa: agendamentosStore.pendentesCount()
+  // Isso garante que header, agenda, visão geral — tudo fica sincronizado.
+
+
+========================================
+=== BLOCO C — VALIDAÇÃO CENTRALIZADA ===
+========================================
+Aplicar no frontend (kianna-web).
+
+
+--- C1: Validators centralizados ---
+
+ARQUIVO: src/app/core/validators/form.validators.ts (novo)
+
+  import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms'
+
+  export class KiannaValidators {
+
+    /** Nome: mín 2 chars, sem números */
+    static nome(): ValidatorFn[] {
+      return [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(100),
+        (c: AbstractControl): ValidationErrors | null =>
+          c.value && /\d/.test(c.value) ? { nomeInvalido: true } : null
+      ]
+    }
+
+    /** WhatsApp: 10-11 dígitos, DDD obrigatório */
+    static whatsapp(): ValidatorFn[] {
+      return [
+        Validators.required,
+        (c: AbstractControl): ValidationErrors | null => {
+          const digits = (c.value || '').replace(/\D/g, '')
+          if (digits.length < 10 || digits.length > 11) return { wppInvalido: true }
+          return null
+        }
+      ]
+    }
+
+    /** Preço: >= 0, máx 2 decimais */
+    static preco(): ValidatorFn[] {
+      return [
+        Validators.required,
+        Validators.min(0),
+        (c: AbstractControl): ValidationErrors | null =>
+          c.value && !/^\d+(\.\d{1,2})?$/.test(String(c.value))
+            ? { precoInvalido: true } : null
+      ]
+    }
+
+    /** Duração em minutos: 5-480 */
+    static duracao(): ValidatorFn[] {
+      return [Validators.required, Validators.min(5), Validators.max(480)]
+    }
+
+    /** Email */
+    static email(): ValidatorFn[] {
+      return [Validators.required, Validators.email]
+    }
+
+    /** Slug: lowercase, hifens, sem espaços */
+    static slug(): ValidatorFn[] {
+      return [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(60),
+        Validators.pattern(/^[a-z0-9]+(-[a-z0-9]+)*$/)
+      ]
+    }
+  }
+
+
+--- C2: Mensagens de erro padronizadas ---
+
+ARQUIVO: src/app/core/validators/error-messages.ts (novo)
+
+  export const ERROR_MESSAGES: Record<string, string | ((params: any) => string)> = {
+    required:      'Campo obrigatório.',
+    minlength:     (p) => `Mínimo ${p.requiredLength} caracteres.`,
+    maxlength:     (p) => `Máximo ${p.requiredLength} caracteres.`,
+    min:           (p) => `Valor mínimo: ${p.min}.`,
+    max:           (p) => `Valor máximo: ${p.max}.`,
+    email:         'E-mail inválido.',
+    pattern:       'Formato inválido.',
+    nomeInvalido:  'Nome não pode conter números.',
+    wppInvalido:   'WhatsApp inválido. Informe DDD + número (10 ou 11 dígitos).',
+    precoInvalido: 'Preço inválido. Use até 2 casas decimais.',
+  }
+
+  export function getErrorMessage(control: AbstractControl): string {
+    if (!control.errors) return ''
+    const key = Object.keys(control.errors)[0]
+    const msg = ERROR_MESSAGES[key]
+    if (!msg) return 'Campo inválido.'
+    return typeof msg === 'function' ? msg(control.errors[key]) : msg
+  }
+
+
+--- C3: Componente de erro reutilizável ---
+
+ARQUIVO: src/app/shared/components/field-error/field-error.component.ts (novo)
+
+  @Component({
+    selector: 'app-field-error',
+    standalone: true,
+    template: `
+      @if (control?.invalid && control?.touched) {
+        <span class="field-error">{{ message }}</span>
+      }
+    `,
+    styles: [`
+      .field-error {
+        font: 400 12px 'Inter'; color: #E26172;
+        display: block; margin-top: 2px;
+      }
+    `]
+  })
+  export class FieldErrorComponent {
+    @Input() control!: AbstractControl
+    get message(): string { return getErrorMessage(this.control) }
+  }
+
+  // Uso em templates:
+  // <mat-form-field>
+  //   <input matInput formControlName="cliente_nome" />
+  //   <app-field-error [control]="form.controls.cliente_nome" />
+  // </mat-form-field>
+
+
+--- C4: Aplicar nos formulários existentes ---
+
+Substituir validações manuais pelos KiannaValidators em:
+  - booking (página pública): cliente_nome, cliente_wpp
+  - servicos (dashboard): nome, preco, duracao_min
+  - configuracoes (perfil): nome, whatsapp, slug, email
+  - agendamento-detalhe: todos os campos
+  - onboarding: nome, whatsapp, slug
+
+Para cada formulário, substituir:
+  ANTES: Validators.required, Validators.minLength(2)
+  DEPOIS: ...KiannaValidators.nome()
+
+Adicionar <app-field-error> abaixo de cada mat-form-field.
+
+
+========================================
+=== BLOCO D — MOBILE RESPONSIVENESS ===
+========================================
+
+
+--- D1: Auditoria e correções ---
+
+Verificar e corrigir nos seguintes componentes:
+
+1. BottomNav (já tratado na task anterior — verificar se aplicado)
+   [ ] 4 itens: Início, Agenda, Serviços, Menu
+   [ ] Altura fixa 56px, z-index acima de tudo
+   [ ] Ícones 24px, labels 10px
+   [ ] Safe area bottom para iPhone (padding-bottom: env(safe-area-inset-bottom))
+
+2. Sidenav
+   [ ] Abre sem duplicar (bug do drawer duplo já deveria estar corrigido)
+   [ ] Fecha ao clicar em um item de menu (mobile)
+   [ ] Overlay escurece o fundo
+   [ ] Largura: min(280px, 80vw)
+
+3. Header
+   [ ] Não faz overflow horizontal em telas 320px
+   [ ] Card pendentes não empurra outros elementos
+   [ ] Altura max 56px
+
+4. Agenda
+   [ ] WeekStrip: scroll horizontal funciona com touch
+   [ ] Cards não fazem overflow
+   [ ] FAB não sobrepõe bottom nav (bottom: 72px em mobile, 24px em desktop)
+
+5. Página pública
+   [ ] Botão confirmar fixo no rodapé não sobrepõe conteúdo
+   [ ] Strips de data/horário: scroll touch suave
+   [ ] Campos de formulário: 100% width
+   [ ] Teclado virtual não esconde campos (scroll into view)
+
+6. Configurações
+   [ ] Abas navegáveis via swipe ou scroll horizontal
+   [ ] Campos não fazem overflow
+   [ ] Botão salvar sempre visível
+
+CORREÇÃO GLOBAL — adicionar no styles.scss:
+
+  // Safe area para iPhone (notch + home indicator)
+  .bottom-nav, .booking-footer {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  // Prevenir overflow horizontal global
+  html, body { overflow-x: hidden; }
+
+  // Touch scroll suave em strips
+  .date-strip, .time-strip, .week-strip {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+  }
+
+  // Campos responsivos
+  mat-form-field { max-width: 100%; }
+
+
+========================================
+=== BLOCO E — BACKUP SUPABASE ===
+========================================
+Configuração manual no painel — não é código.
+
+
+--- E1: Ativar Point-in-Time Recovery (PITR) ---
+
+O Supabase free não tem backup automático.
+Para backups automáticos precisa do plano Pro ($25/mês).
+
+OPÇÃO A — Plano Pro Supabase (recomendado para produção):
+  1. Painel Supabase → Organization → Billing → Upgrade to Pro
+  2. Após upgrade: Database → Backups → PITR habilitado automaticamente
+  3. Retenção: 7 dias de backups contínuos
+  4. Restore: qualquer ponto nos últimos 7 dias
+
+OPÇÃO B — Backup manual (plano free, pré-lançamento):
+  1. Painel Supabase → Database → Backups
+  2. Clicar em "Download backup" periodicamente (semanal)
+  3. Salvar em local seguro (Google Drive, S3)
+
+OPÇÃO C — Script de backup automatizado (alternativa ao Pro):
+  Criar cron no Railway que roda pg_dump diariamente:
+
+  # No backend NestJS, instalar pg_dump tools e criar endpoint admin:
+  # GET /api/admin/backup (protegido por @Roles('admin'))
+  # Executa pg_dump e salva em Supabase Storage ou S3
+  # ⚠️ Implementar só se não quiser pagar Supabase Pro
+
+Recomendação: começar com OPÇÃO B agora, migrar para A quando tiver receita.
+
+
+--- E2: Documentar procedimento de recovery ---
+
+Criar arquivo DISASTER_RECOVERY.md no repo kianna-api:
+
+  # Disaster Recovery — Kianna
+  ## Backups
+  - Supabase PITR (quando Pro): restore via painel em Database → Backups
+  - Backup manual: download semanal do painel
+  ## Procedimentos
+  1. Banco corrompido → restaurar backup mais recente no Supabase
+  2. Frontend offline → redeploy no Vercel (git push)
+  3. Backend offline → redeploy no Railway (git push)
+  4. Auth comprometido → rotacionar keys no Supabase → atualizar .env
+  ## Contatos
+  - Suporte Supabase: support@supabase.io
+  - Railway: railway.app/help
+
+
+========================================
+=== ORDEM DE EXECUÇÃO ===
+========================================
+
+1.  A1-A5 — Scaffold NestJS + Supabase + Auth + Swagger
+2.  A4    — Campo role no banco
+3.  A6    — Primeiras rotas (agendamentos, profissionais, webhook placeholder)
+4.  A7    — Deploy Railway
+5.  B3    — Habilitar Realtime no Supabase
+6.  B1-B2 — Corrigir contagem + subscription no frontend
+7.  B4    — Centralizar Realtime no store
+8.  C1-C3 — Validators + error messages + componente
+9.  C4    — Aplicar nos formulários existentes
+10. D1    — Auditoria mobile + correções
+11. E1-E2 — Backup + documentação recovery
+
+
+========================================
+=== CHECKLIST FINAL ===
+========================================
+
+BACKEND
+[ ] Projeto NestJS criado e rodando local (npm run start:dev)
+[ ] Swagger acessível em /api/docs
+[ ] Auth guard validando JWT do Supabase
+[ ] Campo role existe na tabela profissionais
+[ ] RolesGuard funcionando (testar com @Roles('admin'))
+[ ] Rotas POST /api/agendamentos e PATCH /api/agendamentos/:id/status funcionando
+[ ] CORS configurado para frontend
+[ ] Deploy no Railway funcionando
+[ ] .env.example no repo (sem keys reais)
+
+REALTIME
+[ ] Tabela agendamentos habilitada para Realtime no Supabase
+[ ] Card pendentes no header atualiza ao criar novo agendamento
+[ ] Card pendentes atualiza ao confirmar/recusar agendamento
+[ ] Contagem correta (filtrada por profissional_id)
+[ ] Store centralizado recarrega ao receber evento Realtime
+[ ] Subscription desconecta no ngOnDestroy
+
+VALIDAÇÃO
+[ ] KiannaValidators existe com: nome, whatsapp, preco, duracao, email, slug
+[ ] ERROR_MESSAGES cobre todos os erros possíveis
+[ ] FieldErrorComponent exibe mensagem vermelha abaixo do campo
+[ ] Booking (página pública) usa KiannaValidators
+[ ] Serviços usa KiannaValidators
+[ ] Configurações usa KiannaValidators
+[ ] Agendamento-detalhe usa KiannaValidators
+[ ] Onboarding usa KiannaValidators
+
+MOBILE
+[ ] Nenhum overflow horizontal em 320px
+[ ] Safe area bottom aplicado no bottom-nav e booking-footer
+[ ] Touch scroll suave nos strips
+[ ] FAB não sobrepõe bottom-nav
+[ ] Teclado virtual não esconde campos
+
+BACKUP
+[ ] Procedimento de backup definido (manual ou Pro)
+[ ] DISASTER_RECOVERY.md criado no repo

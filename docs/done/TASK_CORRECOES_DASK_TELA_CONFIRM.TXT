@@ -1,0 +1,434 @@
+```txt
+[TASK] Implementar nova Dashboard de Agendamentos + Tela de Confirmação do Cliente
+
+CONTEXTO
+Substituir totalmente o conteúdo que atualmente fica logo abaixo da opção:
+"🔗 Seu link de agendamento"
+
+A IA já conhece o projeto, stack, design system, estrutura e padrões existentes.
+Manter o padrão visual atual do sistema e utilizar as cores já existentes do projeto.
+
+====================================================================
+OBJETIVO
+====================================================================
+
+Criar uma nova experiência de Dashboard focada em:
+- Próximos agendamentos
+- Confirmações pendentes
+- Agilidade operacional
+- Excelente UX no Desktop e Mobile
+- Layout clean, moderno e profissional
+
+Também implementar a nova tela de confirmação do cliente inspirada na referência enviada.
+
+====================================================================
+1. NOVA DASHBOARD - ESTRUTURA GERAL
+====================================================================
+
+A nova dashboard deve possuir:
+
+- Sidebar já existente mantida
+- Conteúdo principal reorganizado
+- Layout moderno e clean
+- Cards com bordas suaves
+- Sombras leves
+- Espaçamentos consistentes
+- Excelente leitura visual
+- Hierarquia clara de informações
+- Totalmente responsivo
+
+IMPORTANTE:
+O conteúdo deverá começar exatamente abaixo da área:
+"🔗 Seu link de agendamento"
+
+Remover completamente o conteúdo atual dessa seção.
+
+====================================================================
+2. LAYOUT DESKTOP
+====================================================================
+
+Estrutura principal:
+
+--------------------------------------------------
+[ Sidebar ]
+--------------------------------------------------
+
+[ Conteúdo principal ]
+    ├─ Card: Próximos Agendamentos
+    └─ Card: Confirmações Pendentes
+
+Os cards devem possuir:
+- Fundo branco
+- Border radius suave
+- Sombra discreta
+- Padding interno confortável
+- Separação visual elegante
+- Espaçamento vertical entre cards
+- Scroll elegante caso existam muitos itens
+
+Utilizar largura fluida.
+Evitar sensação de aperto.
+
+====================================================================
+3. CARD - "PRÓXIMOS AGENDAMENTOS"
+====================================================================
+
+Título:
+"Próximos Agendamentos"
+
+Subtítulo:
+"Acompanhe seus próximos agendamentos"
+
+No topo direito:
+- Botão de atualizar/recarregar lista
+
+Cada item da lista deve conter:
+
+--------------------------------------------------
+INFORMAÇÕES DO AGENDAMENTO
+--------------------------------------------------
+
+- Nome do cliente (destaque maior)
+- Texto secundário:
+  "com [nome do profissional]"
+
+- Serviço(s)
+- Duração aproximada
+
+No lado direito:
+- Data/Horário do agendamento
+- Valor do serviço
+
+Ações:
+- Botão Confirmar
+- Botão Recusar
+
+====================================================================
+4. UX DOS BOTÕES
+====================================================================
+
+Botão Confirmar:
+- Utilizar cor positiva do projeto
+- Altura compacta
+- Visual moderno
+- Hover suave
+- Estado loading
+
+Botão Recusar:
+- Utilizar cor negativa do projeto
+- Mesmo tamanho do confirmar
+- Hover suave
+
+IMPORTANTE:
+Botões devem possuir:
+- Boa área de clique
+- Excelente usabilidade no mobile
+- Não ficar apertados
+- Espaçamento horizontal adequado
+
+====================================================================
+5. ESTADOS DO AGENDAMENTO
+====================================================================
+
+Cada agendamento deve possuir estado visual claro.
+
+Exemplos:
+- Confirmado
+- Pendente
+- Recusado
+- Cancelado
+- Realizado
+- Cliente faltou
+
+Utilizar badges/chips modernos.
+
+Badges:
+- Pequenos
+- Legíveis
+- Sem exagero visual
+- Seguindo padrão visual do projeto
+
+====================================================================
+6. CARD - "CONFIRMAÇÕES PENDENTES"
+====================================================================
+
+Título:
+"Confirmações Pendentes"
+
+Subtítulo:
+"Agendamentos passados sem confirmação de status. Atualize com um clique."
+
+No topo direito:
+- Botão atualizar
+
+Cada item deve conter:
+- Cliente
+- Profissional
+- Serviço
+- Duração
+- Data/Hora
+- Valor
+
+Ações rápidas:
+
+- Realizado
+- Cliente faltou
+- Cancelado
+
+IMPORTANTE:
+Esses botões devem funcionar como ações rápidas de operação.
+
+UX:
+- Muito rápido de usar
+- Pequenos mas clicáveis
+- Visual de badges interativos
+- Boa diferenciação visual entre estados
+
+====================================================================
+7. RESPONSIVIDADE MOBILE
+====================================================================
+
+PRIORIDADE ALTA.
+
+No mobile:
+- Sidebar seguir comportamento atual do projeto
+- Cards empilhados
+- Informações reorganizadas verticalmente
+- Botões maiores
+- Melhor área de toque
+- Sem overflow horizontal
+- Excelente leitura
+
+Cada item de agendamento no mobile deve virar um card vertical.
+
+Organização sugerida:
+
+[ Nome cliente ]
+com profissional
+
+Serviço
+Duração
+
+Horário
+Valor
+
+[ Confirmar ]
+[ Recusar ]
+
+====================================================================
+8. ESPAÇAMENTOS E UX
+====================================================================
+
+Aplicar:
+- Espaçamento vertical consistente
+- Respiro visual
+- Padding confortável
+- Hierarquia visual forte
+
+Priorizar:
+- Escaneabilidade
+- Rapidez operacional
+- Facilidade de leitura
+
+Evitar:
+- Poluição visual
+- Textos comprimidos
+- Botões muito pequenos
+- Informações desalinhadas
+
+====================================================================
+9. ANIMAÇÕES E MICROINTERAÇÕES
+====================================================================
+
+Adicionar microinterações suaves:
+
+- Hover nos cards
+- Hover nos botões
+- Transições leves
+- Feedback visual ao clicar
+- Skeleton/loading na listagem
+
+Tudo deve ser:
+- Discreto
+- Moderno
+- Profissional
+
+====================================================================
+10. TELA DE CONFIRMAÇÃO DO CLIENTE
+====================================================================
+
+Criar nova tela de confirmação baseada na referência enviada.
+
+====================================================================
+ESTRUTURA DA TELA
+====================================================================
+
+TOPO:
+- Nome do salão/empresa
+- Subtítulo curto
+
+NAVEGAÇÃO SUPERIOR:
+- Ícones modernos
+- Seguir padrão visual do projeto
+
+CONTEÚDO CENTRAL:
+- Ícone/ilustração de confirmação
+- Título:
+  "Agendamento realizado!"
+
+- Texto de apoio:
+  "Seu agendamento foi confirmado com sucesso."
+
+Adicionar também:
+
+STATUS:
+- Badge/status:
+  "Aguardando confirmação do profissional"
+
+Esse status deve ficar visualmente destacado.
+
+====================================================================
+11. RESUMO DO AGENDAMENTO
+====================================================================
+
+Adicionar card contendo:
+
+- Cliente
+- Serviço
+- Profissional
+- Data
+- Horário
+- Duração
+- Valor
+
+Layout:
+- Limpo
+- Fácil leitura
+- Organizado
+- Mobile friendly
+
+====================================================================
+12. BOTÃO "ADICIONAR AO GOOGLE AGENDA"
+====================================================================
+
+Adicionar botão:
+"Adicionar ao Google Agenda"
+
+Funcionalidade:
+- Abrir link dinâmico gerado automaticamente
+- Inserir:
+  - título
+  - data
+  - horário
+  - descrição
+  - local (se existir)
+
+UX:
+- Botão secundário
+- Ícone de calendário
+
+====================================================================
+13. BOTÃO "COMPARTILHAR VIA WHATSAPP"
+====================================================================
+
+Adicionar botão:
+"Compartilhar via WhatsApp"
+
+Funcionalidade:
+- Abrir wa.me do profissional
+- Já preencher mensagem automática
+
+Mensagem sugerida:
+"Olá, meu agendamento foi realizado e estou entrando em contato para confirmação."
+
+Adicionar:
+- nome do cliente
+- data
+- horário
+- serviço
+
+====================================================================
+14. RESPONSIVIDADE DA TELA DE CONFIRMAÇÃO
+====================================================================
+
+No mobile:
+- Centralizar conteúdo
+- Botões em largura total
+- Excelente área de toque
+- Espaçamento confortável
+- Sem elementos apertados
+
+====================================================================
+15. PADRÕES VISUAIS
+====================================================================
+
+IMPORTANTE:
+Utilizar:
+- Tipografia já existente
+- Paleta de cores do projeto
+- Componentes padrões já existentes
+- Estilo moderno/minimalista
+
+Priorizar:
+- Elegância
+- Clareza
+- UX profissional
+- Sensação premium
+
+====================================================================
+16. ACESSIBILIDADE
+====================================================================
+
+Garantir:
+- Contraste adequado
+- Botões acessíveis
+- Estados de foco
+- Boa navegação mobile
+- Labels semânticas
+
+====================================================================
+17. PERFORMANCE
+====================================================================
+
+Evitar:
+- Re-renderizações desnecessárias
+- Excessos visuais
+- Componentes pesados
+
+Priorizar:
+- Fluidez
+- Rapidez
+- Boa experiência mobile
+
+====================================================================
+18. RESULTADO ESPERADO
+====================================================================
+
+A dashboard deve transmitir:
+- Organização
+- Profissionalismo
+- Facilidade operacional
+- Agilidade no gerenciamento de agenda
+
+A tela de confirmação deve transmitir:
+- Segurança
+- Clareza
+- Confiança
+- Experiência moderna para o cliente
+
+====================================================================
+19. IMPORTANTE
+====================================================================
+
+- NÃO criar visual genérico
+- NÃO utilizar aparência datada
+- NÃO criar elementos apertados
+- NÃO usar excesso de cores
+
+Priorizar:
+- Clean UI
+- Modern SaaS
+- UX moderna
+- Excelente experiência mobile-first
+
+```

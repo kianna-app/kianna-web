@@ -1,61 +1,171 @@
-> Analise com calma estes erros, obervações e melhorias.
-> Pergunte se encontra ambiguidades e erros.
-> Elabore uma task card de correções e melhorias se necessário sepradas.
-> Pense em economizar tokens de saída, gere um texto em fomarto .txt, eveitando muitos caracteres desnecessário para o claude code executar.
-> Seja prático e profissional.
 
+Correções e Melhorias:
 
-Erros:*
-  Erro 1:
-  -Qual a diferença em digitar no nagevador:
-  > https://kianna.com.br/  --> Aqui ele não redireciona e aparece uma mensagem da Hostinger, como se não houvesse um site.
-  > http://www.kianna.com.br/ --> Digitando aqui o site abre normalmente.
-  >   neste contexto o app recomenda acessar o link https://kianna.com.br/studio-ana, porém ocorre um erro e é necessário digitar, https://www.kianna.com.br/studio-ana para acessar.
-
-  Erro outros:
-  - Após um tempo inativo do sistema, ao clicar em qualquer página que requer a busca de dados no banco, o app fica com o loading ativo, buscando os dados, e não finaliza, como se a sessão tivesse expirado. Observação: O tempo esperado é curto certa de 5 a 10 minutos apenas.
-  - Quando erro está ocorrendo ao clicar na página perfil carrega normalmente.
-  - Adicionar logs para tentarmos identificar esse proble.ASerá problema no Supabase, como verificar seus limite no paindel deles?
-
-  - O botão Confirmar agendamento na visão do administrator nos detalhes de agendamento, não está confirmando, ao clicar neles, nada acontece.
+- Refatoração da Estrutura do Projeto:
+  - Vamos falar sobre a estrutura do código, backend e frontend.
+  - Atualmente temos tudo no front?
+  - Vamos separar em dois projeto no Github e ter um backend em Node.js?
+  - Por onde devemos começar?
+  - Qual a melhor forma de fazer isso?
+  - Posso ter duas instância no Vercel?
+  - Criar um swagger das rodas?
+  - Podemos fazer isso antes de iniciar o módulo 4?
 
 
 
-
-Melhorias*
-  - Adicionar mensagem no final dos Serviços informando que esgotou a quantidade de serviços gratuítos.
-  - Página de serviços: Adicionar um botão para o usuário poder contratar mais serviços.
-  - Na página Publica, exemplo https://www.kianna.com.br/studio-ana
-
-    - O que der ser feito é ao ser escolhido um ícone rolar a página para baixo ao invés de avançar, assim, não será preciso o botão voltar, apenas um botão de "subir a rolagem".
-    - O botão de "subir a rolagem" deve ser um botão flutuante e deve aparecer apenas quando o usuário rolar a página para baixo.
-  - A parte de Confirmar Agendamento está ok, manter dessa forma.
-  - O botão Confirmar agendamento na visão do administrator nos detalhes de agendamento, está com o designer fora do padrão, deixar igual ao botão "Confirmar agendamento" da página pública que o cliente usa para agendar seus serviços.
+* Como vamos resolver a atualização automática de agendamentos?
+  - Atualmente quando o cliente agenda um serviço não aparece nenhuma notificação ou altera a quantidade de agendamentos Pedentes no dashboard sem que o profissional atualize a página.
+  - Além disso o card "Pendentes" que fica no Header nãoe stá sendo atualizado,  mesmo com vários agendamentos pendentes, está mostrado o valor 1.
+  - Como podemos resolver isso?
+  - Ou isso será resolvido com a api do whats?
+  - Proponha algumas opções.
 
 
+- Além disso, temos que corrigir os erros abaixo.-
+
+* Validação de Formulários
+Sem validators centralizados
+Validações feitas manualmente em componentes
+Sem mensagens de erro padronizadas
+
+
+* Mobile Responsiveness Completa
+Material Design aplicado mas bottom-nav do dashboard pode precisar refinamento
+
+
+* Logging & Monitoring
+Sem sistema de logs centralizado
+Sem error tracking (Sentry, etc)
+Sem analytics de eventos
+
+
+* Backup & Recovery
+Sem sistema de backup visível
+Sem disaster recovery documentation
+
+
+* Sistema de Permissões/Roles
+Sem diferenciação de papéis (admin, profissional, cliente)
+Sem controle de acesso baseado em roles
+
+
+* Versionamento de API
+Sem versioning de API Supabase
+Sem migrations documentadas
+
+
+Observações:
+- Analise com calma estes erros, obervações e melhorias.
+- Pergunte se encontra ambiguidades e erros.
+- Elabore uma task card, Separado por features relacionadas, para correções e melhorias se necessário.
+- Pense em economizar tokens de saída, gere um texto em fomarto .txt, evitando muitos caracteres desnecessário para o claude code executar.
+- Seja prático e profissional.
+- Pende sem tasks que seja otimizados.
+- Buscar plugins que já implementam calendários para economizar no código.
+- Utilizar os padrões de cores do Projeto.
+- Ser responsivo com uma ótima usabilidade no Mobile.
+- Ter um layout Moderno. Priorizar a experiência do usuário.
+- Assuma que a IA já conhece o projeto que está se referindo.
+- Caso tenha alguma ambiguidade ou dúvida perguntar.
 
 
 
 
+Perguntas antes de gerar as tasks
+Sobre o backend:
+a) Quer criar o backend NestJS agora (antes do Módulo 4) apenas com a estrutura base + Swagger + as primeiras rotas? Ou quer migrar toda a lógica do Supabase client para o backend de uma vez?
+b) O backend vai usar o Supabase como banco (via Supabase JS ou via Prisma/TypeORM conectando direto no PostgreSQL)? Minha recomendação: Supabase JS no backend para manter consistência com o que já existe.
+Sobre Realtime:
+c) Confirma que quer implementar Supabase Realtime agora (Opção A) para resolver o problema imediato do card de pendentes?
+Sobre Roles:
+d) No MVP só existe o role "profissional" (quem loga). O "cliente" não tem conta. Quer adicionar roles agora ou deixar para quando implementar o plano Studio (multi-profissional)?
+Sobre Backup:
+e) Backup do Supabase é configuração no painel (plano Pro ~$25/mês com backup automático). Quer que eu inclua as instruções de configuração na task ou é só lembrete para você fazer manualmente?
+Sobre Logging:
+f) Sentry tem SDK para Angular e NestJS. Quer implementar no frontend agora ou esperar o backend para fazer nos dois juntos?
 
 
-Header
- - Adicionar um card simples, no qual mostre a quantidade de agendamentos pedentes. Não é necessário mais o icone calendar_today. pendentesCount
+a. Sim, criar o backend NestJS agora com estrutura base, Swagger e as primeiras rotas. A migração da lógica do Supabase client pode ser feita gradualmente. Instruir o passos.
+b. Sim, usar Supabase JS no backend para manter consistência.
+c. Sim, implementar Supabase Realtime para resolver o problema imediato do card de pendentes.
+d. Deixar para quando implementar o plano Studio (multi-profissional). Criar um usuário admin?
+e. Sim, incluir as instruções de configuração na task.
+f. esperar o backend para fazer nos dois juntos.
 
-Editar Agendamento:
-  Não usar modal.
-  Usar uma página, pensar na versão mobile.
-  Ao finalizar a edição, (confirmar ou Confirmar recusa) voltar para tela que estava.
-
-DASHBOARD
-  - Remover a barra, HOJE, NO MÊS, PENDENTES, CANCELADOS
-  - Remover a barras de status que fica abaixo dos dias da semana que possui (TOTAL, CONFIRMADOS, PENDENTES, FINALIZADOS)
-  -
+******************************
 
 
-Versão publica de agendamento:
-  O cliente não está conseguindo agendar.
-  Mesmo com as datas e horários disponíveis está aparecendo a mensagem "Sem horários disponíveis
-Verifique novamente em breve ou entre em contato pelo WhatsApp.
-  Alterar o modo que está, deixar a tela mostrando em unica página. Veja o Exemplo da iamgem em anexo.
 
+Resumo
+Branch criada: feat/backend-setup em /home/wagner/Develop/kianna/kianna-api
+
+Estrutura entregue:
+
+src/main.ts — bootstrap com CORS, ValidationPipe, HttpExceptionFilter, LoggingInterceptor, Swagger em /api/docs
+src/app.module.ts — ConfigModule.forRoot({ isGlobal: true }) + todos os módulos
+src/app.controller.ts — health check em / e /health
+Config (A2): supabase.config.ts com clients service_role e anon; app.config.ts; .env e .env.example
+Auth (A3): SupabaseAuthGuard + @CurrentUser + AuthenticatedRequest
+Roles (A4): @Roles + RolesGuard (lê profissionais.role)
+Infra comum: HttpExceptionFilter, LoggingInterceptor
+Rotas (A6):
+POST /api/agendamentos (público), GET /api/agendamentos/:id (auth), PATCH /api/agendamentos/:id/status (auth), GET /api/agendamentos/pendentes/count (auth)
+GET /api/profissionais/me (auth), GET /api/profissionais/:slug (público)
+POST /api/webhooks/zapi (sem auth, valida header x-zapi-token contra ZAPI_WEBHOOK_TOKEN)
+Módulos placeholder: servicos, disponibilidades, bloqueios
+Validação:
+
+npm run lint — 0 erros, 0 warnings
+npm run build — sucesso
+node dist/main.js — bootstrap OK; falha esperada ao instanciar Supabase porque as keys no .env estão vazias
+Próximos passos manuais (não-código):
+
+Preencher SUPABASE_SERVICE_ROLE_KEY e SUPABASE_ANON_KEY no .env (painel Supabase → Settings → API)
+Rodar SQL de A4 no Supabase para adicionar role em profissionais
+Tornar seu usuário admin com UPDATE profissionais SET role = 'admin' WHERE user_id = '<seu_user_id>'
+A7 — deploy Railway + DNS Hostinger
+Itens não cobertos do Bloco A: A7 (deploy Railway — manual no painel) e A8 (apenas instruções de migração gradual).
+
+Não fiz commit ainda. Quer que eu commite a branch feat/backend-setup? E/ou que eu siga para os Blocos B (Realtime), C (validators) ou D (mobile)
+
+
+
+Já que meu perfil é de admin, não deveria ter limites de cadastro de serviços.
+
+Alterei o nome da organização, quanto tempo para o slug estar disponível?
+  Não alterou o link do dashboard.
+
+Bloqueio
+  Se o profissional lançar um bloqueio dia 19 das 10:00 as 12:00, na página púlica deve fica impedidos de ser lançados os horários entre 10:00 e 12:00. Ou seja, 10,11 e 12 não devem aparecer disponíveis.
+
+
+
+
+Sem ZAPI_CLIENT_TOKEN configurado / sem profissional com Instance ID
+Fluxo	Comportamento
+Criar/confirmar/recusar/cancelar/reagendar agendamento	Funciona normal. Notificação é tentada em background com .catch — getWppConfig retorna null silenciosamente (log debug), HTTP response não bloqueia.
+Cron de lembretes (a cada 15min)	Roda, busca profissionais com wpp_status='conectado', encontra zero, loga e termina.
+POST /api/whatsapp/qr-code	Retorna 400 BadRequest com mensagem clara ("Configure o Instance ID e o Token…") — esperado.
+Webhook /api/webhooks/zapi	Ninguém chama, fica ocioso.
+Banner "Conecte seu WhatsApp"	Aparece (já que wpp_status='desconectado' é o default).
+Heads-up para o deploy
+Backend (Railway) — variáveis novas:
+
+ZAPI_BASE_URL (opcional, default https://api.z-api.io)
+ZAPI_CLIENT_TOKEN (opcional agora; obrigatório ao usar Z-API de verdade)
+APP_URL (opcional, default https://www.kianna.com.br)
+ZAPI_WEBHOOK_TOKEN (já existia — mantido)
+Frontend (Vercel) — nada novo. Os endpoints /api/whatsapp/* apontam para o backend via environment.apiUrl que já existe.
+
+Supabase — você já rodou o SQL da PR1, então está pronto.
+
+Riscos de subir agora
+Nenhum dos fluxos atuais quebra se Z-API não existir — todos têm guard de null/.catch. O único "barulho" será logs warn se o webhook receber algo (mas sem ZAPI_WEBHOOK_TOKEN o webhook nem aceita).
+
+Pode subir tranquilo. Depois é só:
+
+Criar conta em z-api.io
+Criar uma instância (por profissional)
+Settar ZAPI_CLIENT_TOKEN no Railway
+Configurar webhook na Z-API apontando para https://kianna-api-production.up.railway.app/api/webhooks/zapi com header x-zapi-token: <ZAPI_WEBHOOK_TOKEN>
+Profissional cola Instance ID/Token nas configurações e clica "Conectar"

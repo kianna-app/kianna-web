@@ -514,3 +514,74 @@
     justify-content: center;
   }
 }
+
+// ── Banner WhatsApp ─────────────────────────────────────
+.wpp-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--c-primary-bg);
+  border: 1px solid var(--c-primary-chip);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-card);
+
+  .wpp-banner-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(29, 158, 117, 0.18);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      color: var(--c-primary);
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .wpp-banner-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.35;
+    min-width: 0;
+
+    strong {
+      font: 600 14px 'Inter', sans-serif;
+      color: var(--text-1);
+    }
+    span {
+      font: 400 12.5px 'Inter', sans-serif;
+      color: var(--c-primary-text);
+    }
+  }
+
+  .wpp-banner-cta {
+    flex-shrink: 0;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 14px;
+    background: var(--c-primary);
+    color: #fff;
+    border-radius: 8px;
+    font: 600 12.5px 'Inter', sans-serif;
+    transition: background 0.15s ease;
+
+    &:hover { background: #178A65; }
+  }
+}
+
+@media (max-width: 480px) {
+  .wpp-banner {
+    flex-wrap: wrap;
+    .wpp-banner-text { width: 100%; order: 2; }
+    .wpp-banner-icon { order: 1; }
+    .wpp-banner-cta { order: 3; margin-left: auto; }
+  }
+}

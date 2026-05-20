@@ -1,7 +1,14 @@
-# BACKLOG — Polimento UX: Serviços e Bloqueios
+-  Aperfeiçoe, detalhe e melhore esta Task.
+-  
+- E gere uma task card em .txt para a uma IA implementar. 
+- - Buscar plugins que já implementam calendários para economizar no código. 
+- - Utilizar os padrões de cores do Projeto. 
+- - Ser responsivo com uma ótima usabilidade no Mobile. 
+- - Ter um layout Moderno. Priorizar a experiência do usuário. 
+- - Assuma que a IA já conhece o projeto que está se referindo. 
+- - Caso tenha alguma ambiguidade ou dúvida perguntar.
 
-Origem: testes visuais da TASK_18_05 (Maio/2026). Bug crítico do POST `/api/servicos`
-já corrigido. Itens abaixo são melhorias de design / UX a serem priorizadas em momento futuro.
+Itens abaixo são melhorias de design / UX 
 
 ---
 
@@ -89,3 +96,15 @@ Possíveis melhorias a discutir:
 2. **Média**: 2.2 (padronização do modal) — coerência com o restante do app.
 3. **Média**: 1 (listagem serviços) — área mais usada.
 4. **Baixa**: 3 (listagem bloqueios) — funcionalidade menos frequente.
+
+
+Excluir serviço: A mensagem que chega ao usuário é diferente da esperada.
+  A mensagem recebida: Erro ao excluir serviço. Tente novamente.
+  A mensagem esperada: Não é possível excluir: serviço possui agendamentos vinculados.
+
+
+Atualizar Botões:
+  Buscar botões de Salvar, Entrar, Criar, Atualizar, Editar, Confirmar, Adicionar e outra ação do tipo e padronizar o tipo e a cor para verde igual ao "+ Adiciona bloqueio". 
+
+  Botões de Excluir: Padronizar as cores e formatos igual ao botão "x Recusar"
+

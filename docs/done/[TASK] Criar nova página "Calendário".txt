@@ -1,0 +1,437 @@
+[TASK] Criar nova página "Calendário" com visual moderno estilo agenda profissional
+
+CONTEXTO
+A IA já conhece:
+- Stack do projeto
+- Estrutura atual
+- Design system
+- Componentes reutilizáveis
+- Padrões visuais
+- Sistema de agendamento existente
+
+Criar uma nova página:
+"Calendário"
+
+Objetivo:
+Exibir os agendamentos em formato de calendário/agenda profissional semelhante à referência enviada.
+
+IMPORTANTE:
+Priorizar:
+- Excelente UX
+- Performance
+- Responsividade
+- Escalabilidade
+- Visual moderno estilo SaaS premium
+
+====================================================================
+1. OBJETIVO DA FUNCIONALIDADE
+====================================================================
+
+Criar uma visualização completa de agenda/calendário onde o usuário consiga:
+
+- Visualizar agendamentos por:
+  - Dia
+  - Semana
+  - Mês
+  - Agenda/lista
+
+- Navegar entre períodos
+- Identificar horários livres e ocupados
+- Visualizar rapidamente conflitos
+- Organizar agenda operacionalmente
+
+A experiência deve transmitir:
+- Organização
+- Agilidade
+- Controle operacional
+- Clareza visual
+
+====================================================================
+2. UTILIZAR PLUGIN/BIBLIOTECA
+====================================================================
+
+IMPORTANTE:
+NÃO desenvolver calendário do zero.
+
+Pesquisar e utilizar biblioteca robusta já consolidada.
+
+Prioridade para:
+
+1. FullCalendar
+3. TUI Calendar
+
+Dar preferência para:
+- Melhor UX
+- Melhor suporte mobile
+- Melhor documentação
+- Melhor performance
+- Facilidade de customização visual
+
+RECOMENDAÇÃO:
+Avaliar primeiro:
+- FullCalendar Scheduler
+- FullCalendar TimeGrid
+
+A implementação deve ficar:
+- Limpa
+- Escalável
+- Fácil manutenção
+
+====================================================================
+3. NOVA PÁGINA "CALENDÁRIO"
+====================================================================
+
+Adicionar nova rota/página:
+"Calendário"
+
+Adicionar item no menu lateral:
+- Ícone moderno
+- Mesmo padrão visual do sistema
+
+Posicionar dentro da seção:
+"Agendamento"
+
+====================================================================
+4. ESTRUTURA DA PÁGINA
+====================================================================
+
+LAYOUT GERAL:
+
+--------------------------------------------------
+Sidebar existente
+--------------------------------------------------
+
+--------------------------------------------------
+Header da agenda
+--------------------------------------------------
+
+--------------------------------------------------
+Calendário principal
+--------------------------------------------------
+
+====================================================================
+5. HEADER SUPERIOR
+====================================================================
+
+Criar header moderno contendo:
+
+--------------------------------------------------
+LADO ESQUERDO
+--------------------------------------------------
+
+Botões:
+- Hoje
+- Voltar
+- Avançar
+
+UX:
+- Botões compactos
+- Hover suave
+- Boa área de clique
+
+--------------------------------------------------
+CENTRO
+--------------------------------------------------
+
+Exibir:
+- Intervalo da semana
+- Mês atual
+- Ano
+
+Exemplo:
+"10 a 16 de Maio de 2026"
+
+Visual:
+- Centralizado
+- Destaque visual
+- Fácil leitura
+
+--------------------------------------------------
+LADO DIREITO
+--------------------------------------------------
+
+Alternador de visualização:
+
+- Mês
+- Semana
+- Dia
+- Agenda
+
+Comportamento:
+- Toggle moderno
+- Estado ativo elegante
+- Hover suave
+- Responsivo
+
+====================================================================
+6. VISUAL DO CALENDÁRIO
+====================================================================
+
+Criar visual:
+- Limpo
+- Profissional
+- Moderno
+- Minimalista
+
+Inspirado em:
+- Google Calendar
+- Calendly
+- Notion Calendar
+- Linear style UI
+
+====================================================================
+7. GRADE DE HORÁRIOS
+====================================================================
+
+Exibir:
+- Horários verticais
+- Dias horizontalmente
+- Separações suaves
+
+IMPORTANTE:
+- Excelente legibilidade
+- Linhas discretas
+- Boa densidade visual
+
+====================================================================
+8. EVENTOS / AGENDAMENTOS
+====================================================================
+
+Cada agendamento deve aparecer como bloco/card.
+
+Cada bloco deve possuir:
+- Horário
+- Nome do cliente
+- Quantidade de serviços
+
+Exemplo:
+"09:15 - 09:45"
+"Luana"
+"(1 serviço)"
+
+====================================================================
+9. CORES DOS AGENDAMENTOS
+====================================================================
+
+Utilizar cores do projeto.
+
+IMPORTANTE:
+Criar diferenciação visual por status.
+
+Sugestão:
+- Confirmado
+- Pendente
+- Cancelado
+- Realizado
+- Cliente faltou
+
+As cores devem:
+- Ser suaves
+- Modernas
+- Não poluir visualmente
+
+====================================================================
+10. UX DOS EVENTOS
+====================================================================
+
+Ao clicar no evento:
+Abrir:
+- Modal
+ou
+- Drawer lateral
+
+Contendo:
+- Cliente
+- Serviço
+- Profissional
+- Data
+- Horário
+- Duração
+- Valor
+- Observações
+- Status
+
+Ações rápidas:
+- Confirmar
+- Reagendar
+- Cancelar
+- Marcar como realizado
+
+====================================================================
+11. INTERAÇÕES IMPORTANTES
+====================================================================
+
+Adicionar suporte para:
+
+- Drag and drop de agendamentos
+- Resize de duração
+- Clique em horário vazio
+- Clique duplo para criar agendamento
+- Hover elegante
+
+====================================================================
+12. MOBILE RESPONSIVO
+====================================================================
+
+PRIORIDADE ALTA.
+
+No mobile:
+- Excelente usabilidade
+- Navegação simplificada
+- Performance fluida
+
+====================================================================
+COMPORTAMENTO MOBILE
+====================================================================
+
+Visualização padrão:
+- Agenda
+ou
+- Dia
+
+Evitar:
+- Grade semanal apertada
+- Scroll horizontal excessivo
+- Informações ilegíveis
+
+====================================================================
+EVENTOS MOBILE
+====================================================================
+
+Cada agendamento deve virar card vertical.
+
+Estrutura:
+--------------------------------------------------
+Horário
+Cliente
+Serviço
+Status
+--------------------------------------------------
+
+Boa área de toque.
+
+====================================================================
+13. FILTROS
+====================================================================
+
+Adicionar filtros modernos:
+
+- Profissional
+- Serviço
+- Status
+- Data
+
+UX:
+- Compactos
+- Elegantes
+- Responsivos
+
+====================================================================
+14. ESTADOS VAZIOS
+====================================================================
+
+Quando não houver agendamentos:
+Mostrar:
+- Ilustração leve
+- Texto amigável
+- CTA para criar agendamento
+
+====================================================================
+15. LOADING STATES
+====================================================================
+
+Adicionar:
+- Skeleton loading
+- Loading suave
+- Feedback visual
+
+====================================================================
+16. MICROINTERAÇÕES
+====================================================================
+
+Adicionar:
+- Hover nos eventos
+- Transições suaves
+- Feedback visual
+- Animações discretas
+
+Tudo deve ser:
+- Fluido
+- Leve
+- Profissional
+
+====================================================================
+17. PERFORMANCE
+====================================================================
+
+IMPORTANTE:
+A agenda deve ser extremamente fluida.
+
+Evitar:
+- Re-renderizações desnecessárias
+- Travamentos
+- Excessos de animações
+
+Priorizar:
+- Virtualização quando necessário
+- Lazy loading
+- Memoização
+
+====================================================================
+18. ACESSIBILIDADE
+====================================================================
+
+Garantir:
+- Navegação por teclado
+- Contraste adequado
+- Estados de foco
+- Labels acessíveis
+
+====================================================================
+19. PADRÃO VISUAL
+====================================================================
+
+Utilizar:
+- Paleta atual do projeto
+- Tipografia atual
+- Componentes do design system
+
+Priorizar:
+- Clean UI
+- Modern SaaS
+- Visual premium
+
+====================================================================
+20. RESULTADO ESPERADO
+====================================================================
+
+A nova página Calendário deve transmitir:
+
+- Organização
+- Controle operacional
+- Clareza
+- Modernidade
+- Agilidade
+
+O usuário deve conseguir:
+- Entender rapidamente a agenda
+- Visualizar conflitos
+- Operar rapidamente
+- Utilizar perfeitamente no mobile
+
+====================================================================
+21. IMPORTANTE
+====================================================================
+
+NÃO:
+- Criar layout datado
+- Utilizar aparência genérica
+- Poluir visualmente
+- Criar elementos apertados
+
+PRIORIZAR:
+- UX moderna
+- Performance
+- Mobile-first
+- Excelente legibilidade
+- Visual profissional estilo SaaS premium

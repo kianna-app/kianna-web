@@ -1,0 +1,676 @@
+KIANNA — TASK: PEQUENAS MODIFICAÇÕES E MELHORIAS
+Branch: feat/melhorias-ux-config
+Gerado em: Maio/2026
+========================================
+
+CONTEXTO
+--------
+Task com ajustes pontuais em 5 áreas:
+1. Configuração de antecedência mínima e máxima para agendamentos
+2. Skeleton loading padronizado em todas as páginas do dashboard
+3. BottomNav mobile: substituir Horários por Menu (abre sidenav)
+4. Agenda: dia de hoje selecionado por padrão ao abrir
+5. Horários: remover card de resumo (Dias Ativos, Hora/Semana, Slots/Semana)
+
+Execute os blocos na ordem indicada.
+A IA já conhece o projeto Kianna — stack Angular 17+ Standalone,
+Signals, Angular Material, tema verde #1D9E75.
+
+
+========================================
+=== BLOCO A — ANTECEDÊNCIA MÍNIMA E MÁXIMA ===
+========================================
+
+
+--- A1: Banco — atualizar campo existente e adicionar novo ---
+
+Rodar no Supabase SQL Editor:
+
+-- O campo antecedencia_minima_horas já existe (adicionado em TASK_FLUXO_AGENDAMENTO_V2).
+-- Garantir que existe e tem default correto:
+ALTER TABLE profissionais
+  ADD COLUMN IF NOT EXISTS antecedencia_minima_horas INTEGER NOT NULL DEFAULT 24;
+
+-- Novo campo: antecedência máxima em dias (null = sem limite)
+ALTER TABLE profissionais
+  ADD COLUMN IF NOT EXISTS antecedencia_maxima_dias INTEGER DEFAULT NULL;
+
+-- Atualizar database.types.ts:
+--   antecedencia_minima_horas: number        // default 24
+--   antecedencia_maxima_dias:  number | null // null = sem limite
+
+
+--- A2: Constantes — opções fixas ---
+
+ARQUIVO: src/app/core/constants/app.constants.ts
+(ou criar src/app/core/constants/agenda.constants.ts se preferir separar)
+
+Adicionar:
+
+  export const ANTECEDENCIA_MINIMA_OPTIONS: { label: string; value: number }[] = [
+    { label: 'Sem antecedência (agendamento imediato)', value: 0  },
+    { label: '2 horas antes',                          value: 2  },
+    { label: '4 horas antes',                          value: 4  },
+    { label: '8 horas antes',                          value: 8  },
+    { label: '12 horas antes',                         value: 12 },
+    { label: '24 horas antes',                         value: 24 },
+  ]
+
+  export const ANTECEDENCIA_MAXIMA_OPTIONS: { label: string; value: number | null }[] = [
+    { label: 'Sem limite',  value: null },
+    { label: '7 dias',      value: 7   },
+    { label: '15 dias',     value: 15  },
+    { label: '30 dias',     value: 30  },
+    { label: '60 dias',     value: 60  },
+  ]
+
+
+--- A3: Configurações — nova seção na aba Agenda ---
+
+ARQUIVO: src/app/features/dashboard/pages/configuracoes/
+  (identificar qual aba trata de agenda/disponibilidade — provavelmente aba 2 ou 3)
+
+Localizar o componente da aba de agenda nas configurações e adicionar
+a seção abaixo, após as configurações existentes de disponibilidade:
+
+HTML — adicionar seção:
+
+  <div class="config-section">
+    <h3 class="config-section-title">Antecedência para agendamentos</h3>
+    <p class="config-section-desc">
+      Defina com quanto tempo de antecedência os clientes podem solicitar horários.
+    </p>
+
+    <div class="config-row">
+      <div class="config-field">
+        <label class="config-label">Antecedência mínima</label>
+        <p class="config-hint">
+          Tempo mínimo antes do atendimento que o cliente pode agendar.
+        </p>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-select [(ngModel)]="form.antecedencia_minima_horas"
+            name="antecedencia_minima_horas">
+            @for (opt of antecedenciaMinimaOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="config-field">
+        <label class="config-label">Antecedência máxima</label>
+        <p class="config-hint">
+          Até quantos dias à frente o cliente pode agendar.
+          "Sem limite" usa a janela padrão de 30 dias.
+        </p>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-select [(ngModel)]="form.antecedencia_maxima_dias"
+            name="antecedencia_maxima_dias">
+            @for (opt of antecedenciaMaximaOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
+SCSS (adicionar no componente da aba ou no scss global de configurações):
+
+  .config-section {
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #f1f3f5;
+    &:last-child { border-bottom: none; }
+  }
+  .config-section-title {
+    font: 600 15px 'Inter'; color: #212529; margin: 0 0 4px;
+  }
+  .config-section-desc {
+    font: 400 13px 'Inter'; color: #868e96; margin: 0 0 16px;
+  }
+  .config-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    @media (max-width: 600px) { grid-template-columns: 1fr; }
+  }
+  .config-label {
+    font: 600 13px 'Inter'; color: #495057;
+    display: block; margin-bottom: 4px;
+  }
+  .config-hint {
+    font: 400 12px 'Inter'; color: #adb5bd; margin: 0 0 8px;
+  }
+  .full-width { width: 100%; }
+
+LÓGICA no componente da aba:
+
+  // Importar constantes
+  readonly antecedenciaMinimaOptions = ANTECEDENCIA_MINIMA_OPTIONS
+  readonly antecedenciaMaximaOptions = ANTECEDENCIA_MAXIMA_OPTIONS
+
+  // Incluir os campos no form/objeto de dados do profissional
+  // (já deve existir um objeto 'form' ou similar com os dados do profissional)
+  // Garantir que ao carregar os dados do profissional, esses campos são
+  // populados: form.antecedencia_minima_horas e form.antecedencia_maxima_dias
+
+  // O botão Salvar existente na aba já deve incluir esses campos no UPDATE.
+  // Verificar se o método salvar() faz .update({ ...form }) — se sim, já funciona.
+  // Se fizer campos explícitos, adicionar os dois novos campos.
+
+
+--- A4: slot-calculator.service.ts — aplicar antecedência máxima ---
+
+ARQUIVO: src/app/features/booking/services/slot-calculator.service.ts
+
+A antecedência mínima já deve estar sendo aplicada (TASK_FLUXO_AGENDAMENTO_V2, B2).
+Adicionar a lógica de antecedência máxima:
+
+  // Parâmetro adicional no método principal:
+  // antecedenciaMaximaDias: number | null  (null = usar janela padrão de 30 dias)
+
+  // Calcular data limite para exibição de slots:
+  const janelaMaxima = antecedenciaMaximaDias ?? 30
+  const dataLimite = new Date()
+  dataLimite.setDate(dataLimite.getDate() + janelaMaxima)
+
+  // Ao gerar slots por dia, filtrar dias além da data limite:
+  if (new Date(dataISO) > dataLimite) continue // pular este dia
+
+  // ATENÇÃO: se antecedenciaMaximaDias = null, usar 30 como padrão
+  // (decisão arquitetural: janela máxima nunca ultrapassa 30 dias no MVP)
+  // Se o profissional definir 60 dias, respeitar — remover o cap de 30 dias
+  // que estava hardcoded anteriormente.
+
+  // Atualizar chamada em booking.service.ts para passar o novo parâmetro:
+  this.slotCalculator.calcular({
+    // ... params existentes ...
+    antecedenciaMaximaDias: profissional.antecedencia_maxima_dias, // NOVO
+  })
+
+
+--- A5: booking.repository.ts — incluir novos campos na query ---
+
+ARQUIVO: src/app/core/repositories/booking.repository.ts
+
+Na query que busca o profissional por slug, garantir que os novos campos
+estão incluídos no select:
+
+  .select('*, antecedencia_minima_horas, antecedencia_maxima_dias, timezone')
+
+
+========================================
+=== BLOCO B — SKELETON LOADING PADRONIZADO ===
+========================================
+
+O padrão de loading da página Agenda (skeleton) deve ser replicado
+para todas as páginas do dashboard que atualmente usam spinner ou
+nenhum loading visual.
+
+
+--- B1: Componente SkeletonComponent (se não existir) ---
+
+ARQUIVO: src/app/shared/components/skeleton/skeleton.component.ts
+
+Verificar se já existe um componente de skeleton no projeto.
+Se não existir, criar:
+
+  @Component({
+    selector: 'app-skeleton',
+    standalone: true,
+    template: `
+      <div class="skeleton-block"
+        [style.width]="width"
+        [style.height]="height"
+        [style.border-radius]="radius">
+      </div>
+    `,
+    styles: [`
+      .skeleton-block {
+        background: linear-gradient(90deg, #f1f3f5 25%, #e9ecef 50%, #f1f3f5 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+        display: block;
+      }
+      @keyframes shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+    `]
+  })
+  export class SkeletonComponent {
+    @Input() width  = '100%'
+    @Input() height = '20px'
+    @Input() radius = '6px'
+  }
+
+
+--- B2: Skeleton para cards de agendamento ---
+
+ARQUIVO: src/app/shared/components/skeleton/skeletons/
+  appt-card-skeleton.component.ts  (ou inline nos componentes que precisam)
+
+Template que imita o ApptCardComponent em estado de carregamento:
+
+  <div class="appt-skeleton">
+    <div class="appt-sk-bar"></div>
+    <div class="appt-sk-body">
+      <app-skeleton height="14px" width="60%" radius="4px" />
+      <app-skeleton height="12px" width="40%" radius="4px" style="margin-top:6px" />
+    </div>
+    <app-skeleton height="22px" width="64px" radius="99px" />
+  </div>
+
+  SCSS:
+  .appt-skeleton {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-radius: 12px;
+    background: #fff; border: 1px solid #e9ecef;
+    margin-bottom: 8px;
+  }
+  .appt-sk-bar {
+    width: 4px; height: 48px; border-radius: 4px;
+    background: linear-gradient(90deg, #f1f3f5 25%, #e9ecef 50%, #f1f3f5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    flex-shrink: 0;
+  }
+  .appt-sk-body { flex: 1; display: flex; flex-direction: column; gap: 0; }
+
+
+--- B3: Aplicar skeleton nas páginas ---
+
+Para cada página listada abaixo, substituir o loading atual
+(spinner mat-spinner ou nenhum) pelo padrão skeleton:
+
+PÁGINA: /dashboard/visao-geral (visao-geral.component.html)
+  @if (loading()) {
+    <!-- Skeleton da mini-agenda -->
+    <div class="mini-agenda-skeleton">
+      <!-- Week strip skeleton: 7 pílulas -->
+      <div class="week-sk-row">
+        @for (i of [1,2,3,4,5,6,7]; track i) {
+          <div class="week-sk-pill">
+            <app-skeleton height="10px" width="24px" radius="3px" />
+            <app-skeleton height="16px" width="20px" radius="3px" />
+            <app-skeleton height="10px" width="18px" radius="3px" />
+          </div>
+        }
+      </div>
+      <!-- 3 cards skeleton -->
+      @for (i of [1,2,3]; track i) {
+        <app-appt-card-skeleton />
+      }
+    </div>
+  }
+
+  SCSS:
+  .week-sk-row {
+    display: flex; gap: 6px; margin-bottom: 16px; overflow: hidden;
+  }
+  .week-sk-pill {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    padding: 10px 6px; border-radius: 12px;
+    border: 1px solid #f1f3f5;
+  }
+
+PÁGINA: /dashboard/servicos (servicos.component.html)
+  @if (store.loading()) {
+    <div class="servicos-skeleton">
+      @for (i of [1,2,3]; track i) {
+        <div class="servico-sk-card">
+          <div class="servico-sk-body">
+            <app-skeleton height="15px" width="55%" radius="4px" />
+            <app-skeleton height="12px" width="35%" radius="4px" style="margin-top:8px" />
+          </div>
+          <app-skeleton height="28px" width="60px" radius="6px" />
+        </div>
+      }
+    </div>
+  }
+
+  SCSS:
+  .servicos-skeleton { display: flex; flex-direction: column; gap: 10px; }
+  .servico-sk-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px; border-radius: 12px;
+    background: #fff; border: 1px solid #e9ecef;
+  }
+  .servico-sk-body { flex: 1; display: flex; flex-direction: column; gap: 0; }
+
+PÁGINA: /dashboard/horarios (horarios.component.html)
+  @if (store.loading()) {
+    <div class="horarios-skeleton">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="horario-sk-row">
+          <app-skeleton height="14px" width="80px" radius="4px" />
+          <app-skeleton height="32px" width="120px" radius="8px" />
+          <app-skeleton height="32px" width="120px" radius="8px" />
+        </div>
+      }
+    </div>
+  }
+
+  SCSS:
+  .horarios-skeleton { display: flex; flex-direction: column; gap: 12px; }
+  .horario-sk-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 16px; border-radius: 12px;
+    background: #fff; border: 1px solid #e9ecef;
+  }
+
+PÁGINA: /dashboard/configuracoes (configuracoes.component.html)
+  @if (loading()) {
+    <div class="config-skeleton">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="config-sk-field">
+          <app-skeleton height="12px" width="100px" radius="3px" />
+          <app-skeleton height="44px" width="100%" radius="8px" style="margin-top:6px" />
+        </div>
+      }
+    </div>
+  }
+
+  SCSS:
+  .config-skeleton { display: flex; flex-direction: column; gap: 16px; padding: 4px 0; }
+  .config-sk-field { display: flex; flex-direction: column; }
+
+PÁGINA: /dashboard/agendamento-detalhe (agendamento-detalhe.component.html)
+  @if (loading()) {
+    <div class="detalhe-skeleton">
+      <!-- Card resumo skeleton -->
+      <div class="resumo-sk-card">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="resumo-sk-row">
+            <app-skeleton height="12px" width="70px" radius="3px" />
+            <app-skeleton height="14px" width="45%" radius="3px" />
+          </div>
+        }
+      </div>
+      <!-- Form skeleton -->
+      <div class="form-sk-block">
+        @for (i of [1,2,3,4]; track i) {
+          <app-skeleton height="52px" width="100%" radius="8px" />
+        }
+      </div>
+    </div>
+  }
+
+  SCSS:
+  .detalhe-skeleton { display: flex; flex-direction: column; gap: 16px; }
+  .resumo-sk-card {
+    background: #fff; border: 1px solid #e9ecef; border-radius: 12px;
+    padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .resumo-sk-row { display: flex; justify-content: space-between; align-items: center; }
+  .form-sk-block {
+    background: #fff; border: 1px solid #e9ecef; border-radius: 12px;
+    padding: 20px; display: flex; flex-direction: column; gap: 12px;
+  }
+
+REGRA GERAL:
+  - Remover qualquer <mat-spinner> de loading de página inteira
+  - Manter mat-spinner apenas dentro de botões (salvando, enviando)
+  - Skeleton sempre dentro de @if (store.loading() || loading())
+  - Quantidade de itens no skeleton: usar 3 para listas, imitar estrutura real
+
+
+========================================
+=== BLOCO C — BOTTOMNAV MOBILE ===
+========================================
+
+ARQUIVO: src/app/features/dashboard/shell/bottom-nav/bottom-nav.component.{ts,html,scss}
+
+
+--- C1: Substituir item Horários por Menu ---
+
+ANTES (4 itens):
+  Início → /dashboard/visao-geral    ícone: home
+  Agenda → /dashboard/agenda         ícone: calendar_month
+  Serviços → /dashboard/servicos     ícone: design_services (ou similar)
+  Horários → /dashboard/horarios     ícone: schedule
+
+DEPOIS (4 itens):
+  Início → /dashboard/visao-geral    ícone: home
+  Agenda → /dashboard/agenda         ícone: calendar_month
+  Serviços → /dashboard/servicos     ícone: design_services (ou similar)
+  Menu → (abre sidenav)              ícone: menu   label: "Menu"
+
+TEMPLATE — substituir o item de Horários:
+
+  <!-- REMOVER: -->
+  <a class="nav-item" routerLink="/dashboard/horarios" routerLinkActive="active">
+    <mat-icon>schedule</mat-icon>
+    <span>Horários</span>
+  </a>
+
+  <!-- ADICIONAR: -->
+  <button class="nav-item nav-item-menu" (click)="abrirMenu()">
+    <mat-icon>menu</mat-icon>
+    <span>Menu</span>
+  </button>
+
+LÓGICA — bottom-nav.component.ts:
+
+  // Injetar serviço de comunicação com o sidenav.
+  // Verificar como o sidenav é controlado atualmente no dashboard.
+  // Normalmente via MatSidenav com uma referência ou via um serviço/signal.
+
+  // OPÇÃO A — se o dashboard usa MatSidenav com @ViewChild no shell:
+  //   Criar um serviço simples SidenavService:
+
+  // sidenav.service.ts (se não existir):
+  @Injectable({ providedIn: 'root' })
+  export class SidenavService {
+    private _opened = signal(false)
+    readonly opened = this._opened.asReadonly()
+    toggle() { this._opened.update(v => !v) }
+    open()   { this._opened.set(true) }
+    close()  { this._opened.set(false) }
+  }
+
+  // No BottomNavComponent:
+  private sidenavService = inject(SidenavService)
+  abrirMenu() { this.sidenavService.toggle() }
+
+  // No DashboardComponent (shell):
+  // Observar sidenavService.opened() e chamar sidenav.open()/close()
+  // OU usar [opened]="sidenavService.opened()" no mat-sidenav
+
+  // OPÇÃO B — se já existe um EventEmitter ou Output para controlar o sidenav:
+  //   Usar o mecanismo já existente.
+  //   Adaptar conforme o padrão atual do projeto.
+
+  // ⚠️ ATENÇÃO: verificar o mecanismo atual antes de implementar.
+  //    Não duplicar lógica de controle do sidenav.
+
+SCSS — estilo do botão Menu (igual aos outros itens):
+
+  .nav-item-menu {
+    // Herdar estilos de .nav-item (background none, border none, etc.)
+    background: none;
+    border: none;
+    cursor: pointer;
+    // Manter mesmo padding/font/cor dos outros itens
+    // Não aplicar routerLinkActive (não é uma rota)
+  }
+
+  // O item Menu nunca fica "ativo" visualmente (sem routerLinkActive)
+  // Os outros itens mantêm o comportamento de ativo via routerLinkActive
+
+
+========================================
+=== BLOCO D — AGENDA: DIA DE HOJE SELECIONADO POR PADRÃO ===
+========================================
+
+ARQUIVO: src/app/features/dashboard/pages/agenda/agenda.component.ts
+
+
+--- D1: Inicializar diaSelecionado com hoje ---
+
+Localizar o signal diaSelecionado (ou equivalente) que controla
+qual dia está ativo no WeekStrip.
+
+ANTES (provável):
+  diaSelecionado = signal<string | null>(null)
+  // ou
+  diaSelecionado = signal<string>(primeiroDiaDaSemana)
+
+DEPOIS:
+  // Inicializar com a data de hoje no formato ISO 'YYYY-MM-DD'
+  private hoje = new Date().toISOString().split('T')[0]
+  diaSelecionado = signal<string>(this.hoje)
+
+  // ATENÇÃO: usar meio-dia para evitar problema de timezone:
+  private hoje = new Date(
+    new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })
+  ).toISOString().split('T')[0]
+  // OU: simplesmente:
+  private getHojeISO(): string {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+  }
+  diaSelecionado = signal<string>(this.getHojeISO())
+
+
+--- D2: Garantir que a semana exibida contém hoje ---
+
+O semanaOffset deve iniciar em 0 (semana atual).
+Verificar se já é o comportamento padrão — se sim, nenhuma mudança necessária.
+
+  semanaOffset = signal(0) // ← deve ser 0 por padrão
+
+
+--- D3: WeekStrip — scroll automático para hoje ---
+
+ARQUIVO: agenda/components/week-strip/week-strip.component.ts
+
+Se o WeekStrip tiver scroll horizontal (em mobile com mais de 7 dias
+ou em semanas longas), ao inicializar fazer scroll até o item de hoje.
+
+  ngAfterViewInit(): void {
+    // Aguardar renderização e rolar até o dia hoje
+    setTimeout(() => {
+      const todayEl = this.el.nativeElement.querySelector('.day-pill.today')
+      todayEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    }, 100)
+  }
+
+  // O item de hoje já deve ter classe 'today' pelo [class.today] binding.
+  // Verificar se o binding existe; se não, adicionar:
+  //   [class.today]="dia.dataISO === hoje"
+
+
+--- D4: Ordenação da lista de agendamentos ---
+
+ARQUIVO: agenda.component.ts
+
+O computed agendamentosDoDia() deve ordenar por hora crescente:
+
+  readonly agendamentosDoDia = computed(() => {
+    const dia = this.diaSelecionado()
+    return this.agendamentosStore.agendamentos()
+      .filter(a => a.data_hora.startsWith(dia))
+      .sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())
+  })
+
+  // Se o computed já existe com outro nome, localizar e adicionar o .sort()
+
+
+========================================
+=== BLOCO E — HORÁRIOS: REMOVER CARD DE RESUMO ===
+========================================
+
+ARQUIVO: src/app/features/dashboard/pages/horarios/horarios.component.{html,scss}
+
+
+--- E1: Remover o card de resumo ---
+
+Localizar no template o card/bloco que exibe as métricas:
+  - Dias Ativos
+  - Hora/Semana (ou Horas por semana)
+  - Slots/Semana (ou Slots por semana)
+
+Remover completamente esse bloco do HTML.
+
+O bloco provavelmente tem uma estrutura similar a:
+  <div class="resumo-stats">  <!-- ou .stats-card, .summary-card, etc. -->
+    <div class="stat-item">
+      <span class="stat-valor">...</span>
+      <span class="stat-label">Dias Ativos</span>
+    </div>
+    <!-- ... -->
+  </div>
+
+Remover também:
+  - O SCSS correspondente ao bloco removido
+  - Os computed signals ou variáveis usados APENAS por esse card
+    (verificar se diasAtivos, horasSemana, slotsSemana são usados
+    em outro lugar antes de remover)
+
+
+========================================
+=== ORDEM DE EXECUÇÃO ===
+========================================
+
+1.  A1  — SQL: adicionar antecedencia_maxima_dias + atualizar types
+2.  A2  — Constantes de opções de antecedência
+3.  A3  — UI nas configurações (nova seção com os dois selects)
+4.  A4  — slot-calculator: aplicar antecedência máxima
+5.  A5  — booking.repository: incluir novo campo no select
+6.  B1  — Criar SkeletonComponent (se não existir)
+7.  B2  — Criar ApptCardSkeletonComponent
+8.  B3  — Aplicar skeleton em todas as páginas (visao-geral, serviços,
+           horários, configurações, agendamento-detalhe)
+9.  C1  — BottomNav: substituir Horários por Menu + lógica sidenav
+10. D1  — Agenda: inicializar diaSelecionado com hoje
+11. D2  — Agenda: verificar semanaOffset = 0
+12. D3  — WeekStrip: scroll automático para hoje
+13. D4  — Agenda: ordenar agendamentosDoDia por hora
+14. E1  — Horários: remover card de resumo
+
+
+========================================
+=== CHECKLIST FINAL ===
+========================================
+
+ANTECEDÊNCIA
+[ ] Campo antecedencia_maxima_dias existe na tabela profissionais
+[ ] Seção "Antecedência para agendamentos" aparece nas configurações
+[ ] Select mínima: 6 opções (0h, 2h, 4h, 8h, 12h, 24h)
+[ ] Select máxima: 5 opções (Sem limite, 7, 15, 30, 60 dias)
+[ ] Salvar persiste os valores no Supabase
+[ ] slot-calculator respeita antecedência mínima (não exibe slots muito próximos)
+[ ] slot-calculator respeita antecedência máxima (não exibe slots muito distantes)
+[ ] Antecedência mínima = 0h: slots do momento atual aparecem imediatamente
+[ ] Antecedência máxima = Sem limite: janela de 30 dias (padrão)
+
+SKELETON LOADING
+[ ] SkeletonComponent com animação shimmer existe em shared/components
+[ ] Nenhuma página do dashboard usa mat-spinner como loading de página inteira
+[ ] Visão geral: skeleton da mini-agenda aparece ao carregar
+[ ] Serviços: skeleton de 3 cards aparece ao carregar
+[ ] Horários: skeleton de 4 linhas aparece ao carregar
+[ ] Configurações: skeleton de 4 campos aparece ao carregar
+[ ] Agendamento-detalhe: skeleton do card resumo + form aparece ao carregar
+[ ] mat-spinner mantido apenas dentro de botões (salvando/enviando)
+
+BOTTOMNAV MOBILE
+[ ] Item "Horários" removido do bottom nav
+[ ] Item "Menu" aparece no lugar com ícone menu e label "Menu"
+[ ] Clicar em "Menu" abre o sidenav
+[ ] Item "Menu" não fica ativo/destacado via routerLinkActive
+[ ] Os outros 3 itens mantêm comportamento de active normalmente
+[ ] Sidenav abre e fecha corretamente pelo botão Menu
+
+AGENDA — DIA DE HOJE
+[ ] Ao abrir /dashboard/agenda, o dia de hoje está selecionado no WeekStrip
+[ ] O dia de hoje está visualmente destacado (classe today ou selected)
+[ ] A lista de agendamentos exibe os do dia de hoje por padrão
+[ ] Em mobile, o WeekStrip faz scroll automático até hoje
+[ ] Agendamentos ordenados por horário crescente na lista
+
+HORÁRIOS
+[ ] Card com Dias Ativos / Hora/Semana / Slots/Semana removido
+[ ] Nenhum erro no console após remoção (signals órfãos removidos)
+[ ] Layout da página horários ajustado após remoção do card

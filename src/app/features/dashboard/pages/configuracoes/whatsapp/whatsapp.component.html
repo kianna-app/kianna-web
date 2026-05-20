@@ -1,0 +1,127 @@
+<div class="wpp-page">
+
+  <!-- ── Card: Conexão ──────────────────────────────────── -->
+  <section class="wpp-card">
+    <header class="wpp-card-header">
+      <div>
+        <h3>Conexão</h3>
+        <p>Conecte seu WhatsApp para enviar mensagens automáticas aos seus clientes.</p>
+      </div>
+      <div class="wpp-status-pill" [class]="'pill-' + status()">
+        <span class="wpp-dot"></span>
+        <span class="wpp-status-text">{{ statusLabel() }}</span>
+      </div>
+    </header>
+
+    <div class="wpp-card-body">
+      @if (!conectado()) {
+        <p class="wpp-help">
+          Crie uma instância em
+          <a href="https://z-api.io" target="_blank" rel="noopener">z-api.io</a>,
+          copie o <strong>Instance ID</strong> e o <strong>Token</strong>, e cole abaixo.
+        </p>
+
+        <form [formGroup]="form" class="wpp-form-conexao">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Instance ID (Z-API)</mat-label>
+            <input
+              matInput
+              formControlName="wpp_instance_id"
+              placeholder="Ex: 3C7E9A1B2D4F…"
+              autocomplete="off" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Token (Z-API)</mat-label>
+            <input
+              matInput
+              type="password"
+              formControlName="wpp_token"
+              placeholder="Token da instância"
+              autocomplete="off" />
+          </mat-form-field>
+        </form>
+      } @else {
+        <p class="wpp-conectado-info">
+          <mat-icon>check_circle</mat-icon>
+          Seu WhatsApp está enviando notificações para clientes e profissional.
+        </p>
+      }
+
+      <div class="wpp-acoes">
+        @if (!conectado()) {
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="!podeConectar() || status() === 'conectando'"
+            (click)="conectarWhatsApp()">
+            <mat-icon>qr_code_2</mat-icon>
+            Conectar WhatsApp
+          </button>
+        } @else {
+          <app-loading-button
+            type="button"
+            variant="stroked"
+            color="warn"
+            [loading]="desconectando()"
+            icon="logout"
+            iconPosition="start"
+            (clicked)="desconectar()">
+            Desconectar
+          </app-loading-button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Card: Automações ──────────────────────────────────── -->
+  <section class="wpp-card">
+    <header class="wpp-card-header">
+      <div>
+        <h3>Automações</h3>
+        <p>Configure lembretes e cancelamento automático para reduzir faltas.</p>
+      </div>
+    </header>
+
+    <form [formGroup]="form" class="wpp-card-body" (ngSubmit)="salvar()">
+      <div class="wpp-field">
+        <label class="wpp-label">Lembrete antes do atendimento</label>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-select formControlName="lembrete_horas">
+            @for (opt of lembreteOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <p class="wpp-hint">
+          O cliente receberá uma mensagem nesse intervalo antes do horário marcado.
+        </p>
+      </div>
+
+      <div class="wpp-field">
+        <mat-slide-toggle
+          formControlName="cancelamento_auto_cliente"
+          color="primary">
+          Permitir que o cliente cancele via WhatsApp
+        </mat-slide-toggle>
+        <p class="wpp-hint">
+          Quando ativado, o cliente pode responder <strong>"2"</strong> ao lembrete
+          para cancelar automaticamente. Quando desativado, a resposta é ignorada — apenas você pode cancelar.
+        </p>
+      </div>
+
+      <div class="wpp-acoes-rodape">
+        <app-loading-button
+          type="submit"
+          variant="flat"
+          color="primary"
+          [loading]="salvando()"
+          icon="save"
+          iconPosition="start">
+          Salvar configurações
+        </app-loading-button>
+      </div>
+    </form>
+  </section>
+
+</div>

@@ -1,0 +1,1990 @@
+KIANNA — TASK: MÓDULO 4 — WHATSAPP Z-API
+Branch: feat/modulo4-whatsapp
+Gerado em: Maio/2026
+========================================
+
+CONTEXTO
+--------
+Backend: NestJS no Railway (kianna-api-production.up.railway.app)
+Frontend: Angular 17+ no Vercel (kianna.com.br)
+Banco: Supabase
+Provedor WhatsApp: Z-API (z-api.io)
+
+IMPORTANTE: 
+  * Caso seja necessário divida a implementação em Partes.
+  * Questione qualquer ambiguidade que encontrar na Task antes de executá-la.
+  * Tenha certeza do que deve ser feito antes de executar.
+
+
+# Objetivo do Módulo
+
+Implementar o módulo de automação via WhatsApp para melhorar a comunicação entre profissional e cliente durante todo o fluxo de agendamento.
+
+O módulo 4 adiciona:
+  - Conexão do WhatsApp do profissional via QR Code
+  - Notificação ao profissional quando recebe solicitação
+  - Notificação ao cliente quando agendamento é confirmado/recusado
+  - Lembrete configurável antes do atendimento (cron)
+  - Confirmação de presença pelo cliente (resposta 1/2)
+  - Cancelamento automático quando cliente responde "2" (configurável)
+  - Link de reagendamento via WhatsApp
+
+Antes de implementar:
+  - Analise o fluxo atual
+  - Identifique problemas de UX
+  - Identifique possíveis gargalos
+  - Sugira melhorias adicionais coerentes
+  - Mantenha consistência com o restante do sistema
+
+-------------------------------------
+
+> * manter total consistência visual e arquitetural com o restante da aplicação;
+> * reutilizar componentes existentes sempre que possível;
+> * seguir os padrões já utilizados no projeto;
+> * evitar duplicação de código;
+> * preservar regras de negócio existentes;
+> * priorizar escalabilidade, manutenção e legibilidade.
+>
+> A implementação deve ter foco EXTREMO em:
+>
+> * experiência mobile;
+> * responsividade;
+> * estabilidade;
+> * UX moderna;
+> * performance;
+> * segurança;
+> * baixo acoplamento.
+>
+> Toda interface criada deve funcionar perfeitamente em:
+>
+> * mobile;
+> * tablet;
+> * desktop.
+>
+> O módulo deverá seguir abordagem mobile-first.
+>
+> Nenhuma implementação deve parecer improvisada, temporária ou desconectada do restante do sistema.
+
+---
+
+O módulo deve permitir:
+
+* conexão do WhatsApp do profissional;
+* envio automatizado de mensagens;
+* confirmação de presença;
+* lembretes automáticos;
+* cancelamentos automáticos configuráveis;
+* reagendamento simplificado via WhatsApp.
+
+O foco principal deve ser:
+
+* automação;
+* redução de faltas;
+* melhoria da experiência do cliente;
+* praticidade para o profissional;
+* alta confiabilidade do fluxo.
+
+# Objetivos de Produto
+
+O módulo deve:
+
+* reduzir faltas;
+* reduzir cancelamentos tardios;
+* aumentar confirmações;
+* automatizar comunicação repetitiva;
+* diminuir necessidade de contato manual;
+* melhorar experiência mobile;
+* centralizar comunicação no WhatsApp.
+
+---
+
+# Funcionalidades do Módulo
+
+## 1. Conexão do WhatsApp via QR Code
+
+### Objetivo
+
+Permitir que o profissional conecte seu WhatsApp ao sistema.
+
+### Fluxo
+
+* profissional acessa configurações;
+* clica em “Conectar WhatsApp”;
+* sistema gera QR Code;
+* profissional escaneia com WhatsApp;
+* sistema confirma conexão ativa.
+
+### Estados necessários
+
+* desconectado;
+* conectando;
+* conectado;
+* reconectando;
+* sessão expirada;
+* erro de conexão.
+
+### Regras
+
+* cada profissional possui sessão isolada;
+* não permitir múltiplas conexões simultâneas;
+* reconexão automática quando possível;
+* exibir status em tempo real;
+* persistir sessão.
+
+### UX/UI
+
+* visual semelhante ao WhatsApp Web;
+* feedback visual claro;
+* loading states;
+* status colorido;
+* botão de reconectar;
+* botão desconectar.
+
+### Segurança
+
+* proteger sessão/token;
+* impedir acesso cruzado entre profissionais;
+* invalidar sessão ao desconectar.
+
+---
+
+## 2. Notificação ao Profissional
+
+### Objetivo
+
+Avisar o profissional quando um cliente solicitar agendamento.
+
+### Disparo
+
+Quando:
+
+* novo agendamento for criado;
+* cliente solicitar horário.
+
+### Conteúdo da mensagem
+
+Deve incluir:
+
+* nome cliente;
+* data;
+* horário;
+* serviço;
+* botão/link para abrir agendamento.
+
+### Regras
+
+* evitar duplicidade;
+* retry em falhas;
+* registrar logs de envio;
+* respeitar status da conexão.
+
+### Casos de erro
+
+* WhatsApp desconectado;
+* envio falhou;
+* número inválido.
+
+## 3. Notificação ao Cliente
+
+### Objetivo
+
+Informar cliente sobre status do agendamento.
+
+### Eventos
+
+Enviar mensagem quando:
+* agendamento confirmado;
+* agendamento recusado;
+* agendamento reagendado;
+* agendamento cancelado.
+
+### Conteúdo
+
+Mensagens devem conter:
+
+* nome profissional;
+* data;
+* horário;
+* serviço;
+* instruções;
+* link rápido quando necessário.
+
+### UX da mensagem
+
+* linguagem amigável;
+* objetiva;
+* fácil leitura no mobile;
+* emojis opcionais e discretos.
+
+---
+
+## 4. Lembrete Automático Antes do Atendimento
+
+### Objetivo
+
+Reduzir faltas através de lembretes automáticos.
+
+### Configurações
+
+Profissional poderá configurar:
+
+* antecedência do lembrete;
+* ativar/desativar;
+* horário permitido envio;
+* template da mensagem.
+
+### Exemplos
+
+* 24h antes;
+* 2h antes;
+* 30min antes.
+
+### Requisitos Técnicos
+
+* usar cron/job scheduler;
+* evitar envios duplicados;
+* validar timezone;
+* processar filas corretamente.
+
+### Logs
+
+Registrar:
+
+* enviado;
+* pendente;
+* falhou;
+* cancelado.
+
+---
+
+## 5. Confirmação de Presença pelo Cliente
+
+### Objetivo
+
+Permitir confirmação automática pelo WhatsApp.
+
+### Fluxo
+
+Mensagem enviada:
+
+“Confirma sua presença?
+1️⃣ Sim
+2️⃣ Não”
+
+### Comportamentos
+
+#### Resposta “1”
+
+* marcar presença confirmada;
+* atualizar status do agendamento;
+* notificar profissional opcionalmente.
+
+#### Resposta “2”
+
+* iniciar fluxo cancelamento;
+* liberar horário;
+* notificar profissional.
+
+### Requisitos
+
+* interpretar mensagens recebidas;
+* ignorar respostas inválidas;
+* evitar múltiplas confirmações;
+* registrar histórico.
+
+---
+
+## 6. Cancelamento Automático Configurável
+
+### Objetivo
+
+Automatizar cancelamentos quando cliente não comparecer/confirma ausência.
+
+### Configurações
+
+Profissional poderá definir:
+
+* cancelar automaticamente ao responder “2”;
+* solicitar confirmação manual;
+* tempo limite para confirmação.
+
+### Regras
+
+* liberar horário automaticamente;
+* atualizar agenda em tempo real;
+* enviar confirmação cancelamento;
+* evitar inconsistência calendário.
+
+### Casos de Borda
+
+* cliente responde após prazo;
+* agendamento já cancelado;
+* profissional alterou horário manualmente.
+
+---
+
+## 7. Reagendamento via WhatsApp
+
+### Objetivo
+
+Facilitar remarcação do atendimento.
+
+### Fluxo
+
+Mensagem deve conter:
+
+* botão/link reagendamento;
+* abertura direta na agenda;
+* seleção novo horário.
+
+### Requisitos
+
+* link seguro/tokenizado;
+* expiração configurável;
+* impedir acesso indevido;
+* abrir experiência mobile-first.
+
+### UX
+
+* fluxo simples;
+* poucos cliques;
+* rápido carregamento;
+* visual moderno.
+
+---
+
+# Requisitos Técnicos Gerais
+
+## Backend
+
+* arquitetura modular;
+* filas assíncronas;
+* retry automático;
+* logs estruturados;
+* isolamento multi-tenant;
+* tratamento robusto de erros.
+
+## Banco
+
+Criar entidades/tabelas para:
+
+* sessões WhatsApp;
+* logs envio;
+* histórico mensagens;
+* status confirmação;
+* automações.
+
+## Performance
+
+* evitar bloqueios síncronos;
+* processamento em fila;
+* escalabilidade para múltiplos profissionais.
+
+## Segurança
+
+* tokens seguros;
+* isolamento entre contas;
+* validação webhook;
+* proteção contra spam.
+
+---
+
+# Requisitos de UX/UI
+
+## Interface
+
+* moderna;
+* clean;
+* responsiva;
+* mobile-first.
+
+## Mobile
+
+Prioridade máxima para experiência mobile.
+
+A implementação deve:
+
+* funcionar perfeitamente em telas pequenas;
+* evitar excesso de rolagem;
+* possuir áreas clicáveis confortáveis;
+* manter ótima legibilidade;
+* respeitar espaçamentos;
+* evitar poluição visual;
+* possuir ótima hierarquia visual;
+* manter consistência entre telas.
+
+## Estados visuais
+
+Criar estados para:
+
+* loading;
+* sincronizando;
+* enviado;
+* falhou;
+* desconectado;
+* aguardando confirmação.
+
+## Feedbacks
+
+* toast;
+* alertas claros;
+* mensagens amigáveis.
+
+---
+
+# Requisitos Não Funcionais
+
+O módulo deve garantir:
+
+* alta disponibilidade;
+* estabilidade;
+* escalabilidade;
+* fácil manutenção;
+* baixo acoplamento;
+* código reutilizável;
+* observabilidade/logs.
+
+---
+
+# Casos de Borda
+
+Implementar tratamento para:
+
+* WhatsApp desconectado;
+* QR expirado;
+* cliente sem WhatsApp;
+* resposta inválida;
+* envio duplicado;
+* falha cron;
+* timezone incorreto;
+* múltiplas respostas;
+* reagendamento simultâneo.
+
+---
+
+# Critérios de Aceite
+
+## WhatsApp
+
+* QR Code funcionando;
+* conexão persistente;
+* reconexão funcionando.
+
+## Mensagens
+
+* notificações enviadas corretamente;
+* lembretes funcionando;
+* confirmação presença funcionando.
+
+## Cancelamento
+
+* cancelamento automático funcionando;
+* agenda atualizada corretamente.
+
+## Reagendamento
+
+* link seguro funcionando;
+* reagendamento concluído sem erros.
+
+## Mobile
+
+* responsividade validada;
+* sem overflow;
+* sem quebra visual;
+* ótima usabilidade touch;
+* experiência fluida.
+
+## Sistema
+
+* sem duplicidade;
+* sem inconsistências;
+* sem vazamento entre profissionais.
+
+---
+
+# O Que NÃO Fazer
+
+* não alterar regras existentes de agendamento;
+* não quebrar APIs atuais;
+* não usar soluções temporárias/hardcoded;
+* não criar dependência forte entre módulos;
+* não bloquear interface durante processamento;
+* não permitir compartilhamento de sessão WhatsApp.
+
+---
+
+# Estrutura Esperada do Código
+
+## Backend
+
+Separar:
+
+* serviços WhatsApp;
+* fila/jobs;
+* webhooks;
+* automações;
+* templates mensagens.
+
+## Frontend
+
+Separar:
+
+* status conexão;
+* QR modal;
+* configurações automação;
+* logs;
+* templates.
+
+---
+
+# Diretrizes de Qualidade
+
+Antes de finalizar a implementação:
+
+* revisar responsividade;
+* validar experiência mobile;
+* revisar consistência visual;
+* validar estados de erro;
+* revisar fluxos assíncronos;
+* revisar edge cases;
+* evitar duplicação;
+* garantir reutilização de componentes.
+
+A implementação deve demonstrar:
+
+* qualidade profissional;
+* preocupação com escalabilidade;
+* preocupação com UX;
+* organização;
+* clareza;
+* previsibilidade;
+* robustez.
+
+---
+
+# Checklist Final
+
+```txt
+[ ] QR Code funcionando
+[ ] Sessão persistente
+[ ] Reconexão automática
+[ ] Notificações funcionando
+[ ] Lembretes automáticos funcionando
+[ ] Confirmação presença funcionando
+[ ] Cancelamento automático funcionando
+[ ] Reagendamento funcionando
+[ ] Logs implementados
+[ ] Retry implementado
+[ ] Mobile responsivo
+[ ] Sem overflow
+[ ] Sem quebra visual
+[ ] Touch-friendly
+[ ] Código reutilizável
+[ ] Sem duplicidade mensagens
+[ ] Tratamento erros implementado
+[ ] Segurança validada
+[ ] Multi-tenant seguro
+[ ] Performance adequada
+```
+
+-------------------------------------------------
+
+
+Subdivisões:
+  A — Banco + configurações
+  B — Z-API setup + serviço de envio
+  C — Webhook de recebimento
+  D — Notificações por evento
+  E — Cron de lembretes
+  F — Processamento de respostas
+  G — Frontend (configurações + banner)
+  H — Testes visuais
+
+
+========================================
+=== BLOCO A — BANCO E CONFIGURAÇÕES ===
+========================================
+
+
+--- A1: Novos campos na tabela profissionais ---
+
+SQL no Supabase:
+
+  -- Token da instância Z-API (complementa wpp_instance_id que já existe)
+  ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS wpp_token TEXT;
+
+  -- Lembrete: tempo em horas antes do atendimento (null = desabilitado)
+  ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS lembrete_horas INTEGER DEFAULT NULL;
+
+  -- Cancelamento automático pelo cliente via WhatsApp (default true)
+  ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS cancelamento_auto_cliente BOOLEAN NOT NULL DEFAULT true;
+
+  -- Status da conexão WhatsApp
+  ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS wpp_status TEXT NOT NULL DEFAULT 'desconectado';
+  ALTER TABLE profissionais ADD CONSTRAINT profissionais_wpp_status_check
+    CHECK (wpp_status IN ('desconectado', 'conectando', 'conectado', 'erro'));
+
+
+--- A2: Campo lembrete_enviado na tabela agendamentos ---
+
+Verificar se já existe. Se não:
+
+  ALTER TABLE agendamentos ADD COLUMN IF NOT EXISTS lembrete_enviado BOOLEAN NOT NULL DEFAULT false;
+  ALTER TABLE agendamentos ADD COLUMN IF NOT EXISTS confirmacao_presenca TEXT DEFAULT NULL;
+  ALTER TABLE agendamentos ADD CONSTRAINT agendamentos_confirmacao_check
+    CHECK (confirmacao_presenca IN (NULL, 'confirmou', 'cancelou'));
+
+
+--- A3: Constantes de lembrete ---
+
+ARQUIVO (backend): src/common/constants/lembrete.constants.ts
+
+  export const LEMBRETE_OPTIONS = [
+    { label: 'Desabilitado', value: null },
+    { label: '1 hora antes', value: 1 },
+    { label: '2 horas antes', value: 2 },
+    { label: '4 horas antes', value: 4 },
+    { label: '12 horas antes', value: 12 },
+    { label: '24 horas antes', value: 24 },
+  ]
+
+ARQUIVO (frontend): src/app/core/constants/app.constants.ts
+
+  export const LEMBRETE_OPTIONS = [
+    { label: 'Sem lembrete', value: null },
+    { label: '1 hora antes', value: 1 },
+    { label: '2 horas antes', value: 2 },
+    { label: '4 horas antes', value: 4 },
+    { label: '12 horas antes', value: 12 },
+    { label: '24 horas antes', value: 24 },
+  ]
+
+
+--- A4: Atualizar database.types.ts no frontend ---
+
+  profissionais:
+    wpp_instance_id: string | null   // já existe
+    wpp_token: string | null         // novo
+    wpp_status: 'desconectado' | 'conectando' | 'conectado' | 'erro'
+    lembrete_horas: number | null
+    cancelamento_auto_cliente: boolean
+
+  agendamentos:
+    lembrete_enviado: boolean
+    confirmacao_presenca: 'confirmou' | 'cancelou' | null
+
+
+========================================
+=== BLOCO B — Z-API SERVICE (BACKEND) ===
+========================================
+
+
+--- B1: Configuração Z-API ---
+
+ARQUIVO: .env (adicionar)
+
+  ZAPI_BASE_URL=https://api.z-api.io
+  ZAPI_CLIENT_TOKEN=<token da conta Z-API — obter no painel z-api.io>
+  ZAPI_WEBHOOK_SECRET=<chave secreta para validar webhooks — gerar um UUID>
+
+Passos para criar conta Z-API:
+  1. Acessar z-api.io → Criar conta
+  2. No painel: Criar instância (cada profissional terá a sua)
+  3. Anotar o Client Token da conta (diferente do token da instância)
+  4. Em Webhooks: configurar URL → https://kianna-api-production.up.railway.app/api/webhooks/zapi
+
+
+--- B2: ZapiService ---
+
+ARQUIVO: src/modules/zapi/zapi.service.ts (novo módulo)
+
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import axios from 'axios'
+
+@Injectable()
+export class ZapiService {
+  private logger = new Logger('ZapiService')
+  private baseUrl: string
+
+  constructor(private config: ConfigService) {
+    this.baseUrl = config.get('ZAPI_BASE_URL')
+  }
+
+  // Enviar mensagem de texto
+  async enviarTexto(
+    instanceId: string,
+    instanceToken: string,
+    telefone: string,
+    mensagem: string,
+  ): Promise<boolean> {
+    try {
+      const url = `${this.baseUrl}/instances/${instanceId}/token/${instanceToken}/send-text`
+      const phone = this.formatarTelefone(telefone)
+
+      await axios.post(url, {
+        phone,
+        message: mensagem,
+      })
+
+      this.logger.log(`Mensagem enviada para ${phone} via instância ${instanceId}`)
+      return true
+    } catch (e) {
+      this.logger.error(`Erro ao enviar mensagem: ${e.message}`, e.stack)
+      return false
+    }
+  }
+
+  // Enviar mensagem com botões (para confirmação de presença)
+  async enviarBotoes(
+    instanceId: string,
+    instanceToken: string,
+    telefone: string,
+    mensagem: string,
+    botoes: { id: string; label: string }[],
+  ): Promise<boolean> {
+    try {
+      const url = `${this.baseUrl}/instances/${instanceId}/token/${instanceToken}/send-button-list`
+      const phone = this.formatarTelefone(telefone)
+
+      await axios.post(url, {
+        phone,
+        message: mensagem,
+        buttonList: {
+          buttons: botoes.map(b => ({
+            id: b.id,
+            label: b.label,
+          })),
+        },
+      })
+
+      this.logger.log(`Botões enviados para ${phone}`)
+      return true
+    } catch (e) {
+      // Fallback: se botões não funcionarem, enviar texto simples
+      this.logger.warn(`Botões falharam, enviando texto: ${e.message}`)
+      const textoFallback = `${mensagem}\n\nResponda:\n1 - Confirmar presença\n2 - Cancelar`
+      return this.enviarTexto(instanceId, instanceToken, telefone, textoFallback)
+    }
+  }
+
+  // Gerar QR Code para conectar instância
+  async gerarQrCode(instanceId: string, instanceToken: string): Promise<string | null> {
+    try {
+      const url = `${this.baseUrl}/instances/${instanceId}/token/${instanceToken}/qr-code/image`
+      const { data } = await axios.get(url)
+      return data?.value ?? null // retorna base64 da imagem
+    } catch (e) {
+      this.logger.error(`Erro ao gerar QR: ${e.message}`)
+      return null
+    }
+  }
+
+  // Verificar status da conexão
+  async verificarStatus(instanceId: string, instanceToken: string): Promise<string> {
+    try {
+      const url = `${this.baseUrl}/instances/${instanceId}/token/${instanceToken}/status`
+      const { data } = await axios.get(url)
+      return data?.connected ? 'conectado' : 'desconectado'
+    } catch (e) {
+      this.logger.error(`Erro ao verificar status: ${e.message}`)
+      return 'erro'
+    }
+  }
+
+  // Desconectar instância
+  async desconectar(instanceId: string, instanceToken: string): Promise<void> {
+    try {
+      const url = `${this.baseUrl}/instances/${instanceId}/token/${instanceToken}/disconnect`
+      await axios.post(url)
+    } catch (e) {
+      this.logger.error(`Erro ao desconectar: ${e.message}`)
+    }
+  }
+
+  // Criar nova instância Z-API para um profissional
+  // NOTA: depende do plano Z-API. Verificar se API permite criar instância
+  // programaticamente ou se precisa ser manual no painel.
+  // Se manual: profissional informa instanceId e token nas configurações.
+
+  // Formatar telefone brasileiro para formato Z-API
+  private formatarTelefone(tel: string): string {
+    const digits = tel.replace(/\D/g, '')
+    // Se já tem 55 (DDI): retornar como está
+    if (digits.startsWith('55') && digits.length >= 12) return digits
+    // Se tem 10-11 dígitos (DDD + número): adicionar 55
+    if (digits.length >= 10 && digits.length <= 11) return `55${digits}`
+    return digits
+  }
+}
+
+
+--- B3: ZapiModule ---
+
+ARQUIVO: src/modules/zapi/zapi.module.ts
+
+@Global()
+@Module({
+  providers: [ZapiService],
+  exports: [ZapiService],
+})
+export class ZapiModule {}
+
+Registrar no AppModule imports[].
+
+Instalar axios se não existir:
+  npm install axios
+
+
+========================================
+=== BLOCO C — WEBHOOK DE RECEBIMENTO ===
+========================================
+
+
+--- C1: Atualizar webhook controller ---
+
+ARQUIVO: src/modules/webhooks/webhooks.controller.ts
+
+O placeholder já existe. Substituir pela implementação real:
+
+import { Controller, Post, Body, Headers, Logger, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { ApiTags, ApiOperation, ApiExcludeEndpoint } from '@nestjs/swagger'
+import { WebhooksService } from './webhooks.service'
+
+@ApiTags('Webhooks')
+@Controller('api/webhooks')
+export class WebhooksController {
+  private logger = new Logger('Webhooks')
+
+  constructor(
+    private service: WebhooksService,
+    private config: ConfigService,
+  ) {}
+
+  @Post('zapi')
+  @ApiExcludeEndpoint() // não expor no Swagger público
+  async receberZapi(
+    @Body() body: any,
+    @Headers('x-webhook-secret') secret: string,
+  ) {
+    // Validar secret (opcional — depende da config Z-API)
+    const expectedSecret = this.config.get('ZAPI_WEBHOOK_SECRET')
+    if (expectedSecret && secret !== expectedSecret) {
+      this.logger.warn('Webhook com secret inválido')
+      throw new UnauthorizedException()
+    }
+
+    this.logger.log(`Webhook Z-API: ${body?.type ?? 'unknown'}`)
+    await this.service.processar(body)
+    return { ok: true }
+  }
+}
+
+
+--- C2: WebhooksService ---
+
+ARQUIVO: src/modules/webhooks/webhooks.service.ts
+
+import { Injectable, Logger } from '@nestjs/common'
+import { RespostasService } from '../respostas/respostas.service'
+
+@Injectable()
+export class WebhooksService {
+  private logger = new Logger('WebhooksService')
+
+  constructor(private respostas: RespostasService) {}
+
+  async processar(payload: any): Promise<void> {
+    // Z-API envia diferentes tipos de evento
+    // Nos interessa: mensagens recebidas (respostas do cliente)
+    const tipo = payload?.type
+
+    if (tipo === 'ReceivedCallback' || tipo === 'MessageStatusCallback') {
+      // Mensagem recebida de um cliente
+      const phone = payload?.phone ?? payload?.from
+      const text = payload?.text?.message ?? payload?.body ?? ''
+      const instanceId = payload?.instanceId
+
+      if (phone && text) {
+        await this.respostas.processarResposta(instanceId, phone, text.trim())
+      }
+    }
+
+    // Status de conexão da instância
+    if (tipo === 'StatusInstanceCallback') {
+      const instanceId = payload?.instanceId
+      const connected = payload?.connected
+      if (instanceId) {
+        await this.respostas.atualizarStatusConexao(instanceId, connected)
+      }
+    }
+  }
+}
+
+
+========================================
+=== BLOCO D — NOTIFICAÇÕES POR EVENTO ===
+========================================
+
+
+--- D1: NotificacoesService ---
+
+ARQUIVO: src/modules/notificacoes/notificacoes.service.ts (novo módulo)
+
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { ZapiService } from '../zapi/zapi.service'
+
+@Injectable()
+export class NotificacoesService {
+  private logger = new Logger('Notificacoes')
+  private supabase: SupabaseClient
+
+  constructor(
+    private zapi: ZapiService,
+    private config: ConfigService,
+  ) {
+    this.supabase = createClient(
+      config.get('SUPABASE_URL'),
+      config.get('SUPABASE_SERVICE_ROLE_KEY'),
+    )
+  }
+
+  // Buscar dados de conexão WhatsApp do profissional
+  private async getWppConfig(profissionalId: string) {
+    const { data } = await this.supabase
+      .from('profissionais')
+      .select('wpp_instance_id, wpp_token, wpp_status, nome, whatsapp')
+      .eq('id', profissionalId)
+      .single()
+
+    if (!data?.wpp_instance_id || !data?.wpp_token || data?.wpp_status !== 'conectado') {
+      this.logger.warn(`Profissional ${profissionalId} sem WhatsApp conectado`)
+      return null
+    }
+    return data
+  }
+
+  // ---------- EVENTO 1: Nova solicitação (notificar profissional) ----------
+  async notificarNovaSolicitacao(agendamento: {
+    profissional_id: string
+    cliente_nome: string
+    servico_nome: string
+    data_hora: string
+  }): Promise<void> {
+    const wpp = await this.getWppConfig(agendamento.profissional_id)
+    if (!wpp) return
+
+    const dataFormatada = this.formatarDataHora(agendamento.data_hora)
+    const msg =
+      `✨ *Nova solicitação de agendamento*\n\n` +
+      `👤 Cliente: ${agendamento.cliente_nome}\n` +
+      `💈 Serviço: ${agendamento.servico_nome}\n` +
+      `📅 ${dataFormatada}\n\n` +
+      `Acesse o painel para confirmar ou recusar.`
+
+    await this.zapi.enviarTexto(wpp.wpp_instance_id, wpp.wpp_token, wpp.whatsapp, msg)
+  }
+
+  // ---------- EVENTO 2: Agendamento confirmado (notificar cliente) ----------
+  async notificarConfirmacao(agendamento: {
+    profissional_id: string
+    cliente_wpp: string
+    cliente_nome: string
+    servico_nome: string
+    data_hora: string
+  }): Promise<void> {
+    const wpp = await this.getWppConfig(agendamento.profissional_id)
+    if (!wpp) return
+
+    const dataFormatada = this.formatarDataHora(agendamento.data_hora)
+    const msg =
+      `✅ *Agendamento confirmado!*\n\n` +
+      `Olá, ${agendamento.cliente_nome}!\n` +
+      `Seu agendamento foi confirmado.\n\n` +
+      `💈 ${agendamento.servico_nome}\n` +
+      `📅 ${dataFormatada}\n\n` +
+      `Até lá! 😊`
+
+    await this.zapi.enviarTexto(wpp.wpp_instance_id, wpp.wpp_token, agendamento.cliente_wpp, msg)
+  }
+
+  // ---------- EVENTO 3: Agendamento recusado (notificar cliente) ----------
+  async notificarRecusa(agendamento: {
+    profissional_id: string
+    cliente_wpp: string
+    cliente_nome: string
+    servico_nome: string
+    data_hora: string
+    motivo_recusa?: string
+  }): Promise<void> {
+    const wpp = await this.getWppConfig(agendamento.profissional_id)
+    if (!wpp) return
+
+    const dataFormatada = this.formatarDataHora(agendamento.data_hora)
+    let msg =
+      `❌ *Agendamento não confirmado*\n\n` +
+      `Olá, ${agendamento.cliente_nome}.\n` +
+      `Infelizmente não foi possível confirmar seu agendamento.\n\n` +
+      `💈 ${agendamento.servico_nome}\n` +
+      `📅 ${dataFormatada}`
+
+    if (agendamento.motivo_recusa) {
+      msg += `\n\n📝 Motivo: ${agendamento.motivo_recusa}`
+    }
+
+    msg += `\n\nVocê pode solicitar um novo horário pelo link.`
+
+    await this.zapi.enviarTexto(wpp.wpp_instance_id, wpp.wpp_token, agendamento.cliente_wpp, msg)
+  }
+
+  // ---------- EVENTO 4: Reagendamento (enviar link ao cliente) ----------
+  async notificarReagendamento(agendamento: {
+    profissional_id: string
+    cliente_wpp: string
+    cliente_nome: string
+    slug: string
+    agendamento_id: string
+  }): Promise<void> {
+    const wpp = await this.getWppConfig(agendamento.profissional_id)
+    if (!wpp) return
+
+    const link = `https://www.kianna.com.br/${agendamento.slug}?reagendar=${agendamento.agendamento_id}`
+    const msg =
+      `🔄 *Reagendamento*\n\n` +
+      `Olá, ${agendamento.cliente_nome}!\n` +
+      `Precisamos reagendar seu atendimento.\n\n` +
+      `Clique no link para escolher um novo horário:\n${link}`
+
+    await this.zapi.enviarTexto(wpp.wpp_instance_id, wpp.wpp_token, agendamento.cliente_wpp, msg)
+  }
+
+  // ---------- EVENTO 5: Lembrete (antes do atendimento) ----------
+  async enviarLembrete(agendamento: {
+    id: string
+    profissional_id: string
+    cliente_wpp: string
+    cliente_nome: string
+    servico_nome: string
+    data_hora: string
+    cancelamento_auto: boolean
+  }): Promise<boolean> {
+    const wpp = await this.getWppConfig(agendamento.profissional_id)
+    if (!wpp) return false
+
+    const dataFormatada = this.formatarDataHora(agendamento.data_hora)
+
+    if (agendamento.cancelamento_auto) {
+      // Com cancelamento automático: enviar com opções 1/2
+      const msg =
+        `⏰ *Lembrete de agendamento*\n\n` +
+        `Olá, ${agendamento.cliente_nome}!\n` +
+        `Seu atendimento está chegando.\n\n` +
+        `💈 ${agendamento.servico_nome}\n` +
+        `📅 ${dataFormatada}\n\n` +
+        `Confirme sua presença:`
+
+      const enviado = await this.zapi.enviarBotoes(
+        wpp.wpp_instance_id,
+        wpp.wpp_token,
+        agendamento.cliente_wpp,
+        msg,
+        [
+          { id: 'confirmar_presenca', label: '1 - Confirmar presença' },
+          { id: 'cancelar_agendamento', label: '2 - Cancelar' },
+        ],
+      )
+      return enviado
+    } else {
+      // Sem cancelamento automático: apenas lembrete informativo
+      const msg =
+        `⏰ *Lembrete de agendamento*\n\n` +
+        `Olá, ${agendamento.cliente_nome}!\n` +
+        `Seu atendimento está chegando.\n\n` +
+        `💈 ${agendamento.servico_nome}\n` +
+        `📅 ${dataFormatada}\n\n` +
+        `Até lá! 😊`
+
+      return this.zapi.enviarTexto(wpp.wpp_instance_id, wpp.wpp_token, agendamento.cliente_wpp, msg)
+    }
+  }
+
+  // ---------- EVENTO 6: Cliente cancelou (notificar profissional) ----------
+  async notificarCancelamentoCliente(agendamento: {
+    profissional_id: string
+    cliente_nome: string
+    servico_nome: string
+    data_hora: string
+  }): Promise<void> {
+    const wpp = await this.getWppConfig(agendamento.profissional_id)
+    if (!wpp) return
+
+    const dataFormatada = this.formatarDataHora(agendamento.data_hora)
+    const msg =
+      `⚠️ *Cancelamento pelo cliente*\n\n` +
+      `O cliente ${agendamento.cliente_nome} cancelou o agendamento.\n\n` +
+      `💈 ${agendamento.servico_nome}\n` +
+      `📅 ${dataFormatada}\n\n` +
+      `O horário foi liberado na sua agenda.`
+
+    await this.zapi.enviarTexto(wpp.wpp_instance_id, wpp.wpp_token, wpp.whatsapp, msg)
+  }
+
+  // Formatação de data/hora para exibição
+  private formatarDataHora(iso: string): string {
+    const d = new Date(iso)
+    const dia = d.toLocaleDateString('pt-BR', {
+      weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+      timeZone: 'America/Sao_Paulo',
+    })
+    const hora = d.toLocaleTimeString('pt-BR', {
+      hour: '2-digit', minute: '2-digit',
+      timeZone: 'America/Sao_Paulo',
+    })
+    return `${dia} às ${hora}`
+  }
+}
+
+
+--- D2: NotificacoesModule ---
+
+ARQUIVO: src/modules/notificacoes/notificacoes.module.ts
+
+@Global()
+@Module({
+  providers: [NotificacoesService],
+  exports: [NotificacoesService],
+})
+export class NotificacoesModule {}
+
+Registrar no AppModule imports[].
+
+
+--- D3: Disparar notificações nos endpoints existentes ---
+
+ARQUIVO: src/modules/agendamentos/agendamentos.service.ts
+
+Injetar NotificacoesService e disparar nos momentos certos:
+
+  // Ao criar agendamento (POST /api/agendamentos — público)
+  async criar(dto: CriarAgendamentoDto) {
+    const agendamento = await this.inserirNoSupabase(dto)
+
+    // Buscar nome do serviço para a mensagem
+    const servico = await this.getServico(dto.servico_id)
+
+    // Notificar profissional (async, não bloqueia resposta)
+    this.notificacoes.notificarNovaSolicitacao({
+      profissional_id: dto.profissional_id,
+      cliente_nome: dto.cliente_nome,
+      servico_nome: servico.nome,
+      data_hora: dto.data_hora,
+    }).catch(e => this.logger.error('Erro ao notificar nova solicitação:', e))
+
+    return agendamento
+  }
+
+  // Ao atualizar status (PATCH /api/agendamentos/:id/status)
+  async atualizarStatus(id: string, profissionalId: string, status: string, motivo?: string) {
+    const ag = await this.buscarPorId(id, profissionalId)
+    await this.updateStatus(id, profissionalId, status, motivo)
+
+    // Buscar dados complementares
+    const servico = await this.getServico(ag.servico_id)
+    const prof = await this.getProfissional(profissionalId)
+
+    // Disparar notificação conforme o novo status
+    if (status === 'confirmado') {
+      this.notificacoes.notificarConfirmacao({
+        profissional_id: profissionalId,
+        cliente_wpp: ag.cliente_wpp,
+        cliente_nome: ag.cliente_nome,
+        servico_nome: servico.nome,
+        data_hora: ag.data_hora,
+      }).catch(e => this.logger.error('Erro notificação confirmação:', e))
+    }
+
+    if (status === 'recusado') {
+      this.notificacoes.notificarRecusa({
+        profissional_id: profissionalId,
+        cliente_wpp: ag.cliente_wpp,
+        cliente_nome: ag.cliente_nome,
+        servico_nome: servico.nome,
+        data_hora: ag.data_hora,
+        motivo_recusa: motivo,
+      }).catch(e => this.logger.error('Erro notificação recusa:', e))
+    }
+
+    // NOTA: reagendamento dispara notificação no endpoint de reagendar
+    // (POST /api/agendamentos/reagendar)
+  }
+
+  // Ao reagendar (POST /api/agendamentos/reagendar)
+  async reagendar(origemId: string, dto: any, profissionalId: string) {
+    const agOrigem = await this.buscarPorId(origemId, profissionalId)
+    const novoAg = await this.criarReagendamento(origemId, dto)
+
+    const prof = await this.getProfissional(profissionalId)
+
+    this.notificacoes.notificarReagendamento({
+      profissional_id: profissionalId,
+      cliente_wpp: agOrigem.cliente_wpp,
+      cliente_nome: agOrigem.cliente_nome,
+      slug: prof.slug,
+      agendamento_id: novoAg.id,
+    }).catch(e => this.logger.error('Erro notificação reagendamento:', e))
+
+    return novoAg
+  }
+
+IMPORTANTE: todas as notificações são disparadas com .catch() para não
+bloquear a resposta HTTP. Se o WhatsApp falhar, o agendamento continua ok.
+
+
+========================================
+=== BLOCO E — CRON DE LEMBRETES ===
+========================================
+
+
+--- E1: Instalar @nestjs/schedule ---
+
+  npm install @nestjs/schedule
+
+
+--- E2: Registrar ScheduleModule ---
+
+ARQUIVO: src/app.module.ts
+
+  import { ScheduleModule } from '@nestjs/schedule'
+
+  @Module({
+    imports: [
+      ScheduleModule.forRoot(),
+      // ... outros módulos
+    ],
+  })
+
+
+--- E3: LembretesService (cron) ---
+
+ARQUIVO: src/modules/lembretes/lembretes.service.ts (novo módulo)
+
+import { Injectable, Logger } from '@nestjs/common'
+import { Cron, CronExpression } from '@nestjs/schedule'
+import { ConfigService } from '@nestjs/config'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { NotificacoesService } from '../notificacoes/notificacoes.service'
+
+@Injectable()
+export class LembretesService {
+  private logger = new Logger('Lembretes')
+  private supabase: SupabaseClient
+
+  constructor(
+    private notificacoes: NotificacoesService,
+    private config: ConfigService,
+  ) {
+    this.supabase = createClient(
+      config.get('SUPABASE_URL'),
+      config.get('SUPABASE_SERVICE_ROLE_KEY'),
+    )
+  }
+
+  // Roda a cada 15 minutos
+  @Cron('0 */15 * * * *')
+  async verificarLembretes(): Promise<void> {
+    this.logger.log('Verificando lembretes...')
+
+    // Buscar profissionais com lembrete configurado e WhatsApp conectado
+    const { data: profissionais } = await this.supabase
+      .from('profissionais')
+      .select('id, lembrete_horas, cancelamento_auto_cliente, wpp_status')
+      .not('lembrete_horas', 'is', null)
+      .eq('wpp_status', 'conectado')
+
+    if (!profissionais?.length) {
+      this.logger.log('Nenhum profissional com lembrete configurado')
+      return
+    }
+
+    for (const prof of profissionais) {
+      await this.processarLembretesProfissional(prof)
+    }
+  }
+
+  private async processarLembretesProfissional(prof: {
+    id: string
+    lembrete_horas: number
+    cancelamento_auto_cliente: boolean
+  }): Promise<void> {
+    // Calcular janela: agendamentos que começam entre agora+lembreteHoras-15min e agora+lembreteHoras+15min
+    const agora = new Date()
+    const janelaInicio = new Date(agora.getTime() + (prof.lembrete_horas * 60 - 15) * 60000)
+    const janelaFim = new Date(agora.getTime() + (prof.lembrete_horas * 60 + 15) * 60000)
+
+    const { data: agendamentos } = await this.supabase
+      .from('agendamentos')
+      .select('id, cliente_nome, cliente_wpp, servico_id, data_hora, profissional_id')
+      .eq('profissional_id', prof.id)
+      .eq('status', 'confirmado')
+      .eq('lembrete_enviado', false)
+      .gte('data_hora', janelaInicio.toISOString())
+      .lte('data_hora', janelaFim.toISOString())
+
+    if (!agendamentos?.length) return
+
+    this.logger.log(`${agendamentos.length} lembrete(s) para profissional ${prof.id}`)
+
+    for (const ag of agendamentos) {
+      // Buscar nome do serviço
+      const { data: servico } = await this.supabase
+        .from('servicos')
+        .select('nome')
+        .eq('id', ag.servico_id)
+        .single()
+
+      const enviado = await this.notificacoes.enviarLembrete({
+        id: ag.id,
+        profissional_id: ag.profissional_id,
+        cliente_wpp: ag.cliente_wpp,
+        cliente_nome: ag.cliente_nome,
+        servico_nome: servico?.nome ?? 'Serviço',
+        data_hora: ag.data_hora,
+        cancelamento_auto: prof.cancelamento_auto_cliente,
+      })
+
+      if (enviado) {
+        // Marcar lembrete como enviado
+        await this.supabase
+          .from('agendamentos')
+          .update({ lembrete_enviado: true })
+          .eq('id', ag.id)
+      }
+    }
+  }
+}
+
+
+--- E4: LembretesModule ---
+
+ARQUIVO: src/modules/lembretes/lembretes.module.ts
+
+@Module({
+  providers: [LembretesService],
+})
+export class LembretesModule {}
+
+Registrar no AppModule imports[].
+
+
+========================================
+=== BLOCO F — PROCESSAMENTO DE RESPOSTAS ===
+========================================
+
+
+--- F1: RespostasService ---
+
+ARQUIVO: src/modules/respostas/respostas.service.ts (novo módulo)
+
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { NotificacoesService } from '../notificacoes/notificacoes.service'
+
+@Injectable()
+export class RespostasService {
+  private logger = new Logger('Respostas')
+  private supabase: SupabaseClient
+
+  constructor(
+    private notificacoes: NotificacoesService,
+    private config: ConfigService,
+  ) {
+    this.supabase = createClient(
+      config.get('SUPABASE_URL'),
+      config.get('SUPABASE_SERVICE_ROLE_KEY'),
+    )
+  }
+
+  async processarResposta(instanceId: string, phone: string, texto: string): Promise<void> {
+    // Normalizar texto: pegar primeiro caractere ou ID do botão
+    const resposta = texto.toLowerCase().trim()
+    const ehConfirmacao = resposta === '1' || resposta.includes('confirmar')
+    const ehCancelamento = resposta === '2' || resposta.includes('cancelar')
+
+    if (!ehConfirmacao && !ehCancelamento) {
+      this.logger.log(`Resposta não reconhecida de ${phone}: "${texto}"`)
+      return
+    }
+
+    // Buscar profissional pela instância Z-API
+    const { data: prof } = await this.supabase
+      .from('profissionais')
+      .select('id, cancelamento_auto_cliente')
+      .eq('wpp_instance_id', instanceId)
+      .single()
+
+    if (!prof) {
+      this.logger.warn(`Profissional não encontrado para instância ${instanceId}`)
+      return
+    }
+
+    // Buscar agendamento mais recente do cliente com lembrete enviado
+    const phoneDigits = phone.replace(/\D/g, '').replace(/^55/, '')
+    const { data: agendamentos } = await this.supabase
+      .from('agendamentos')
+      .select('id, profissional_id, cliente_nome, servico_id, data_hora, cliente_wpp, status')
+      .eq('profissional_id', prof.id)
+      .eq('status', 'confirmado')
+      .eq('lembrete_enviado', true)
+      .is('confirmacao_presenca', null)
+      .order('data_hora', { ascending: true })
+      .limit(10)
+
+    // Encontrar agendamento cujo cliente_wpp bate com o phone
+    const ag = agendamentos?.find(a => {
+      const agPhone = a.cliente_wpp.replace(/\D/g, '')
+      return phoneDigits.endsWith(agPhone) || agPhone.endsWith(phoneDigits.slice(-8))
+    })
+
+    if (!ag) {
+      this.logger.warn(`Nenhum agendamento encontrado para ${phone}`)
+      return
+    }
+
+    if (ehConfirmacao) {
+      // Cliente confirmou presença
+      await this.supabase
+        .from('agendamentos')
+        .update({ confirmacao_presenca: 'confirmou' })
+        .eq('id', ag.id)
+
+      this.logger.log(`Presença confirmada: agendamento ${ag.id}`)
+    }
+
+    if (ehCancelamento) {
+      if (prof.cancelamento_auto_cliente) {
+        // Cancelar automaticamente
+        await this.supabase
+          .from('agendamentos')
+          .update({ status: 'cancelado', confirmacao_presenca: 'cancelou' })
+          .eq('id', ag.id)
+
+        this.logger.log(`Cancelamento automático: agendamento ${ag.id}`)
+
+        // Notificar profissional
+        const { data: servico } = await this.supabase
+          .from('servicos')
+          .select('nome')
+          .eq('id', ag.servico_id)
+          .single()
+
+        await this.notificacoes.notificarCancelamentoCliente({
+          profissional_id: ag.profissional_id,
+          cliente_nome: ag.cliente_nome,
+          servico_nome: servico?.nome ?? 'Serviço',
+          data_hora: ag.data_hora,
+        })
+      } else {
+        // Cancelamento automático desabilitado: ignorar resposta "2"
+        this.logger.log(`Cancelamento ignorado (desabilitado): agendamento ${ag.id}`)
+      }
+    }
+  }
+
+  // Atualizar status de conexão WhatsApp do profissional
+  async atualizarStatusConexao(instanceId: string, connected: boolean): Promise<void> {
+    const status = connected ? 'conectado' : 'desconectado'
+    await this.supabase
+      .from('profissionais')
+      .update({ wpp_status: status })
+      .eq('wpp_instance_id', instanceId)
+
+    this.logger.log(`Instância ${instanceId}: ${status}`)
+  }
+}
+
+
+--- F2: RespostasModule ---
+
+@Module({
+  providers: [RespostasService],
+  exports: [RespostasService],
+})
+export class RespostasModule {}
+
+Registrar no AppModule imports[].
+WebhooksModule deve importar RespostasModule.
+
+
+========================================
+=== BLOCO G — FRONTEND (CONFIGURAÇÕES + BANNER) ===
+========================================
+
+
+--- G1: Seção WhatsApp nas configurações ---
+
+ARQUIVO: configurações do profissional (aba nova ou seção na aba existente)
+
+Adicionar seção "WhatsApp" com:
+
+  1. Status da conexão (indicador visual)
+  2. Botão "Conectar WhatsApp" → abre dialog com QR Code
+  3. Botão "Desconectar" (se conectado)
+  4. Select de lembrete (opções LEMBRETE_OPTIONS)
+  5. Toggle de cancelamento automático
+
+HTML:
+
+  <div class="config-section">
+    <h3 class="config-section-title">WhatsApp</h3>
+
+    <!-- Status -->
+    <div class="wpp-status-row">
+      <span class="wpp-dot" [class]="'dot-' + profissional.wpp_status"></span>
+      <span class="wpp-status-text">
+        @switch (profissional.wpp_status) {
+          @case ('conectado')    { WhatsApp conectado }
+          @case ('conectando')   { Conectando... }
+          @case ('desconectado') { WhatsApp não conectado }
+          @case ('erro')         { Erro na conexão }
+        }
+      </span>
+    </div>
+
+    <!-- Botão conectar/desconectar -->
+    @if (profissional.wpp_status !== 'conectado') {
+      <button class="btn-primary" (click)="conectarWhatsApp()">
+        <mat-icon>qr_code_2</mat-icon> Conectar WhatsApp
+      </button>
+    } @else {
+      <button class="btn-ghost btn-sm" (click)="desconectarWhatsApp()">
+        Desconectar
+      </button>
+    }
+
+    <!-- Lembrete -->
+    <div class="config-field" style="margin-top:20px">
+      <label class="config-label">Lembrete antes do atendimento</label>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-select [(ngModel)]="form.lembrete_horas" name="lembrete_horas">
+          @for (opt of lembreteOptions; track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Cancelamento automático -->
+    <div class="config-field">
+      <mat-slide-toggle [(ngModel)]="form.cancelamento_auto_cliente"
+        name="cancelamento_auto_cliente">
+        Permitir que o cliente cancele via WhatsApp
+      </mat-slide-toggle>
+      <p class="config-hint">
+        Quando ativado, o cliente pode responder "2" ao lembrete para cancelar automaticamente.
+        Quando desativado, a resposta é ignorada — apenas você pode cancelar.
+      </p>
+    </div>
+  </div>
+
+SCSS:
+
+  .wpp-status-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  }
+  .wpp-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    &.dot-conectado    { background: #1D9E75; }
+    &.dot-conectando   { background: #F59E0B; animation: pulse 1.5s infinite; }
+    &.dot-desconectado { background: #adb5bd; }
+    &.dot-erro         { background: #E26172; }
+  }
+  .wpp-status-text { font: 500 14px 'Inter'; color: #495057; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+  }
+
+
+--- G2: Dialog QR Code ---
+
+ARQUIVO: src/app/features/dashboard/pages/configuracoes/
+  wpp-qrcode-dialog/wpp-qrcode-dialog.component.ts (novo)
+
+  Template:
+    <div class="qr-dialog">
+      <h2>Conectar WhatsApp</h2>
+      <p>Abra o WhatsApp no celular → Configurações → Aparelhos conectados → Conectar aparelho</p>
+      <p>Escaneie o QR Code abaixo:</p>
+
+      @if (loading()) {
+        <div class="qr-loading"><mat-spinner diameter="48" /></div>
+      } @else if (qrCode()) {
+        <img [src]="'data:image/png;base64,' + qrCode()" alt="QR Code" class="qr-image" />
+      } @else if (erro()) {
+        <p class="qr-erro">Não foi possível gerar o QR Code. Tente novamente.</p>
+      }
+
+      <p class="qr-hint">O QR Code atualiza a cada 30 segundos.</p>
+
+      <div class="qr-acoes">
+        <button class="btn-ghost" (click)="fechar()">Cancelar</button>
+        <button class="btn-primary btn-sm" (click)="gerarQrCode()" [disabled]="loading()">
+          Atualizar QR
+        </button>
+      </div>
+    </div>
+
+  Lógica:
+    loading = signal(true)
+    qrCode = signal<string | null>(null)
+    erro = signal(false)
+
+    async ngOnInit() { await this.gerarQrCode() }
+
+    async gerarQrCode() {
+      this.loading.set(true)
+      this.erro.set(false)
+      try {
+        const result = await this.api.post<{ qrCode: string }>('/api/whatsapp/qr-code', {})
+        this.qrCode.set(result.qrCode)
+      } catch {
+        this.erro.set(true)
+      } finally {
+        this.loading.set(false)
+      }
+    }
+
+  SCSS:
+    .qr-dialog { text-align: center; padding: 24px; max-width: 360px; }
+    .qr-image { width: 256px; height: 256px; border-radius: 12px; margin: 16px 0; }
+    .qr-loading { padding: 60px; }
+    .qr-erro { color: #E26172; font: 400 13px 'Inter'; }
+    .qr-hint { font: 400 12px 'Inter'; color: #adb5bd; margin-top: 8px; }
+    .qr-acoes { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+
+
+--- G3: Endpoint QR Code no backend ---
+
+ARQUIVO: src/modules/zapi/zapi.controller.ts (novo)
+
+@ApiTags('WhatsApp')
+@Controller('api/whatsapp')
+export class ZapiController {
+  constructor(
+    private zapiService: ZapiService,
+    private config: ConfigService,
+  ) {}
+
+  @Post('qr-code')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Gerar QR Code para conectar WhatsApp' })
+  async qrCode(@CurrentUser() user: any) {
+    // Buscar instância do profissional
+    const supabase = createClient(
+      this.config.get('SUPABASE_URL'),
+      this.config.get('SUPABASE_SERVICE_ROLE_KEY'),
+    )
+    const { data: prof } = await supabase
+      .from('profissionais')
+      .select('wpp_instance_id, wpp_token')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!prof?.wpp_instance_id || !prof?.wpp_token) {
+      throw new BadRequestException(
+        'Configure o Instance ID e Token da Z-API nas configurações.'
+      )
+    }
+
+    const qrCode = await this.zapiService.gerarQrCode(prof.wpp_instance_id, prof.wpp_token)
+    if (!qrCode) throw new InternalServerErrorException('Erro ao gerar QR Code')
+    return { qrCode }
+  }
+
+  @Post('desconectar')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Desconectar WhatsApp' })
+  async desconectar(@CurrentUser() user: any) {
+    // Similar: buscar instância e chamar zapiService.desconectar()
+    // Atualizar wpp_status = 'desconectado' no banco
+  }
+
+  @Get('status')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Verificar status da conexão WhatsApp' })
+  async status(@CurrentUser() user: any) {
+    // Buscar instância e chamar zapiService.verificarStatus()
+    // Atualizar wpp_status no banco
+    // Retornar { status: 'conectado' | 'desconectado' | 'erro' }
+  }
+}
+
+Registrar ZapiController no ZapiModule.
+
+
+--- G4: Banner no dashboard ---
+
+ARQUIVO: visao-geral.component.html
+
+Exibir banner quando WhatsApp não está conectado:
+
+  @if (profissional?.wpp_status !== 'conectado') {
+    <div class="wpp-banner">
+      <mat-icon>chat</mat-icon>
+      <div class="wpp-banner-text">
+        <strong>Conecte seu WhatsApp</strong>
+        <span>Ative notificações automáticas para seus clientes.</span>
+      </div>
+      <button class="btn-primary btn-sm" routerLink="/dashboard/configuracoes"
+        fragment="whatsapp">
+        Conectar
+      </button>
+    </div>
+  }
+
+SCSS:
+
+  .wpp-banner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; margin-bottom: 16px;
+    background: #E8F5F0; border: 1px solid #C3E8DA;
+    border-radius: 12px;
+    mat-icon { color: #1D9E75; }
+  }
+  .wpp-banner-text {
+    flex: 1; display: flex; flex-direction: column;
+    strong { font: 600 14px 'Inter'; color: #212529; }
+    span   { font: 400 12px 'Inter'; color: #6c757d; }
+  }
+
+
+--- G5: Campos Instance ID e Token nas configurações ---
+
+Enquanto a Z-API não permite criar instâncias via API,
+o profissional precisa informar manualmente o Instance ID e Token.
+
+Adicionar na seção WhatsApp das configurações, ANTES do botão "Conectar":
+
+  @if (profissional.wpp_status !== 'conectado') {
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Instance ID (Z-API)</mat-label>
+      <input matInput [(ngModel)]="form.wpp_instance_id" name="wpp_instance_id"
+        placeholder="Ex: 3C7E9A1B2D4F..." />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Token (Z-API)</mat-label>
+      <input matInput [(ngModel)]="form.wpp_token" name="wpp_token" type="password"
+        placeholder="Token da instância" />
+    </mat-form-field>
+
+    <p class="config-hint">
+      Crie uma instância em z-api.io e copie o Instance ID e Token.
+    </p>
+  }
+
+NOTA: salvar com os outros campos do profissional no botão Salvar da aba.
+
+
+========================================
+=== BLOCO H — TESTES VISUAIS ===
+========================================
+
+
+--- H1: Configuração WhatsApp ---
+
+  [ ] Abrir /dashboard/configuracoes
+  [ ] Seção WhatsApp visível
+  [ ] Status mostra "WhatsApp não conectado" com dot cinza
+  [ ] Campos Instance ID e Token visíveis
+  [ ] Preencher Instance ID e Token → salvar → campos persistem
+  [ ] Select de lembrete mostra 6 opções (desabilitado + 5 tempos)
+  [ ] Toggle de cancelamento automático funciona
+  [ ] Salvar configurações sem erro
+
+
+--- H2: Conexão QR Code ---
+
+  [ ] Preencher Instance ID e Token e salvar
+  [ ] Clicar "Conectar WhatsApp" → dialog abre com QR Code
+  [ ] QR Code renderiza (imagem base64)
+  [ ] Escanear com celular → WhatsApp conecta
+  [ ] Status muda para "WhatsApp conectado" com dot verde
+  [ ] Botão muda para "Desconectar"
+  [ ] Clicar "Desconectar" → status volta para desconectado
+
+
+--- H3: Notificação — nova solicitação ---
+
+  [ ] WhatsApp do profissional conectado
+  [ ] Em outra aba: acessar página pública e criar agendamento
+  [ ] Profissional recebe mensagem no WhatsApp:
+      "Nova solicitação de agendamento" com nome, serviço, data/hora
+  [ ] Card pendentes no header incrementa (Realtime)
+
+
+--- H4: Notificação — confirmação ---
+
+  [ ] No dashboard: abrir agendamento pendente e confirmar
+  [ ] Cliente recebe mensagem: "Agendamento confirmado" com detalhes
+  [ ] Status no dashboard muda para confirmado
+
+
+--- H5: Notificação — recusa ---
+
+  [ ] No dashboard: abrir agendamento pendente e recusar (com motivo)
+  [ ] Cliente recebe mensagem: "Agendamento não confirmado" + motivo
+  [ ] Status muda para recusado
+
+
+--- H6: Notificação — reagendamento ---
+
+  [ ] No dashboard: abrir agendamento confirmado e clicar Reagendar
+  [ ] Cliente recebe mensagem com link de reagendamento
+  [ ] Link funciona: abre página pública com serviço pré-selecionado
+
+
+--- H7: Lembrete automático ---
+
+  [ ] Configurar lembrete para 1 hora antes
+  [ ] Criar agendamento confirmado para daqui a ~1 hora
+  [ ] Aguardar cron rodar (máx 15min)
+  [ ] Cliente recebe lembrete no WhatsApp
+  [ ] Lembrete tem opções "1 - Confirmar / 2 - Cancelar"
+  [ ] Campo lembrete_enviado = true no banco
+
+
+--- H8: Resposta do cliente — confirmar presença ---
+
+  [ ] Cliente responde "1" ao lembrete
+  [ ] Campo confirmacao_presenca = 'confirmou' no banco
+  [ ] Nenhuma notificação extra enviada
+
+
+--- H9: Resposta do cliente — cancelar ---
+
+  [ ] cancelamento_auto_cliente = true nas configurações
+  [ ] Cliente responde "2" ao lembrete
+  [ ] Agendamento muda para status 'cancelado' automaticamente
+  [ ] Profissional recebe mensagem: "Cancelamento pelo cliente"
+  [ ] Card pendentes atualiza no dashboard (Realtime)
+
+
+--- H10: Cancelamento automático desabilitado ---
+
+  [ ] cancelamento_auto_cliente = false nas configurações
+  [ ] Cliente responde "2" ao lembrete
+  [ ] Agendamento NÃO muda de status (continua confirmado)
+  [ ] Profissional NÃO recebe notificação de cancelamento
+
+
+--- H11: Banner dashboard ---
+
+  [ ] WhatsApp desconectado: banner "Conecte seu WhatsApp" aparece na visão geral
+  [ ] Clicar "Conectar" navega para configurações
+  [ ] WhatsApp conectado: banner desaparece
+
+
+--- H12: Mobile ---
+
+  [ ] Seção WhatsApp nas configurações usável em 375px
+  [ ] Dialog QR Code: imagem cabe na tela
+  [ ] Mensagens WhatsApp legíveis no celular (formatação com * e emojis)
+
+
+--- H13: Erros e edge cases ---
+
+  [ ] Profissional sem WhatsApp conectado: agendamento funciona normal, sem notificação
+  [ ] Instance ID/Token inválidos: QR Code retorna erro com mensagem clara
+  [ ] Z-API fora do ar: agendamento funciona normal, erro logado no backend
+  [ ] Cliente responde texto aleatório: ignorado (log no backend)
+  [ ] Lembrete para agendamento cancelado: não enviado (filtro status = 'confirmado')
+
+
+========================================
+=== ORDEM DE EXECUÇÃO ===
+========================================
+
+1.  A1-A4 — SQL banco + constantes + types
+2.  B1-B3 — ZapiService + módulo + instalar axios
+3.  C1-C2 — Webhook controller + service
+4.  D1-D3 — NotificacoesService + disparar nos endpoints existentes
+5.  E1-E4 — Cron de lembretes (ScheduleModule + LembretesService)
+6.  F1-F2 — RespostasService (processar 1/2 do cliente)
+7.  G3    — Endpoint QR Code + status + desconectar no backend
+8.  G1-G2 — Frontend: seção WhatsApp nas configurações + dialog QR
+9.  G4    — Banner na visão geral
+10. G5    — Campos Instance ID e Token
+11. H1-H13 — Testes visuais
+12.       — Push + deploy Railway + Vercel
+
+
+
+
+========================================
+=== CHECKLIST FINAL ===
+========================================
+
+BANCO
+[ ] wpp_token existe na tabela profissionais
+[ ] wpp_status existe com constraint
+[ ] lembrete_horas existe (nullable)
+[ ] cancelamento_auto_cliente existe (default true)
+[ ] lembrete_enviado existe na tabela agendamentos
+[ ] confirmacao_presenca existe na tabela agendamentos
+
+BACKEND — Z-API
+[ ] ZapiService envia texto e botões
+[ ] ZapiService gera QR Code
+[ ] ZapiService verifica status e desconecta
+[ ] axios instalado
+
+BACKEND — WEBHOOK
+[ ] POST /api/webhooks/zapi recebe e processa eventos
+[ ] Validação de secret no header
+[ ] Respostas "1" e "2" processadas corretamente
+
+BACKEND — NOTIFICAÇÕES
+[ ] Nova solicitação → profissional recebe WhatsApp
+[ ] Confirmação → cliente recebe WhatsApp
+[ ] Recusa → cliente recebe WhatsApp (com motivo se houver)
+[ ] Reagendamento → cliente recebe link
+[ ] Cancelamento pelo cliente → profissional recebe WhatsApp
+[ ] Todas disparam com .catch() (não bloqueiam resposta HTTP)
+
+BACKEND — CRON
+[ ] ScheduleModule registrado
+[ ] Cron roda a cada 15 minutos
+[ ] Lembrete enviado na janela correta (±15min do tempo configurado)
+[ ] lembrete_enviado marcado como true após envio
+[ ] Profissional sem lembrete configurado: ignorado
+[ ] Profissional sem WhatsApp conectado: ignorado
+
+BACKEND — RESPOSTAS
+[ ] "1" → confirmacao_presenca = 'confirmou'
+[ ] "2" + cancelamento_auto = true → status = 'cancelado' + notifica profissional
+[ ] "2" + cancelamento_auto = false → ignorado
+[ ] Texto aleatório → ignorado (log)
+[ ] StatusInstanceCallback atualiza wpp_status
+
+FRONTEND
+[ ] Seção WhatsApp nas configurações funcional
+[ ] Campos Instance ID e Token salvam
+[ ] Dialog QR Code abre e exibe imagem
+[ ] Status conexão atualiza visualmente
+[ ] Select lembrete com 6 opções
+[ ] Toggle cancelamento automático
+[ ] Banner "Conecte WhatsApp" na visão geral
+[ ] Banner some quando conectado
+
+SWAGGER
+[ ] POST /api/whatsapp/qr-code documentado
+[ ] POST /api/whatsapp/desconectar documentado
+[ ] GET /api/whatsapp/status documentado

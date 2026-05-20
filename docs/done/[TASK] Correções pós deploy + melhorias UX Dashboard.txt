@@ -1,0 +1,406 @@
+[TASK] Correções pós deploy + melhorias UX Dashboard, Calendário, Menu e Edição de Agendamento
+
+CONTEXTO
+A IA já conhece:
+- Estrutura do projeto
+- Stack
+- Design system
+- Padrões visuais
+- Fluxo de agendamentos
+- Sistema de calendário já iniciado
+
+Objetivo:
+Corrigir problemas gerados após o último deploy e aplicar melhorias estruturais e visuais importantes.
+
+IMPORTANTE:
+- Utilizar os padrões do projeto
+- Priorizar UX moderna
+- Manter performance
+- Garantir responsividade
+- Melhorar experiência operacional do profissional
+
+====================================================================
+1. CORREÇÃO CRÍTICA - BUILD VERCEL
+====================================================================
+
+O último deploy falhou por excesso de tamanho do SCSS:
+
+Erro:
+✘ [ERROR] src/app/features/dashboard/pages/calendario/calendario.component.scss exceeded maximum budget.
+
+Budget:
+8.00 kB
+
+Atual:
+8.89 kB
+
+====================================================================
+OBJETIVO
+====================================================================
+
+Refatorar o SCSS da página Calendário para reduzir o tamanho final do bundle.
+
+====================================================================
+AÇÕES NECESSÁRIAS
+====================================================================
+
+- Remover estilos duplicados
+- Reaproveitar classes globais existentes
+- Utilizar variáveis/tokens do projeto
+- Evitar nesting excessivo
+- Extrair estilos reutilizáveis
+- Remover regras desnecessárias
+- Reduzir especificidade CSS
+
+====================================================================
+IMPORTANTE
+====================================================================
+
+NÃO remover:
+- Responsividade
+- Estados visuais
+- Animações importantes
+- Estrutura visual do calendário
+
+====================================================================
+CALENDÁRIO
+====================================================================
+
+Continuar utilizando biblioteca robusta já existente.
+
+Prioridade:
+1. FullCalendar
+2. React Big Calendar
+3. TUI Calendar
+
+Evitar implementação manual.
+
+====================================================================
+2. CORREÇÃO - EDIÇÃO DE AGENDAMENTO
+====================================================================
+
+PROBLEMA:
+Na visão do profissional, ao clicar em editar agendamento:
+
+- A tela abre com os dados vazios
+- O usuário precisa clicar em algum lugar da tela para os dados aparecerem
+
+Isso indica:
+- Problema de detecção/renderização
+- Lifecycle incorreto
+- ChangeDetection não disparando
+- Problema de carregamento assíncrono
+
+====================================================================
+CORRIGIR
+====================================================================
+
+Garantir que:
+- Dados carreguem imediatamente
+- Inputs renderizem preenchidos automaticamente
+- Form seja inicializado corretamente
+
+Verificar:
+- patchValue
+- detectChanges
+- async timing
+- ngOnInit/ngAfterViewInit
+- signals/observables utilizados
+
+====================================================================
+3. MELHORIA UX - EDITAR DADOS
+====================================================================
+
+Transformar a seção:
+"EDITAR DADOS"
+
+Em um:
+- Accordion
+ou
+- Expanded Card
+
+====================================================================
+COMPORTAMENTO
+====================================================================
+
+Estado inicial:
+- Recolhido
+
+Ao clicar:
+- Expandir suavemente
+- Mostrar formulário completo
+
+====================================================================
+MANTER
+====================================================================
+
+Manter fora do accordion:
+- Resumo do agendamento
+- Status
+- Botões principais
+
+Apenas o formulário de edição deve expandir.
+
+====================================================================
+UX DO ACCORDION
+====================================================================
+
+Adicionar:
+- Ícone de expandir/recolher
+- Transição suave
+- Feedback visual
+- Hover elegante
+
+====================================================================
+4. MELHORIA - MENU LATERAL DESKTOP
+====================================================================
+
+PROBLEMA:
+O menu lateral não ocupa a altura total da página.
+
+Atualmente:
+- Sidebar termina junto do conteúdo
+- Visual incorreto
+- Sensação de layout quebrado
+
+====================================================================
+CORRIGIR
+====================================================================
+
+Sidebar deve:
+- Ocupar altura total da viewport
+- Permanecer visualmente fixa
+- Ter comportamento consistente
+
+Aplicar:
+- min-height: 100vh
+ou estratégia equivalente
+
+====================================================================
+IMPORTANTE
+====================================================================
+
+O menu deve parecer:
+- Estrutural
+- Fixo
+- Profissional
+- SaaS moderno
+
+====================================================================
+5. REMOVER ITEM DUPLICADO DO MENU
+====================================================================
+
+Remover do menu lateral:
+- Perfil do usuário
+
+Motivo:
+Essa funcionalidade já existe no Header.
+
+Evitar:
+- Redundância
+- Poluição visual
+- Duplicidade de navegação
+
+====================================================================
+6. DASHBOARD - REMOVER CARD "CONFIRMAÇÕES PENDENTES"
+====================================================================
+
+PROBLEMA:
+O card:
+"Confirmações Pendentes"
+
+Está redundante.
+
+Os agendamentos pendentes já aparecem dentro:
+"Próximos Agendamentos"
+
+====================================================================
+AÇÃO
+====================================================================
+
+Remover completamente:
+- Card
+- Estrutura
+- Espaçamentos relacionados
+
+====================================================================
+7. DASHBOARD - MELHORIA VISUAL DOS AGENDAMENTOS
+====================================================================
+
+Adicionar borda lateral esquerda em cada item/card de agendamento.
+
+====================================================================
+COR DA BORDA
+====================================================================
+
+A borda deve variar conforme status:
+
+- Confirmado
+- Pendente
+- Cancelado
+- Realizado
+- Cliente faltou
+
+====================================================================
+OBJETIVO
+====================================================================
+
+Melhorar:
+- Escaneabilidade
+- Identificação rápida
+- UX operacional
+
+====================================================================
+ESTILO
+====================================================================
+
+A borda deve ser:
+- Fina
+- Elegante
+- Moderna
+- Não exagerada
+
+====================================================================
+8. HEADER - EXIBIR PLANO DO PROFISSIONAL
+====================================================================
+
+Adicionar no Header:
+
+Ao lado do card:
+"PENDENTES"
+
+Mostrar:
+- Nome do plano atual
+
+Exemplos:
+- Plano Gratuito
+- Plano Pro
+- Plano Premium
+
+====================================================================
+UX
+====================================================================
+
+Visual:
+- Badge moderna
+- Compacta
+- Elegante
+
+Adicionar:
+- Hover
+- Tooltip opcional
+
+====================================================================
+9. PERFIL - VERIFICAR EMAIL
+====================================================================
+
+Verificar se:
+- Email do profissional está sendo salvo corretamente
+
+Atualmente aparenta haver inconsistência.
+
+====================================================================
+AÇÃO
+====================================================================
+
+Garantir:
+- Persistência correta
+- Exibição correta na aba Perfil
+- Atualização correta
+
+====================================================================
+VALIDAÇÕES
+====================================================================
+
+Adicionar:
+- Validação de email
+- Feedback visual
+- Estados de erro amigáveis
+
+====================================================================
+10. RESPONSIVIDADE
+====================================================================
+
+PRIORIDADE ALTA.
+
+Garantir excelente experiência:
+- Desktop
+- Tablet
+- Mobile
+
+====================================================================
+IMPORTANTE NO MOBILE
+====================================================================
+
+- Accordion amigável
+- Sidebar funcional
+- Header organizado
+- Cards sem overflow
+- Boa área de toque
+
+====================================================================
+11. MICROINTERAÇÕES
+====================================================================
+
+Adicionar:
+- Hover states
+- Loading states
+- Skeletons quando necessário
+- Feedback visual suave
+- Transições discretas
+
+====================================================================
+12. PERFORMANCE
+====================================================================
+
+Evitar:
+- Re-renderizações desnecessárias
+- CSS excessivo
+- Componentes pesados
+
+Priorizar:
+- Fluidez
+- Escalabilidade
+- Código limpo
+
+====================================================================
+13. ACESSIBILIDADE
+====================================================================
+
+Garantir:
+- Navegação por teclado
+- Contraste adequado
+- Estados de foco
+- Labels acessíveis
+
+====================================================================
+14. RESULTADO ESPERADO
+====================================================================
+
+Após as correções:
+
+- Deploy deve funcionar corretamente
+- Calendário deve manter UX moderna sem exceder budget
+- Tela de edição deve carregar corretamente
+- Sidebar deve ocupar toda altura da página
+- Dashboard deve ficar mais limpa
+- Agendamentos devem ter leitura visual rápida
+- Header deve exibir plano do usuário
+- Perfil deve exibir email corretamente
+
+====================================================================
+15. IMPORTANTE
+====================================================================
+
+NÃO:
+- Criar visual genérico
+- Quebrar layout existente
+- Poluir visualmente
+- Remover padrões do design system
+
+PRIORIZAR:
+- Modern SaaS
+- Clean UI
+- UX refinada
+- Performance
+- Mobile-first

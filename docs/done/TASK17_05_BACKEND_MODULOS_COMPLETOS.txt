@@ -1,0 +1,795 @@
+KIANNA API — TASK: COMPLETAR MÓDULOS BACKEND
+Branch: feat/backend-modulos-completos
+Gerado em: Maio/2026
+========================================
+
+CONTEXTO
+--------
+Backend NestJS rodando em: https://kianna-api-production.up.railway.app/
+Repo: github.com/agendazap-tech/kianna-api
+Banco: Supabase (via @supabase/supabase-js com service_role key)
+
+Módulos já implementados: agendamentos, profissionais, webhooks (placeholder)
+Módulos vazios (só module.ts): servicos, disponibilidades, bloqueios, auth
+
+Esta task completa os 4 módulos faltantes com controller, service, DTOs
+e o guard de autenticação. Módulo 4 (Z-API) fica de fora.
+
+
+========================================
+=== BLOCO A — AUTH (guard + decorator) ===
+========================================
+Dependência de todos os outros módulos. Fazer primeiro.
+
+
+--- A1: SupabaseAuthGuard ---
+
+ARQUIVO: src/modules/auth/guards/supabase-auth.guard.ts
+
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { createClient } from '@supabase/supabase-js'
+
+@Injectable()
+export class SupabaseAuthGuard implements CanActivate {
+  constructor(private config: ConfigService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest()
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    if (!token) throw new UnauthorizedException('Token não informado')
+
+    const supabase = createClient(
+      this.config.get('SUPABASE_URL'),
+      this.config.get('SUPABASE_ANON_KEY'),
+    )
+    const { data, error } = await supabase.auth.getUser(token)
+    if (error || !data.user) throw new UnauthorizedException('Token inválido')
+
+    // Buscar profissional vinculado ao user
+    const admin = createClient(
+      this.config.get('SUPABASE_URL'),
+      this.config.get('SUPABASE_SERVICE_ROLE_KEY'),
+    )
+    const { data: prof } = await admin
+      .from('profissionais')
+      .select('id, role')
+      .eq('user_id', data.user.id)
+      .single()
+
+    req.user = { ...data.user, profissional_id: prof?.id, role: prof?.role }
+    return true
+  }
+}
+
+
+--- A2: CurrentUser decorator ---
+
+ARQUIVO: src/modules/auth/decorators/current-user.decorator.ts
+
+import { createParamDecorator, ExecutionContext } from '@nestjs/common'
+
+export const CurrentUser = createParamDecorator(
+  (field: string | undefined, ctx: ExecutionContext) => {
+    const req = ctx.switchToHttp().getRequest()
+    return field ? req.user?.[field] : req.user
+  },
+)
+
+
+--- A3: RolesGuard ---
+
+ARQUIVO: src/modules/auth/guards/roles.guard.ts
+
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const roles = this.reflector.get<string[]>('roles', context.getHandler())
+    if (!roles) return true
+    const req = context.switchToHttp().getRequest()
+    return roles.includes(req.user?.role)
+  }
+}
+
+ARQUIVO: src/modules/auth/decorators/roles.decorator.ts
+
+import { SetMetadata } from '@nestjs/common'
+export const Roles = (...roles: string[]) => SetMetadata('roles', roles)
+
+
+--- A4: AuthModule ---
+
+ARQUIVO: src/modules/auth/auth.module.ts
+
+import { Module, Global } from '@nestjs/common'
+import { SupabaseAuthGuard } from './guards/supabase-auth.guard'
+import { RolesGuard } from './guards/roles.guard'
+
+@Global()
+@Module({
+  providers: [SupabaseAuthGuard, RolesGuard],
+  exports: [SupabaseAuthGuard, RolesGuard],
+})
+export class AuthModule {}
+
+Registrar no AppModule imports[].
+
+
+--- A5: Verificar endpoints existentes ---
+
+Verificar se agendamentos.controller.ts e profissionais.controller.ts
+já usam @UseGuards(SupabaseAuthGuard). Se não:
+  - Adicionar @UseGuards(SupabaseAuthGuard) nos endpoints protegidos
+  - Endpoint público (criar agendamento por cliente, buscar por slug) NÃO deve ter guard
+  - Endpoints do profissional (listar seus agendamentos, atualizar status) DEVEM ter guard
+
+
+========================================
+=== BLOCO B — MÓDULO SERVIÇOS ===
+========================================
+
+
+--- B1: DTOs ---
+
+ARQUIVO: src/modules/servicos/dto/criar-servico.dto.ts
+
+import { IsString, IsNumber, IsIn, Min, Max, MinLength, MaxLength } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
+
+export class CriarServicoDto {
+  @ApiProperty({ example: 'Corte de cabelo' })
+  @IsString() @MinLength(2) @MaxLength(100)
+  nome: string
+
+  @ApiProperty({ example: 30 })
+  @IsNumber() @Min(5) @Max(480)
+  duracao_min: number
+
+  @ApiProperty({ example: 50.00 })
+  @IsNumber() @Min(0)
+  preco: number
+
+  @ApiProperty({ enum: ['presencial', 'domiciliar', 'online'] })
+  @IsIn(['presencial', 'domiciliar', 'online'])
+  modalidade: string
+}
+
+ARQUIVO: src/modules/servicos/dto/atualizar-servico.dto.ts
+
+import { PartialType } from '@nestjs/swagger'
+import { CriarServicoDto } from './criar-servico.dto'
+import { IsOptional, IsBoolean } from 'class-validator'
+
+export class AtualizarServicoDto extends PartialType(CriarServicoDto) {
+  @IsOptional() @IsBoolean()
+  ativo?: boolean
+}
+
+
+--- B2: Service ---
+
+ARQUIVO: src/modules/servicos/servicos.service.ts
+
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+
+@Injectable()
+export class ServicosService {
+  private supabase: SupabaseClient
+
+  constructor(private config: ConfigService) {
+    this.supabase = createClient(
+      config.get('SUPABASE_URL'),
+      config.get('SUPABASE_SERVICE_ROLE_KEY'),
+    )
+  }
+
+  async listar(profissionalId: string) {
+    const { data, error } = await this.supabase
+      .from('servicos')
+      .select('*')
+      .eq('profissional_id', profissionalId)
+      .order('created_at', { ascending: true })
+    if (error) throw error
+    return data
+  }
+
+  async buscarPorId(id: string, profissionalId: string) {
+    const { data, error } = await this.supabase
+      .from('servicos')
+      .select('*')
+      .eq('id', id)
+      .eq('profissional_id', profissionalId)
+      .single()
+    if (error || !data) throw new NotFoundException('Serviço não encontrado')
+    return data
+  }
+
+  async criar(profissionalId: string, dto: any) {
+    const { data, error } = await this.supabase
+      .from('servicos')
+      .insert({ ...dto, profissional_id: profissionalId, ativo: true })
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  }
+
+  async atualizar(id: string, profissionalId: string, dto: any) {
+    const { data, error } = await this.supabase
+      .from('servicos')
+      .update(dto)
+      .eq('id', id)
+      .eq('profissional_id', profissionalId)
+      .select()
+      .single()
+    if (error) throw error
+    if (!data) throw new NotFoundException('Serviço não encontrado')
+    return data
+  }
+
+  async excluir(id: string, profissionalId: string) {
+    const { error } = await this.supabase
+      .from('servicos')
+      .delete()
+      .eq('id', id)
+      .eq('profissional_id', profissionalId)
+    if (error) {
+      if (error.code === '23503') {
+        throw new ForbiddenException(
+          'Não é possível excluir: serviço possui agendamentos vinculados.'
+        )
+      }
+      throw error
+    }
+  }
+
+  // Buscar serviços ativos de um profissional (endpoint público)
+  async listarAtivos(profissionalId: string) {
+    const { data, error } = await this.supabase
+      .from('servicos')
+      .select('id, nome, duracao_min, preco, modalidade')
+      .eq('profissional_id', profissionalId)
+      .eq('ativo', true)
+      .order('created_at', { ascending: true })
+    if (error) throw error
+    return data
+  }
+}
+
+
+--- B3: Controller ---
+
+ARQUIVO: src/modules/servicos/servicos.controller.ts
+
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards } from '@nestjs/common'
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger'
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { ServicosService } from './servicos.service'
+import { CriarServicoDto } from './dto/criar-servico.dto'
+import { AtualizarServicoDto } from './dto/atualizar-servico.dto'
+
+@ApiTags('Serviços')
+@Controller('api/servicos')
+export class ServicosController {
+
+  constructor(private service: ServicosService) {}
+
+  @Get()
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Listar serviços do profissional' })
+  listar(@CurrentUser('profissional_id') profId: string) {
+    return this.service.listar(profId)
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Buscar serviço por ID' })
+  buscar(@Param('id') id: string, @CurrentUser('profissional_id') profId: string) {
+    return this.service.buscarPorId(id, profId)
+  }
+
+  @Post()
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Criar serviço' })
+  criar(@Body() dto: CriarServicoDto, @CurrentUser('profissional_id') profId: string) {
+    return this.service.criar(profId, dto)
+  }
+
+  @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Atualizar serviço' })
+  atualizar(
+    @Param('id') id: string,
+    @Body() dto: AtualizarServicoDto,
+    @CurrentUser('profissional_id') profId: string,
+  ) {
+    return this.service.atualizar(id, profId, dto)
+  }
+
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Excluir serviço' })
+  excluir(@Param('id') id: string, @CurrentUser('profissional_id') profId: string) {
+    return this.service.excluir(id, profId)
+  }
+}
+
+
+--- B4: Module ---
+
+ARQUIVO: src/modules/servicos/servicos.module.ts
+
+import { Module } from '@nestjs/common'
+import { ServicosController } from './servicos.controller'
+import { ServicosService } from './servicos.service'
+
+@Module({
+  controllers: [ServicosController],
+  providers: [ServicosService],
+  exports: [ServicosService],
+})
+export class ServicosModule {}
+
+Registrar no AppModule imports[].
+
+
+========================================
+=== BLOCO C — MÓDULO DISPONIBILIDADES ===
+========================================
+
+
+--- C1: DTOs ---
+
+ARQUIVO: src/modules/disponibilidades/dto/criar-disponibilidade.dto.ts
+
+import { IsInt, IsString, Min, Max, IsOptional, Matches } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
+
+export class CriarDisponibilidadeDto {
+  @ApiProperty({ example: 1, description: '0=dom, 1=seg, ..., 6=sab' })
+  @IsInt() @Min(0) @Max(6)
+  dia_semana: number
+
+  @ApiProperty({ example: '08:00' })
+  @IsString() @Matches(/^\d{2}:\d{2}$/)
+  hora_inicio: string
+
+  @ApiProperty({ example: '18:00' })
+  @IsString() @Matches(/^\d{2}:\d{2}$/)
+  hora_fim: string
+
+  @ApiProperty({ example: 30 })
+  @IsInt() @Min(5) @Max(120)
+  intervalo_min: number
+
+  @ApiProperty({ example: 1, required: false })
+  @IsOptional() @IsInt() @Min(1)
+  capacidade?: number
+}
+
+ARQUIVO: src/modules/disponibilidades/dto/atualizar-disponibilidade.dto.ts
+
+import { PartialType } from '@nestjs/swagger'
+import { CriarDisponibilidadeDto } from './criar-disponibilidade.dto'
+
+export class AtualizarDisponibilidadeDto extends PartialType(CriarDisponibilidadeDto) {}
+
+
+--- C2: Service ---
+
+ARQUIVO: src/modules/disponibilidades/disponibilidades.service.ts
+
+@Injectable()
+export class DisponibilidadesService {
+  private supabase: SupabaseClient
+
+  constructor(private config: ConfigService) {
+    this.supabase = createClient(
+      config.get('SUPABASE_URL'),
+      config.get('SUPABASE_SERVICE_ROLE_KEY'),
+    )
+  }
+
+  async listar(profissionalId: string) {
+    const { data, error } = await this.supabase
+      .from('disponibilidades')
+      .select('*')
+      .eq('profissional_id', profissionalId)
+      .order('dia_semana')
+      .order('hora_inicio')
+    if (error) throw error
+    return data
+  }
+
+  async criar(profissionalId: string, dto: any) {
+    const { data, error } = await this.supabase
+      .from('disponibilidades')
+      .insert({ ...dto, profissional_id: profissionalId })
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  }
+
+  async atualizar(id: string, profissionalId: string, dto: any) {
+    const { data, error } = await this.supabase
+      .from('disponibilidades')
+      .update(dto)
+      .eq('id', id)
+      .eq('profissional_id', profissionalId)
+      .select()
+      .single()
+    if (error) throw error
+    if (!data) throw new NotFoundException('Disponibilidade não encontrada')
+    return data
+  }
+
+  async excluir(id: string, profissionalId: string) {
+    const { error } = await this.supabase
+      .from('disponibilidades')
+      .delete()
+      .eq('id', id)
+      .eq('profissional_id', profissionalId)
+    if (error) throw error
+  }
+
+  // Público: buscar disponibilidades de um profissional (para slot-calculator)
+  async listarPorProfissional(profissionalId: string) {
+    const { data, error } = await this.supabase
+      .from('disponibilidades')
+      .select('dia_semana, hora_inicio, hora_fim, intervalo_min, capacidade')
+      .eq('profissional_id', profissionalId)
+      .order('dia_semana')
+      .order('hora_inicio')
+    if (error) throw error
+    return data
+  }
+}
+
+
+--- C3: Controller ---
+
+ARQUIVO: src/modules/disponibilidades/disponibilidades.controller.ts
+
+@ApiTags('Disponibilidades')
+@Controller('api/disponibilidades')
+export class DisponibilidadesController {
+
+  constructor(private service: DisponibilidadesService) {}
+
+  @Get()
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Listar disponibilidades do profissional' })
+  listar(@CurrentUser('profissional_id') profId: string) {
+    return this.service.listar(profId)
+  }
+
+  @Post()
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Criar disponibilidade' })
+  criar(@Body() dto: CriarDisponibilidadeDto, @CurrentUser('profissional_id') profId: string) {
+    return this.service.criar(profId, dto)
+  }
+
+  @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Atualizar disponibilidade' })
+  atualizar(
+    @Param('id') id: string,
+    @Body() dto: AtualizarDisponibilidadeDto,
+    @CurrentUser('profissional_id') profId: string,
+  ) {
+    return this.service.atualizar(id, profId, dto)
+  }
+
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Excluir disponibilidade' })
+  excluir(@Param('id') id: string, @CurrentUser('profissional_id') profId: string) {
+    return this.service.excluir(id, profId)
+  }
+}
+
+
+--- C4: Module ---
+
+ARQUIVO: src/modules/disponibilidades/disponibilidades.module.ts
+
+@Module({
+  controllers: [DisponibilidadesController],
+  providers: [DisponibilidadesService],
+  exports: [DisponibilidadesService],
+})
+export class DisponibilidadesModule {}
+
+Registrar no AppModule imports[].
+
+
+========================================
+=== BLOCO D — MÓDULO BLOQUEIOS ===
+========================================
+
+
+--- D1: DTOs ---
+
+ARQUIVO: src/modules/bloqueios/dto/criar-bloqueio.dto.ts
+
+import { IsString, IsOptional, IsDateString, Matches, ValidateIf } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
+
+export class CriarBloqueioDto {
+  @ApiProperty({ example: '2026-06-15' })
+  @IsDateString()
+  data: string
+
+  @ApiProperty({ example: '14:00', required: false, description: 'null = dia inteiro' })
+  @IsOptional() @IsString() @Matches(/^\d{2}:\d{2}$/)
+  hora_inicio?: string
+
+  @ApiProperty({ example: '16:00', required: false })
+  @ValidateIf(o => o.hora_inicio)
+  @IsString() @Matches(/^\d{2}:\d{2}$/)
+  hora_fim?: string
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString()
+  motivo?: string
+}
+
+
+--- D2: Service ---
+
+ARQUIVO: src/modules/bloqueios/bloqueios.service.ts
+
+@Injectable()
+export class BloqueiosService {
+  private supabase: SupabaseClient
+
+  constructor(private config: ConfigService) {
+    this.supabase = createClient(
+      config.get('SUPABASE_URL'),
+      config.get('SUPABASE_SERVICE_ROLE_KEY'),
+    )
+  }
+
+  async listar(profissionalId: string) {
+    const hoje = new Date().toISOString().split('T')[0]
+    const { data, error } = await this.supabase
+      .from('bloqueios')
+      .select('*')
+      .eq('profissional_id', profissionalId)
+      .gte('data', hoje)
+      .order('data')
+    if (error) throw error
+    return data
+  }
+
+  async criar(profissionalId: string, dto: any) {
+    // Validar: se hora_inicio sem hora_fim (ou vice-versa)
+    if ((dto.hora_inicio && !dto.hora_fim) || (!dto.hora_inicio && dto.hora_fim)) {
+      throw new BadRequestException('Informe hora_inicio E hora_fim, ou nenhum dos dois.')
+    }
+    // Validar: hora_fim > hora_inicio
+    if (dto.hora_inicio && dto.hora_fim && dto.hora_fim <= dto.hora_inicio) {
+      throw new BadRequestException('hora_fim deve ser posterior a hora_inicio.')
+    }
+
+    const { data, error } = await this.supabase
+      .from('bloqueios')
+      .insert({ ...dto, profissional_id: profissionalId })
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  }
+
+  async excluir(id: string, profissionalId: string) {
+    const { error } = await this.supabase
+      .from('bloqueios')
+      .delete()
+      .eq('id', id)
+      .eq('profissional_id', profissionalId)
+    if (error) throw error
+  }
+
+  // Público: buscar bloqueios de um profissional em período (slot-calculator)
+  async listarPorPeriodo(profissionalId: string, dataInicio: string, dataFim: string) {
+    const { data, error } = await this.supabase
+      .from('bloqueios')
+      .select('data, hora_inicio, hora_fim')
+      .eq('profissional_id', profissionalId)
+      .gte('data', dataInicio)
+      .lte('data', dataFim)
+    if (error) throw error
+    return data
+  }
+}
+
+
+--- D3: Controller ---
+
+ARQUIVO: src/modules/bloqueios/bloqueios.controller.ts
+
+@ApiTags('Bloqueios')
+@Controller('api/bloqueios')
+export class BloqueiosController {
+
+  constructor(private service: BloqueiosService) {}
+
+  @Get()
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Listar bloqueios futuros' })
+  listar(@CurrentUser('profissional_id') profId: string) {
+    return this.service.listar(profId)
+  }
+
+  @Post()
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Criar bloqueio de agenda' })
+  criar(@Body() dto: CriarBloqueioDto, @CurrentUser('profissional_id') profId: string) {
+    return this.service.criar(profId, dto)
+  }
+
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Excluir bloqueio' })
+  excluir(@Param('id') id: string, @CurrentUser('profissional_id') profId: string) {
+    return this.service.excluir(id, profId)
+  }
+}
+
+
+--- D4: Module ---
+
+ARQUIVO: src/modules/bloqueios/bloqueios.module.ts
+
+@Module({
+  controllers: [BloqueiosController],
+  providers: [BloqueiosService],
+  exports: [BloqueiosService],
+})
+export class BloqueiosModule {}
+
+Registrar no AppModule imports[].
+
+
+========================================
+=== BLOCO E — REGISTRAR MÓDULOS NO APP ===
+========================================
+
+ARQUIVO: src/app.module.ts
+
+Adicionar nos imports (se ainda não estiverem):
+  AuthModule,
+  ServicosModule,
+  DisponibilidadesModule,
+  BloqueiosModule,
+
+Verificar que AgendamentosModule e ProfissionaisModule já estão registrados.
+
+Resultado final do imports[] deve ter pelo menos:
+  ConfigModule.forRoot({ isGlobal: true }),
+  AuthModule,
+  AgendamentosModule,
+  ProfissionaisModule,
+  ServicosModule,
+  DisponibilidadesModule,
+  BloqueiosModule,
+  WebhooksModule,
+
+
+========================================
+=== BLOCO F — SWAGGER: VERIFICAÇÃO ===
+========================================
+
+Após implementar todos os módulos, verificar que o Swagger
+em /api/docs exibe todas as rotas organizadas por tag:
+
+  Auth (não tem controller próprio — guard apenas)
+  Agendamentos
+    POST   /api/agendamentos            (público)
+    GET    /api/agendamentos             (auth)
+    GET    /api/agendamentos/:id         (auth)
+    PATCH  /api/agendamentos/:id/status  (auth)
+    GET    /api/agendamentos/pendentes/count (auth)
+  Profissionais
+    GET    /api/profissionais/me          (auth)
+    GET    /api/profissionais/:slug       (público)
+  Serviços
+    GET    /api/servicos                  (auth)
+    GET    /api/servicos/:id              (auth)
+    POST   /api/servicos                  (auth)
+    PATCH  /api/servicos/:id              (auth)
+    DELETE /api/servicos/:id              (auth)
+  Disponibilidades
+    GET    /api/disponibilidades          (auth)
+    POST   /api/disponibilidades          (auth)
+    PATCH  /api/disponibilidades/:id      (auth)
+    DELETE /api/disponibilidades/:id      (auth)
+  Bloqueios
+    GET    /api/bloqueios                 (auth)
+    POST   /api/bloqueios                 (auth)
+    DELETE /api/bloqueios/:id             (auth)
+  Webhooks
+    POST   /api/webhooks/zapi             (placeholder)
+
+Total: ~17 endpoints
+
+
+========================================
+=== ORDEM DE EXECUÇÃO ===
+========================================
+
+1. A1-A4 — Auth guard + decorator + roles + module
+2. A5    — Verificar guard nos endpoints existentes
+3. B1-B4 — Módulo Serviços completo
+4. C1-C4 — Módulo Disponibilidades completo
+5. D1-D4 — Módulo Bloqueios completo
+6. E     — Registrar tudo no AppModule
+7. F     — Verificar Swagger (npm run start:dev → /api/docs)
+8.       — Push + deploy automático Railway
+
+
+========================================
+=== CHECKLIST FINAL ===
+========================================
+
+AUTH
+[ ] SupabaseAuthGuard valida JWT e injeta user + profissional_id no request
+[ ] CurrentUser decorator funciona em controllers
+[ ] RolesGuard bloqueia acesso quando role não bate
+[ ] Endpoints de agendamentos e profissionais existentes usam guard corretamente
+[ ] Endpoints públicos (criar agendamento, buscar slug) NÃO exigem auth
+
+SERVIÇOS
+[ ] GET /api/servicos retorna lista do profissional autenticado
+[ ] POST /api/servicos cria com validação de DTO
+[ ] PATCH /api/servicos/:id atualiza campos parciais
+[ ] DELETE /api/servicos/:id retorna erro 403 se tem agendamentos vinculados
+[ ] DELETE /api/servicos/:id remove se não tem vínculos
+
+DISPONIBILIDADES
+[ ] GET /api/disponibilidades retorna lista ordenada por dia_semana
+[ ] POST /api/disponibilidades cria com validação (hora formato HH:MM)
+[ ] PATCH /api/disponibilidades/:id atualiza parcialmente
+[ ] DELETE /api/disponibilidades/:id remove
+[ ] Campo capacidade aceita valores >= 1
+
+BLOQUEIOS
+[ ] GET /api/bloqueios retorna bloqueios futuros (data >= hoje)
+[ ] POST /api/bloqueios cria bloqueio dia inteiro (sem horas)
+[ ] POST /api/bloqueios cria bloqueio período (com hora_inicio e hora_fim)
+[ ] POST /api/bloqueios rejeita hora_inicio sem hora_fim (e vice-versa)
+[ ] POST /api/bloqueios rejeita hora_fim <= hora_inicio
+[ ] DELETE /api/bloqueios/:id remove
+
+SWAGGER
+[ ] /api/docs abre e exibe todas as rotas por tag
+[ ] Endpoints auth mostram cadeado (ApiBearerAuth)
+[ ] DTOs exibem campos com exemplos
+[ ] ~17 endpoints listados
+
+DEPLOY
+[ ] npm run start:dev local sem erros
+[ ] Push para main → Railway redeploy automático
+[ ] https://kianna-api-production.up.railway.app/api/docs funciona

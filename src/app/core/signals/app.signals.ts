@@ -1,5 +1,5 @@
 import { signal, computed } from '@angular/core';
-import { LinkPersonalizado } from '@core/types/database.types';
+import { LinkPersonalizado, WppStatus } from '@core/types/database.types';
 
 export interface AppUser {
   id: string;
@@ -13,6 +13,13 @@ export interface AppUser {
   bio?: string;
   plano: 'gratis' | 'pro' | 'studio';
   onboarding_concluido: boolean;
+
+  // ── Módulo 4 (WhatsApp Z-API) ──
+  wpp_instance_id?: string | null;
+  wpp_token?: string | null;
+  wpp_status?: WppStatus;
+  lembrete_horas?: number | null;
+  cancelamento_auto_cliente?: boolean;
 
   // ── Módulo 2 ──
   politica_cancelamento?: string | null;

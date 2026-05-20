@@ -1,0 +1,606 @@
+KIANNA — TASK: CONECTAR FRONTEND AO BACKEND (Fase 2 parcial)
+Branch: feat/api-service-integracao
+Gerado em: Maio/2026
+========================================
+
+CONTEXTO
+--------
+Frontend: Angular 17+ no Vercel (kianna.com.br)
+Backend: NestJS no Railway (kianna-api-production.up.railway.app)
+Banco: Supabase (ambos acessam)
+
+ESTADO ATUAL: frontend fala direto com Supabase via repositories.
+OBJETIVO: migrar agendamentos e profissionais para chamar o backend.
+           Serviços, disponibilidades e bloqueios continuam no Supabase por ora.
+
+MIGRAÇÃO: substituir chamadas Supabase por chamadas HTTP ao backend
+          nos repositories de agendamentos e profissionais.
+          Auth continua no Supabase (login, cadastro, refresh token).
+
+
+========================================
+=== BLOCO A — API SERVICE BASE ===
+========================================
+
+
+--- A1: Constante da URL do backend ---
+
+ARQUIVO: src/app/core/constants/app.constants.ts
+
+Adicionar:
+  API_URL: 'https://kianna-api-production.up.railway.app'
+
+  // Para dev local (quando rodar o backend local):
+  // API_URL: 'http://localhost:3333'
+
+Usar environment files se preferir:
+  // src/environments/environment.ts
+  export const environment = {
+    production: false,
+    apiUrl: 'http://localhost:3333',
+  }
+  // src/environments/environment.prod.ts
+  export const environment = {
+    production: true,
+    apiUrl: 'https://kianna-api-production.up.railway.app',
+  }
+
+
+--- A2: ApiService ---
+
+ARQUIVO: src/app/core/services/api.service.ts (novo)
+
+import { Injectable, inject } from '@angular/core'
+import { HttpClient, HttpHeaders } from '@angular/common/http'
+import { firstValueFrom } from 'rxjs'
+import { AuthService } from '../auth/auth.service'
+
+@Injectable({ providedIn: 'root' })
+export class ApiService {
+  private http = inject(HttpClient)
+  private auth = inject(AuthService)
+  private baseUrl = 'https://kianna-api-production.up.railway.app'
+
+  private async headers(): Promise<HttpHeaders> {
+    const session = await this.auth.getSession()
+    const token = session?.access_token ?? ''
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    })
+  }
+
+  async get<T>(path: string): Promise<T> {
+    const headers = await this.headers()
+    return firstValueFrom(this.http.get<T>(`${this.baseUrl}${path}`, { headers }))
+  }
+
+  async post<T>(path: string, body: any): Promise<T> {
+    const headers = await this.headers()
+    return firstValueFrom(this.http.post<T>(`${this.baseUrl}${path}`, body, { headers }))
+  }
+
+  async patch<T>(path: string, body: any): Promise<T> {
+    const headers = await this.headers()
+    return firstValueFrom(this.http.patch<T>(`${this.baseUrl}${path}`, body, { headers }))
+  }
+
+  async delete<T>(path: string): Promise<T> {
+    const headers = await this.headers()
+    return firstValueFrom(this.http.delete<T>(`${this.baseUrl}${path}`, { headers }))
+  }
+
+  // Chamadas públicas (sem token)
+  async getPublic<T>(path: string): Promise<T> {
+    return firstValueFrom(this.http.get<T>(`${this.baseUrl}${path}`))
+  }
+
+  async postPublic<T>(path: string, body: any): Promise<T> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' })
+    return firstValueFrom(this.http.post<T>(`${this.baseUrl}${path}`, body, { headers }))
+  }
+}
+
+NOTA: verificar como o AuthService expõe a sessão atual.
+  Se usa signal: const token = this.auth.session()?.access_token
+  Se usa método async: const session = await this.auth.getSession()
+  Adaptar conforme o padrão existente no projeto.
+
+
+--- A3: Interceptor de erro para API ---
+
+ARQUIVO: src/app/core/interceptors/api-error.interceptor.ts (novo)
+
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http'
+import { inject } from '@angular/core'
+import { MatSnackBar } from '@angular/material/snack-bar'
+import { catchError, throwError } from 'rxjs'
+
+export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
+  // Só interceptar chamadas para o backend
+  if (!req.url.includes('kianna-api-production.up.railway.app')) {
+    return next(req)
+  }
+
+  const snack = inject(MatSnackBar)
+
+  return next(req).pipe(
+    catchError((err: HttpErrorResponse) => {
+      let msg = 'Erro ao conectar com o servidor.'
+
+      if (err.status === 0) {
+        msg = 'Sem conexão com o servidor. Verifique sua internet.'
+      } else if (err.status === 401) {
+        msg = 'Sessão expirada. Faça login novamente.'
+      } else if (err.status === 403) {
+        msg = err.error?.message || 'Sem permissão para esta ação.'
+      } else if (err.status === 404) {
+        msg = 'Recurso não encontrado.'
+      } else if (err.status >= 500) {
+        msg = 'Erro interno do servidor. Tente novamente.'
+      } else if (err.error?.message) {
+        msg = err.error.message
+      }
+
+      console.error('[API]', err.status, err.url, err.error)
+      snack.open(msg, '', { duration: 4000, panelClass: 'snack-error' })
+
+      return throwError(() => err)
+    })
+  )
+}
+
+Registrar no app.config.ts (ou onde estão os interceptors):
+  provideHttpClient(withInterceptors([apiErrorInterceptor, ...existentes]))
+
+SCSS global (styles.scss):
+  .snack-error .mdc-snackbar__surface {
+    background: #FBEDEF !important;
+    color: #C0392B !important;
+  }
+
+
+========================================
+=== BLOCO B — MIGRAR AGENDAMENTOS ===
+========================================
+
+Substituir chamadas Supabase por chamadas HTTP ao backend.
+
+
+--- B1: agendamentos.repository.ts ---
+
+ARQUIVO: src/app/core/repositories/agendamentos.repository.ts
+
+ESTRATÉGIA: manter o arquivo e a interface pública do repository igual.
+Trocar a implementação interna de supabase.from() para api.get()/post()/etc.
+
+ANTES (exemplo de um método):
+  async getAgendamentos(): Promise<Agendamento[]> {
+    const profId = await this.profissionalIdOrThrow()
+    const { data, error } = await this.supabase
+      .from('agendamentos')
+      .select('*, servicos(nome)')
+      .eq('profissional_id', profId)
+    if (error) throw error
+    return data
+  }
+
+DEPOIS:
+  private api = inject(ApiService)
+
+  async getAgendamentos(): Promise<Agendamento[]> {
+    return this.api.get<Agendamento[]>('/api/agendamentos')
+  }
+
+MIGRAR TODOS OS MÉTODOS:
+
+  // Listar agendamentos do profissional
+  async getAgendamentos(): Promise<Agendamento[]>
+    ANTES: supabase.from('agendamentos').select(...)
+    DEPOIS: this.api.get('/api/agendamentos')
+
+  // Buscar por ID
+  async getById(id: string): Promise<Agendamento>
+    ANTES: supabase.from('agendamentos').select(...).eq('id', id).single()
+    DEPOIS: this.api.get(`/api/agendamentos/${id}`)
+
+  // Atualizar status
+  async atualizarStatus(id: string, status: string, motivo?: string): Promise<void>
+    ANTES: supabase.from('agendamentos').update({ status }).eq('id', id)
+    DEPOIS: this.api.patch(`/api/agendamentos/${id}/status`, { status, motivo_recusa: motivo })
+
+  // Contar pendentes
+  async contarPendentes(): Promise<number>
+    ANTES: supabase.from('agendamentos').select('*', { count: 'exact', head: true }).eq('status', 'pendente')
+    DEPOIS: this.api.get<{ count: number }>('/api/agendamentos/pendentes/count').then(r => r.count)
+
+  // Criar agendamento (PÚBLICO — sem auth)
+  async criarPublico(payload: CriarAgendamentoDto): Promise<{ id: string }>
+    ANTES: supabase.from('agendamentos').insert(payload)
+    DEPOIS: this.api.postPublic('/api/agendamentos', payload)
+
+  // Reagendar
+  async reagendar(origemId: string, payload: any): Promise<{ id: string }>
+    ANTES: duas chamadas supabase (update + insert)
+    DEPOIS: this.api.post('/api/agendamentos/reagendar', { agendamento_origem_id: origemId, ...payload })
+    NOTA: verificar se o endpoint de reagendar existe no backend.
+          Se não existir, criar no agendamentos.controller.ts:
+          POST /api/agendamentos/reagendar → atualiza original para 'reagendado' + cria novo
+
+  // Finalizar vencidos
+  async finalizarVencidos(): Promise<void>
+    ANTES: supabase.from('agendamentos').update({ status: 'finalizado' }).lt('data_hora', now)
+    DEPOIS: this.api.patch('/api/agendamentos/finalizar-vencidos', {})
+    NOTA: verificar se o endpoint existe no backend.
+          Se não, criar: PATCH /api/agendamentos/finalizar-vencidos
+          → service busca confirmados com data_hora < now e atualiza para 'finalizado'
+
+
+--- B2: Endpoints faltantes no backend (se necessário) ---
+
+Verificar se estes endpoints existem no backend. Se não, criar:
+
+  POST  /api/agendamentos/reagendar
+    Body: { agendamento_origem_id, profissional_id, servico_id, cliente_nome, cliente_wpp, data_hora }
+    Lógica: UPDATE original SET status = 'reagendado' → INSERT novo com agendamento_origem_id
+
+  PATCH /api/agendamentos/finalizar-vencidos
+    Auth: sim
+    Lógica: UPDATE agendamentos SET status = 'finalizado'
+            WHERE profissional_id = req.user.profissional_id
+            AND status = 'confirmado' AND data_hora < now()
+
+  GET   /api/agendamentos (verificar se já faz join com servicos.nome)
+    Se não: atualizar query para .select('*, servicos(nome)')
+    E mapear: data.map(a => ({ ...a, servico_nome: a.servicos?.nome }))
+
+
+--- B3: Remover dependências Supabase do repository ---
+
+Após migrar todos os métodos:
+  - Remover inject de SupabaseClient do constructor (se injetado diretamente)
+  - Remover import de supabase.client.ts
+  - Remover métodos auxiliares como profissionalIdOrThrow()
+    (o backend já sabe quem é o profissional pelo JWT)
+  - Manter apenas: inject(ApiService)
+
+ATENÇÃO: não remover o SupabaseClient do projeto inteiro —
+  ainda é usado por auth, servicos.repository, disponibilidades.repository, etc.
+
+
+========================================
+=== BLOCO C — MIGRAR PROFISSIONAIS ===
+========================================
+
+
+--- C1: profissionais.repository.ts (ou equivalente) ---
+
+Localizar onde os dados do profissional são buscados no frontend.
+Pode estar em: auth.service.ts, profissionais.repository.ts, ou inline nos componentes.
+
+MIGRAR:
+
+  // Buscar dados do profissional logado
+  async getProfissionalAtual(): Promise<Profissional>
+    ANTES: supabase.from('profissionais').select('*').eq('user_id', userId).single()
+    DEPOIS: this.api.get('/api/profissionais/me')
+
+  // Atualizar perfil
+  async atualizarPerfil(dados: Partial<Profissional>): Promise<Profissional>
+    ANTES: supabase.from('profissionais').update(dados).eq('id', profId)
+    DEPOIS: this.api.patch('/api/profissionais/me', dados)
+    NOTA: verificar se endpoint PATCH /api/profissionais/me existe no backend.
+          Se não, criar no profissionais.controller.ts.
+
+  // Buscar profissional por slug (PÚBLICO)
+  async getPorSlug(slug: string): Promise<ProfissionalPublico>
+    ANTES: supabase.from('profissionais').select('*').eq('slug', slug).single()
+    DEPOIS: this.api.getPublic(`/api/profissionais/${slug}`)
+
+
+--- C2: Endpoints faltantes no backend (se necessário) ---
+
+Verificar se existe:
+
+  PATCH /api/profissionais/me
+    Auth: sim
+    Body: campos parciais do profissional
+    Lógica: update profissionais set ... where user_id = req.user.id
+
+  GET /api/profissionais/:slug
+    Auth: não
+    Lógica: select campos públicos where slug = :slug and ativo = true
+    Campos públicos: id, nome, slug, foto_url, especialidade, bio,
+      whatsapp, endereco_*, instagram_url, facebook_url,
+      antecedencia_minima_horas, antecedencia_maxima_dias, timezone
+
+
+--- C3: booking.repository.ts (página pública) ---
+
+ARQUIVO: src/app/core/repositories/booking.repository.ts
+
+Este repository é usado pela página pública (/:slug).
+Migrar as chamadas:
+
+  // Buscar profissional + serviços + disponibilidades por slug
+  async carregarDadosProfissional(slug: string): Promise<DadosBooking>
+    ANTES: múltiplas queries supabase
+    DEPOIS: this.api.getPublic(`/api/profissionais/${slug}`)
+            + this.api.getPublic(`/api/profissionais/${slug}/servicos`)  (ver nota)
+            + disponibilidades e bloqueios continuam via Supabase por ora
+
+  NOTA: o endpoint GET /api/profissionais/:slug pode retornar tudo junto
+        (profissional + serviços ativos + disponibilidades + bloqueios)
+        OU ter sub-rotas separadas. Verificar o que existe no backend.
+        Se não existir endpoint de serviços por slug, criar:
+
+  GET /api/profissionais/:slug/servicos
+    Auth: não
+    Lógica: buscar servicos where profissional_id = (select id from profissionais where slug) and ativo
+
+  GET /api/profissionais/:slug/disponibilidades
+    Auth: não
+    Lógica: buscar disponibilidades do profissional
+
+  GET /api/profissionais/:slug/bloqueios?data_inicio=X&data_fim=Y
+    Auth: não
+    Lógica: buscar bloqueios no período
+
+  ALTERNATIVA (mais eficiente — 1 chamada só):
+  GET /api/booking/:slug
+    Auth: não
+    Retorna: { profissional, servicos, disponibilidades, bloqueios }
+    Isso evita 4 chamadas HTTP na página pública.
+    Recomendado para performance mobile.
+
+  Se optar pela alternativa, criar no backend:
+    @Controller('api/booking')
+    @Get(':slug')
+    async dadosBooking(@Param('slug') slug: string) {
+      // buscar tudo e retornar consolidado
+    }
+
+
+========================================
+=== BLOCO D — REALTIME (manter via Supabase) ===
+========================================
+
+O Supabase Realtime NÃO passa pelo backend.
+A subscription continua direto do Angular para o Supabase.
+Não migrar o Realtime — ele funciona independente.
+
+Verificar que o agendamentos.store.ts mantém:
+  - Subscription Supabase Realtime para tabela agendamentos
+  - Ao receber evento: chamar carregar() que agora usa o backend (api.get)
+  - pendentesCount computed continua funcionando normalmente
+
+
+Backend (kianna-api/):
+
+
+cd /home/wagner/Develop/kianna/kianna-api
+npm run start:dev    # sobe em http://localhost:3333
+O main.ts:15 já libera CORS para localhost:4200, então não precisa configurar nada.
+
+Frontend (kianna-web/):
+
+
+cd /home/wagner/Develop/kianna/kianna-web
+npm start            # ng serve, sobe em http://localhost:4200
+O environment.ts:5 já aponta apiUrl: 'http://localhost:3333' — então o build de dev usa o backend local automaticamente.
+
+Verificar a integração (rápido, antes dos E1–E9):
+
+DevTools → Network → confirmar que chamadas vão para localhost:3333/api/...
+Login → confirmar que GET /api/profissionais/me retorna 200 com o profissional
+Agenda → confirmar GET /api/agendamentos?inicio=...&fim=...
+Console: não deve ter erro CORS
+O que precisa de deploy/produção:
+
+E4 (Realtime cross-device): idealmente testar com duas máquinas reais. Pode-se simular com 2 perfis de Chrome.
+E8 (mobile): DevTools (375px) cobre 90%; celular real só se quiser pegar problema de touch/safe-area.
+CORS produção: o backend já tem FRONTEND_URL env var (main.ts:12) com default https://www.kianna.com.br. Confirme que no Railway essa env está setada correta antes de fazer deploy do Vercel.
+Sequência sugerida:
+
+Roda local → faz E1, E2, E3, E5, E6, E7, E9
+Se passar, faz deploy backend (Railway) e frontend (Vercel)
+Em produção valida E4 (realtime) e E8 (mobile real)
+
+
+========================================
+=== BLOCO E — TESTES VISUAIS ===
+========================================
+
+Após migrar, executar manualmente cada cenário abaixo.
+Marcar OK ou FALHA para cada item.
+
+
+--- E1: Login e carregamento inicial ---
+
+  [ ] Abrir kianna.com.br → login
+    OK
+  [ ] Após login, dashboard carrega sem tela branca
+    OK
+  [ ] Console: sem erros 401 ou CORS
+    OK
+  [ ] Console: chamadas vão para kianna-api-production.up.railway.app (não mais supabase)
+    OK
+  [ ] Card de pendentes no header mostra número correto
+    OK
+  [ ] Skeleton loading aparece enquanto dados carregam
+    OK
+
+--- E2: Agenda ---
+
+  [ ] Abrir /dashboard/agenda - OK
+  [ ] Dia de hoje selecionado por padrão no WeekStrip - OK
+  [ ] Lista de agendamentos carrega (dados vêm do backend) - OK
+  [ ] Clicar em um agendamento → navega para /dashboard/agenda/:id - OK
+  [ ] Página de detalhe carrega com dados corretos - OK
+  [ ] Botão Confirmar (status pendente) → status muda para confirmado - OK
+  [ ] Após confirmar → volta para /dashboard/agenda - OK
+  [ ] Card de agendamento atualizado na lista (sem reload manual) - OK
+  [ ] Botão Recusar → campo motivo aparece → confirmar recusa → volta - OK
+  [ ] Botão Cancelar (status confirmado) → status muda para cancelado - OK
+  [ ] Botão Reagendar → snackbar "Link copiado" aparece - OK
+
+
+--- E3: Visão geral ---
+
+  [ ] Abrir /dashboard/visao-geral - OK
+  [ ] Card de link público aparece com URL correta - OK
+  [ ] Mini-agenda carrega com agendamentos do dia - OK
+  [ ] Clicar em card da mini-agenda → navega para /dashboard/agenda/:id - OK
+
+
+--- E4: Realtime ---
+
+  [ ] Manter dashboard aberto em uma aba
+  [ ] Em outra aba (ou celular), acessar página pública /:slug
+  [ ] Criar um agendamento como cliente
+  [ ] Voltar para aba do dashboard:
+      [ ] Card pendentes no header incrementou automaticamente (sem F5)
+      	OK
+      [ ] Se estava na visão geral: mini-agenda mostra novo agendamento
+      	NÃO
+      [ ] Se estava na agenda: lista atualiza com novo agendamento
+	    NÃO
+	Este dois ultimos itens só funcinou ao navegar entre itens ou F5.
+
+
+--- E5: Página pública (/:slug) ---
+
+  [ ] Acessar kianna.com.br/<slug> sem estar logado
+  [ ] Header do profissional carrega (nome, foto, especialidade)
+  [ ] Lista de serviços carrega
+  [ ] Selecionar serviço → seção de datas aparece
+  [ ] Strip de datas: dias com horários habilitados, dias sem horários desabilitados
+  [ ] Selecionar data → strip de horários aparece
+  [ ] Selecionar horário → formulário de dados aparece
+  [ ] Preencher nome e WhatsApp → seção de resumo aparece
+  [ ] Botão "Confirmar solicitação" (rodapé fixo) habilitado
+  [ ] Clicar confirmar → tela de confirmação "Solicitação enviada"
+  [ ] Console: POST foi para /api/agendamentos (backend, não Supabase)
+    Request URL: https://ocjsscsfggzwkgitzqlk.supabase.co/rest/v1/agendamentos?select=id
+    Request Method:POST
+  [ ] Agendamento aparece no Supabase com status 'pendente' - OK
+
+  * Todas as requisições desta página estão indo/vindo para (https://ocjsscsfggzwkgitzqlk.supabase.co..)
+
+
+--- E6: Página pública — reagendamento ---
+
+  [ ] Acessar /:slug?reagendar=<id_agendamento>- OK
+  [ ] Banner de reagendamento aparece no topo- OK
+  [ ] Serviço pré-selecionado- OK
+  [ ] Selecionar nova data/horário e confirmar- OK
+  [ ] Agendamento original ficou com status 'reagendado'- OK
+  [ ] Novo agendamento criado como 'pendente'- OK
+* Todas as requisições desta página estão indo/vindo para (https://ocjsscsfggzwkgitzqlk.supabase.co..)
+
+
+
+--- E7: Erros e edge cases ---
+
+  [ ] Desligar o backend (Railway pausar) → frontend exibe "Sem conexão com o servidor"
+      - NÃO ENCONTREI ESSA OPÇÃO NO BACKEND
+  [ ] Token expirado → snackbar "Sessão expirada" aparece
+      - NÃO CONSEGUI SIMULAR
+
+  [ ] Criar agendamento sem horários → "Sem horários disponíveis"
+    - OK
+
+  [ ] Acessar slug inexistente → página 404
+      - Profissional não encontrado.
+      - O link que você acessou não existe ou foi alterado.
+
+  [ ] Abrir /dashboard sem login → redirect para login
+      - OK      
+
+
+--- E8: Mobile (testar em celular real ou DevTools 375px) ---
+
+  [ ] Dashboard: bottom-nav com 4 itens (Início, Agenda, Serviços, Menu)
+    - OK 
+  [ ] Menu abre sidenav
+    - OK - Remover icpne do Menu do header. Remover botão de fechar do menu.
+  [ ] Agenda: WeekStrip scroll horizontal funciona com touch
+    - OK
+  [ ] Agenda: cards não fazem overflow- OK
+  [ ] Página pública: strips de data/horário scroll touch suave- OK
+  [ ] Página pública: botão confirmar fixo no rodapé visível- OK
+  [ ] Página pública: formulário campos 100% largura- OK
+  [ ] Página detalhe agendamento: botões não fazem overflow- OK
+  [ ] Nenhuma tela com overflow horizontal- OK
+
+
+--- E9: Configurações do profissional ---
+
+  [ ] Abrir /dashboard/configuracoes- OK
+  [ ] Editar nome → salvar → recarregar → nome atualizado- OK
+  [ ] Editar WhatsApp → salvar → recarregar → WhatsApp atualizado- OK
+  [ ] Console: PATCH vai para /api/profissionais/me (não Supabase)
+  - http://localhost:3333/api/profissionais/me
+
+  [ ] Selects de antecedência mínima/máxima funcionam e salvam - ok
+
+  - 
+
+
+
+========================================
+=== ORDEM DE EXECUÇÃO ===
+========================================
+
+1.  A1    — Criar constante API_URL
+2.  A2    — Criar ApiService
+3.  A3    — Criar apiErrorInterceptor + registrar
+4.  B2    — Verificar/criar endpoints faltantes no backend
+5.  B1    — Migrar agendamentos.repository.ts
+6.  B3    — Limpar imports Supabase do repository migrado
+7.  C2    — Verificar/criar endpoints faltantes no backend
+8.  C1    — Migrar profissionais (auth.service ou profissionais.repository)
+9.  C3    — Migrar booking.repository.ts (página pública)
+10. D     — Verificar que Realtime continua funcionando
+11. E1-E9 — Testes visuais completos
+12.       — Push + deploy Vercel
+
+
+========================================
+=== CHECKLIST FINAL ===
+========================================
+
+API SERVICE
+[ ] ApiService criado com get/post/patch/delete + variantes públicas
+[ ] Token JWT do Supabase enviado no header Authorization
+[ ] apiErrorInterceptor registrado e exibindo snackbar em erros
+[ ] Constante API_URL apontando para Railway
+
+AGENDAMENTOS
+[ ] getAgendamentos chama GET /api/agendamentos (não Supabase)
+[ ] getById chama GET /api/agendamentos/:id
+[ ] atualizarStatus chama PATCH /api/agendamentos/:id/status
+[ ] contarPendentes chama GET /api/agendamentos/pendentes/count
+[ ] criarPublico chama POST /api/agendamentos (sem auth)
+[ ] reagendar chama POST /api/agendamentos/reagendar
+[ ] finalizarVencidos chama PATCH /api/agendamentos/finalizar-vencidos
+[ ] Supabase removido do agendamentos.repository (exceto Realtime)
+
+PROFISSIONAIS
+[ ] getProfissionalAtual chama GET /api/profissionais/me
+[ ] atualizarPerfil chama PATCH /api/profissionais/me
+[ ] getPorSlug chama GET /api/profissionais/:slug (público)
+
+BOOKING (PÁGINA PÚBLICA)
+[ ] Dados do profissional vêm do backend
+[ ] Criar agendamento vai para POST /api/agendamentos
+
+REALTIME
+[ ] Subscription Supabase Realtime mantida (não migrada)
+[ ] Ao receber evento → store.carregar() usa backend
+[ ] pendentesCount atualiza em tempo real
+
+TESTES VISUAIS
+[ ] E1 a E9 todos OK
+[ ] Nenhum erro CORS no console
+[ ] Nenhuma chamada Supabase restante nos módulos migrados (exceto Realtime + Auth)
