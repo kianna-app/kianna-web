@@ -48,8 +48,13 @@ import { ApiService } from '@core/services/api.service';
             <p>{{ erro() }}</p>
           </div>
         } @else if (qrCode()) {
-          <img
+          <!-- <img
             [src]="'data:image/png;base64,' + qrCode()"
+            alt="QR Code WhatsApp"
+            class="qr-image" /> -->
+
+            <img
+            [src]="qrCode()"
             alt="QR Code WhatsApp"
             class="qr-image" />
           <p class="qr-hint">O QR Code expira em alguns segundos — toque em atualizar se necessário.</p>
