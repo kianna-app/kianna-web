@@ -169,3 +169,24 @@ Criar uma instância (por profissional)
 Settar ZAPI_CLIENT_TOKEN no Railway
 Configurar webhook na Z-API apontando para https://kianna-api-production.up.railway.app/api/webhooks/zapi com header x-zapi-token: <ZAPI_WEBHOOK_TOKEN>
 Profissional cola Instance ID/Token nas configurações e clica "Conectar"
+
+
+
+Tudo pushado. Resumo:
+
+Repo	Commit	Push
+kianna-api	400303a feat(modulo4): integração WhatsApp Z-API completa	✅ main
+kianna-web	ebb3643 feat(modulo4): aba WhatsApp, dialog QR Code e banner de conexão	✅ main
+Railway e Vercel devem disparar deploy automático a partir do push.
+
+Lembrete para amanhã (Z-API)
+Criar conta em z-api.io → anotar Client-Token da conta
+
+Criar 1 instância por profissional → cada um pega Instance ID e Token no painel
+
+No Railway: setar ZAPI_CLIENT_TOKEN=<token-da-conta> (e opcionalmente APP_URL se quiser sobrescrever default)
+
+Na Z-API → Webhooks da instância → URL: https://kianna-api-production.up.railway.app/api/webhooks/zapi + header 
+x-zapi-token: <ZAPI_WEBHOOK_TOKEN>
+
+No app: profissional cola Instance ID + Token na aba Configurações → WhatsApp → Salvar → Conectar (QR aparece, escaneia, banner some, status fica verde)
