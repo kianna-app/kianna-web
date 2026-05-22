@@ -41,6 +41,8 @@ export interface AppUser {
   antecedencia_minima_horas?: number;
   antecedencia_maxima_dias?: number | null;
   timezone?: string;
+
+  role?: string | null;
 }
 
 export const currentUser     = signal<AppUser | null>(null);
@@ -51,3 +53,4 @@ export const isAuthenticated  = computed(() => currentUser() !== null);
 export const isOnboardingDone = computed(() => currentUser()?.onboarding_concluido ?? false);
 export const userPlano        = computed(() => currentUser()?.plano ?? 'gratis');
 export const isPro            = computed(() => userPlano() !== 'gratis');
+export const isAdmin          = computed(() => currentUser()?.role === 'admin');

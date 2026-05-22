@@ -33,6 +33,11 @@ export class ApiService {
     return firstValueFrom(this.http.patch<T>(`${this.baseUrl}${path}`, body, { headers }));
   }
 
+  async put<T>(path: string, body: unknown): Promise<T> {
+    const headers = await this.headers();
+    return firstValueFrom(this.http.put<T>(`${this.baseUrl}${path}`, body, { headers }));
+  }
+
   async delete<T>(path: string): Promise<T> {
     const headers = await this.headers();
     return firstValueFrom(this.http.delete<T>(`${this.baseUrl}${path}`, { headers }));

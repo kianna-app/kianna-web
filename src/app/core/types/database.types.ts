@@ -59,6 +59,7 @@ export interface Profissional {
   antecedencia_minima_horas: number;
   antecedencia_maxima_dias: number | null;
   timezone: string;
+  role?: string | null;
 }
 
 export interface Servico {

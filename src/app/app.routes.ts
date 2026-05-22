@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { Routes, Router } from '@angular/router';
 import { authGuard, publicGuard } from '@core/auth/auth.guard';
+import { adminGuard } from '@core/auth/admin.guard';
 import { authInitialized, isAuthenticated, isOnboardingDone } from '@core/signals/app.signals';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { filter, map, take } from 'rxjs';
@@ -55,6 +56,14 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/dashboard/dashboard.routes')
         .then(m => m.dashboardRoutes),
+  },
+
+  // ── Painel Admin ─────────────────────────────────────────────
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadChildren: () =>
+      import('./features/admin/admin.routes').then(m => m.adminRoutes),
   },
 
   // ── Página pública de agendamento (/:slug) — deve ficar antes do ** ──
