@@ -1,0 +1,283 @@
+@use 'sass:color';
+
+/* ── Tokens iOS ──────────────────────────────────────────────── */
+$ios-bg: #f2f2f7;
+$ios-card: #ffffff;
+$ios-separator: #c6c6c8;
+$ios-label: #000000;
+$ios-secondary: #6e6e73;
+$ios-tertiary: #8e8e93;
+$ios-blue: #007aff;
+$ios-red: #ff3b30;
+$ios-radius: 12px;
+
+:host {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    'Inter', 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ios-sheet {
+  background: $ios-bg;
+  color: $ios-label;
+  width: 100%;
+  max-width: 560px;
+  min-width: min(560px, 92vw);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.sheet-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: $ios-bg;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.sheet-title {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.sheet-btn {
+  background: none;
+  border: none;
+  color: $ios-blue;
+  font-size: 1rem;
+  font-weight: 400;
+  padding: 6px 4px;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:disabled {
+    color: $ios-tertiary;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    font-weight: 600;
+  }
+
+  &--destructive {
+    color: $ios-red;
+  }
+}
+
+/* Body */
+.sheet-body {
+  padding: 8px 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inset grouped list */
+.group-label {
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: $ios-secondary;
+  letter-spacing: 0.04em;
+  margin: 20px 16px 6px;
+}
+
+.group {
+  background: $ios-card;
+  border-radius: $ios-radius;
+  overflow: hidden;
+  margin: 8px 0;
+
+  &--centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    gap: 12px;
+  }
+}
+
+/* Row */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  min-height: 44px;
+  cursor: text;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+
+  &:first-child {
+    border-top: none;
+  }
+
+  &--column {
+    flex-direction: column;
+    align-items: stretch;
+    cursor: text;
+  }
+
+  &--info {
+    cursor: default;
+  }
+}
+
+.row-label {
+  color: $ios-label;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  min-width: 64px;
+  font-weight: 400;
+}
+
+.row-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  color: $ios-label;
+  text-align: right;
+  font-family: inherit;
+  padding: 0;
+  min-width: 0;
+
+  &::placeholder {
+    color: $ios-tertiary;
+  }
+
+  &--mono {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 0.9rem;
+  }
+}
+
+.row--column .row-input {
+  text-align: left;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.row-textarea {
+  resize: vertical;
+  min-height: 76px;
+  line-height: 1.4;
+}
+
+.row-hint {
+  font-size: 0.75rem;
+  color: $ios-tertiary;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.row-link {
+  flex: 1;
+  text-align: right;
+  color: $ios-blue;
+  text-decoration: none;
+  font-size: 0.85rem;
+  word-break: break-all;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Avatar */
+.avatar-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  background: color.adjust($ios-bg, $lightness: -3%);
+
+  &--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $ios-secondary;
+    font-size: 2rem;
+    font-weight: 500;
+  }
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.avatar-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: $ios-blue;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-family: inherit;
+
+  &--destructive {
+    color: $ios-red;
+  }
+
+  &:hover {
+    background: rgba(0, 122, 255, 0.08);
+  }
+
+  &--destructive:hover {
+    background: rgba(255, 59, 48, 0.08);
+  }
+}
+
+/* Hints */
+.hint {
+  font-size: 0.8rem;
+  margin: 8px 16px 0;
+  color: $ios-secondary;
+  line-height: 1.4;
+
+  &--warning {
+    color: #b25e09;
+  }
+
+  &--error {
+    color: $ios-red;
+  }
+}
+
+/* Dialog override: estende o mat-dialog para parecer sheet iOS */
+:host-context(.cdk-overlay-pane) {
+  background: transparent;
+}

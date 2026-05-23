@@ -1,80 +1,138 @@
-<div class="admin-container">
-  <header class="admin-header">
-    <h1>Painel Admin</h1>
-    <p class="subtitle">Gerenciar credenciais Z-API dos profissionais</p>
-  </header>
+<div class="page" (click)="fecharMenu()">
+  <div class="container">
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Profissionais</h1>
+        <p class="page-subtitle">Gerencie perfis e credenciais Z-API</p>
+      </div>
 
-  <div class="spinner-wrap" *ngIf="carregando()">
-    <mat-spinner diameter="40" />
-  </div>
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="$event.stopPropagation(); novoProfissional()"
+      >
+        + Novo
+      </button>
+    </header>
 
-  <div class="table-wrap" *ngIf="!carregando()">
-    <table mat-table [dataSource]="profissionais()" class="admin-table">
+    @if (carregando()) {
+      <div class="loading"><div class="spinner"></div></div>
+    } @else {
+      <!-- Lista ativos -->
+      <h2 class="section-label">Ativos</h2>
 
-      <!-- Nome -->
-      <ng-container matColumnDef="nome">
-        <th mat-header-cell *matHeaderCellDef>Profissional</th>
-        <td mat-cell *matCellDef="let p">
-          <div class="prof-nome">{{ p.nome }}</div>
-          <div class="prof-slug">{{ p.slug }}</div>
-        </td>
-      </ng-container>
+      @if (ativos().length > 0) {
+        <section class="card">
+          @for (p of ativos(); track p.id; let last = $last) {
+            <article class="prof-row" [class.is-last]="last">
+              <div class="prof-avatar">
+                @if (p.foto_url) {
+                  <img [src]="p.foto_url" [alt]="p.nome" />
+                } @else {
+                  <div class="avatar-placeholder">{{ iniciais(p.nome) }}</div>
+                }
+              </div>
 
-      <!-- WhatsApp -->
-      <ng-container matColumnDef="whatsapp">
-        <th mat-header-cell *matHeaderCellDef>WhatsApp</th>
-        <td mat-cell *matCellDef="let p">{{ p.whatsapp }}</td>
-      </ng-container>
+              <div class="prof-info">
+                <div class="prof-nome">{{ p.nome }}</div>
+                <a
+                  class="prof-slug"
+                  [href]="urlPublica(p.slug)"
+                  target="_blank"
+                  rel="noopener"
+                  (click)="$event.stopPropagation()"
+                >
+                  /{{ p.slug }}
+                </a>
+              </div>
 
-      <!-- Status -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Status WPP</th>
-        <td mat-cell *matCellDef="let p">
-          <span [class]="statusClass(p.wpp_status)">{{ statusLabel(p.wpp_status) }}</span>
-        </td>
-      </ng-container>
+              <div class="prof-meta">
+                <span [class]="statusClass(p.wpp_status)">
+                  {{ statusLabel(p.wpp_status) }}
+                </span>
+              </div>
 
-      <!-- Credenciais -->
-      <ng-container matColumnDef="credenciais">
-        <th mat-header-cell *matHeaderCellDef>Credenciais</th>
-        <td mat-cell *matCellDef="let p">
-          <span class="cred-info" *ngIf="p.wpp_instance_id; else semCred">
-            <mat-icon class="cred-icon ok">check_circle</mat-icon>
-            Instance: {{ p.wpp_instance_id }}
-            &nbsp;·&nbsp;
-            Token: {{ p.tem_token ? '●●●●' : '—' }}
-          </span>
-          <ng-template #semCred>
-            <span class="cred-info cred-vazio">
-              <mat-icon class="cred-icon">radio_button_unchecked</mat-icon>
-              Sem credenciais
-            </span>
-          </ng-template>
-        </td>
-      </ng-container>
+              <div class="prof-actions" (click)="$event.stopPropagation()">
+                <button
+                  class="btn-more"
+                  type="button"
+                  (click)="toggleMenu(p.id)"
+                  aria-label="Mais ações"
+                >
+                  <span class="dots">⋯</span>
+                </button>
 
-      <!-- Ações -->
-      <ng-container matColumnDef="acoes">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let p">
+                @if (menuAberto() === p.id) {
+                  <div class="menu" role="menu">
+                    <button class="menu-item" (click)="editarPerfil(p)">Editar perfil</button>
+                    <button class="menu-item" (click)="editarCredenciais(p)">Credenciais Z-API</button>
+                    <div class="menu-sep"></div>
+                    <button class="menu-item menu-item--destructive" (click)="arquivar(p)">
+                      Arquivar
+                    </button>
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        </section>
+      } @else {
+        <section class="card card--empty">
+          <p class="empty-text">Nenhum profissional ativo.</p>
           <button
-            mat-stroked-button
-            color="primary"
-            (click)="abrirEdicao(p)"
-            matTooltip="Editar credenciais Z-API"
+            class="btn-secondary"
+            type="button"
+            (click)="$event.stopPropagation(); novoProfissional()"
           >
-            <mat-icon>edit</mat-icon>
-            Editar credenciais
+            Criar o primeiro
           </button>
-        </td>
-      </ng-container>
+        </section>
+      }
 
-      <tr mat-header-row *matHeaderRowDef="colunas"></tr>
-      <tr mat-row *matRowDef="let row; columns: colunas;"></tr>
-    </table>
+      <!-- Toggle mostrar arquivados -->
+      @if (inativos().length > 0) {
+        <div class="toggle-wrap">
+          <label class="toggle">
+            <input
+              type="checkbox"
+              [checked]="mostrarInativos()"
+              (change)="mostrarInativos.set($any($event.target).checked); $event.stopPropagation()"
+            />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-label">
+              Mostrar arquivados ({{ inativos().length }})
+            </span>
+          </label>
+        </div>
+      }
 
-    <p class="vazio" *ngIf="profissionais().length === 0">
-      Nenhum profissional cadastrado.
-    </p>
+      @if (mostrarInativos() && inativos().length > 0) {
+        <h2 class="section-label section-label--muted">Arquivados</h2>
+        <section class="card card--muted">
+          @for (p of inativos(); track p.id) {
+            <article class="prof-row prof-row--inativo">
+              <div class="prof-avatar">
+                @if (p.foto_url) {
+                  <img [src]="p.foto_url" [alt]="p.nome" />
+                } @else {
+                  <div class="avatar-placeholder">{{ iniciais(p.nome) }}</div>
+                }
+              </div>
+
+              <div class="prof-info">
+                <div class="prof-nome">{{ p.nome }}</div>
+                <div class="prof-slug prof-slug--muted">/{{ p.slug }}</div>
+              </div>
+
+              <div class="prof-actions" (click)="$event.stopPropagation()">
+                <button class="btn-link" type="button" (click)="restaurar(p)">
+                  Restaurar
+                </button>
+              </div>
+            </article>
+          }
+        </section>
+      }
+    }
   </div>
 </div>

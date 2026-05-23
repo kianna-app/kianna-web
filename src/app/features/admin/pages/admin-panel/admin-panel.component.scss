@@ -1,98 +1,394 @@
-.admin-container {
-  max-width: 1100px;
+@use 'sass:color';
+
+$ios-bg:        #f2f2f7;
+$ios-card:      #ffffff;
+$ios-separator: rgba(0, 0, 0, 0.08);
+$ios-label:     #000000;
+$ios-secondary: #6e6e73;
+$ios-tertiary:  #8e8e93;
+$ios-blue:      #007aff;
+$ios-red:       #ff3b30;
+$ios-green:     #34c759;
+$ios-orange:    #ff9500;
+$ios-radius:    14px;
+
+:host {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    'Inter', 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  color: $ios-label;
+}
+
+.page {
+  background: $ios-bg;
+  min-height: calc(100vh - 60px);
+  padding: 24px 0 64px;
+}
+
+.container {
+  max-width: 720px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 0 16px;
 }
 
-.admin-header {
-  margin-bottom: 24px;
-
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0 0 4px;
-  }
-
-  .subtitle {
-    color: var(--mat-sys-on-surface-variant, #666);
-    margin: 0;
-    font-size: 0.875rem;
-  }
-}
-
-.spinner-wrap {
+/* ── Header da página ─────────────────────────────────────── */
+.page-header {
   display: flex;
-  justify-content: center;
-  padding: 48px 0;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin: 8px 0 24px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.table-wrap {
-  overflow-x: auto;
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
-.admin-table {
-  width: 100%;
+.page-subtitle {
+  margin: 4px 0 0;
+  color: $ios-secondary;
+  font-size: 0.95rem;
+}
+
+/* ── Botões ────────────────────────────────────────────────── */
+.btn-primary {
+  background: $ios-blue;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  min-height: 40px;
+  transition: background 0.15s;
+
+  &:hover { background: color.adjust($ios-blue, $lightness: -5%); }
+  &:active { transform: scale(0.97); }
+}
+
+.btn-secondary {
+  background: rgba(0, 122, 255, 0.1);
+  color: $ios-blue;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font: inherit;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  min-height: 36px;
+
+  &:hover { background: rgba(0, 122, 255, 0.16); }
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: $ios-blue;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 8px 4px;
   border-radius: 8px;
+
+  &:hover { background: rgba(0, 122, 255, 0.08); }
+}
+
+.btn-more {
+  background: none;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: $ios-secondary;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  transition: background 0.12s;
+
+  .dots { line-height: 0.6; }
+
+  &:hover { background: rgba(0, 0, 0, 0.05); }
+}
+
+/* ── Seções ────────────────────────────────────────────────── */
+.section-label {
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: $ios-secondary;
+  letter-spacing: 0.04em;
+  margin: 24px 16px 6px;
+
+  &--muted { color: $ios-tertiary; }
+}
+
+.card {
+  background: $ios-card;
+  border-radius: $ios-radius;
+  overflow: visible;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  &--empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px 16px;
+    text-align: center;
+  }
+
+  &--muted {
+    background: color.adjust($ios-card, $lightness: -2%);
+  }
+}
+
+.empty-text {
+  color: $ios-secondary;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* ── Linha de profissional ─────────────────────────────────── */
+.prof-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  min-height: 64px;
+  border-top: 0.5px solid $ios-separator;
+  position: relative;
+
+  &:first-child { border-top: none; }
+
+  &--inativo {
+    opacity: 0.6;
+  }
+}
+
+.prof-avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  background: color.adjust($ios-bg, $lightness: -3%);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  color: $ios-secondary;
+}
+
+.prof-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .prof-nome {
   font-weight: 500;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .prof-slug {
-  font-size: 0.75rem;
-  color: var(--mat-sys-on-surface-variant, #888);
-}
+  font-size: 0.8rem;
+  color: $ios-blue;
+  text-decoration: none;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
-/* ── Badges de status ── */
-.badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  &:hover { text-decoration: underline; }
 
-  &--ok {
-    background: #e6f4ea;
-    color: #1e7e34;
-  }
-
-  &--erro {
-    background: #fce8e6;
-    color: #c5221f;
-  }
-
-  &--neutro {
-    background: #f1f3f4;
-    color: #5f6368;
+  &--muted {
+    color: $ios-tertiary;
   }
 }
 
-/* ── Credenciais ── */
-.cred-info {
+.prof-meta {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.8rem;
 }
 
-.cred-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-
-  &.ok { color: #1e7e34; }
+.prof-actions {
+  position: relative;
+  flex-shrink: 0;
 }
 
-.cred-vazio {
-  color: #9aa0a6;
+/* ── Pills de status ───────────────────────────────────────── */
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+
+  &--ok {
+    background: rgba(52, 199, 89, 0.14);
+    color: color.adjust($ios-green, $lightness: -15%);
+  }
+  &--erro {
+    background: rgba(255, 59, 48, 0.12);
+    color: $ios-red;
+  }
+  &--neutro {
+    background: rgba(142, 142, 147, 0.16);
+    color: $ios-secondary;
+  }
 }
 
-.vazio {
-  text-align: center;
-  padding: 32px;
-  color: #9aa0a6;
+/* ── Menu de ações (popover iOS) ───────────────────────────── */
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: #fff;
+  border-radius: 12px;
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  z-index: 20;
+  padding: 6px 0;
+  overflow: hidden;
+  animation: menuIn 0.12s ease-out;
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 0.92rem;
+  color: $ios-label;
+  cursor: pointer;
+
+  &:hover { background: rgba(0, 0, 0, 0.04); }
+
+  &--destructive { color: $ios-red; }
+}
+
+.menu-sep {
+  height: 0.5px;
+  background: $ios-separator;
+  margin: 4px 0;
+}
+
+/* ── Toggle (switch iOS) ───────────────────────────────────── */
+.toggle-wrap {
+  margin: 20px 16px 0;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: $ios-label;
+
+  input { display: none; }
+}
+
+.toggle-track {
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(120, 120, 128, 0.16);
+  position: relative;
+  transition: background 0.18s;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.18s;
+}
+
+.toggle input:checked + .toggle-track {
+  background: $ios-green;
+}
+
+.toggle input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(18px);
+}
+
+.toggle-label {
+  font-size: 0.92rem;
+  color: $ios-label;
+}
+
+/* ── Loading ───────────────────────────────────────────────── */
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 64px 0;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-top-color: $ios-secondary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsivo ────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .page-title { font-size: 1.6rem; }
+  .prof-meta { display: none; }
+  .container { padding: 0 12px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  // não aplicar por enquanto - tema dark é opcional pelo roteiro
 }

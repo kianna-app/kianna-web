@@ -467,6 +467,17 @@ mat-dialog-actions {
 }
 .dialog-actions { gap: 16px !important; }
 
+// Painel admin estilo iOS: dialog sem padding/bordas Material
+.ios-dialog-panel .mat-mdc-dialog-container,
+.ios-dialog-panel .mat-mdc-dialog-surface,
+.ios-dialog-panel .mdc-dialog__surface {
+  padding: 0 !important;
+  border-radius: 16px !important;
+  background: #f2f2f7 !important;
+  overflow: hidden !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18) !important;
+}
+
 // Snackbar de aviso (cor âmbar)
 .snack-warn .mdc-snackbar__surface { background: #fff3cd !important; }
 .snack-warn .mat-mdc-snack-bar-label { color: #5d4037 !important; }
