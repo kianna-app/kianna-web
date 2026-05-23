@@ -1,0 +1,27 @@
+<div class="legal-page">
+  <header class="legal-header">
+    <a routerLink="/" class="logo" aria-label="Voltar para a página inicial">
+      <span class="logo-emoji">{{ APP.EMOJI }}</span>
+      <span class="logo-text">{{ APP.NOME }}</span>
+    </a>
+    <a routerLink="/" class="btn-voltar">← Voltar ao início</a>
+  </header>
+
+  <main class="legal-main">
+    <!-- BANNER_RASCUNHO_INICIO — remover este bloco quando o documento for revisado e aprovado por advogado(a). -->
+    <aside class="banner-rascunho" role="note">
+      <strong>Documento em elaboração.</strong>
+      Versão preliminar sujeita a revisão jurídica antes da publicação definitiva.
+    </aside>
+    <!-- BANNER_RASCUNHO_FIM -->
+
+    <article class="legal-content">
+      <h1 class="legal-titulo">{{ titulo }}</h1>
+      <p class="legal-atualizado">Última atualização: {{ dataAtualizacao }}</p>
+
+      <ng-content></ng-content>
+    </article>
+  </main>
+
+  <app-footer-publico />
+</div>

@@ -66,6 +66,13 @@ export const routes: Routes = [
       import('./features/admin/admin.routes').then(m => m.adminRoutes),
   },
 
+  // ── Páginas legais (LGPD) — antes de :slug para não cair no catch-all ──
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/legal/legal.routes').then(m => m.legalRoutes),
+  },
+
   // ── Página pública de agendamento (/:slug) — deve ficar antes do ** ──
   {
     path: ':slug',

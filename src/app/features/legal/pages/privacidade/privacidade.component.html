@@ -1,0 +1,175 @@
+<app-legal-layout titulo="Política de Privacidade" [dataAtualizacao]="P.DATA_ATUALIZACAO">
+  <p>
+    Esta Política de Privacidade explica como a {{ P.NOME_FANTASIA }}
+    ({{ P.RAZAO_SOCIAL }}, CNPJ {{ P.CNPJ }}) coleta, utiliza, armazena e
+    compartilha dados pessoais no contexto da operação da Plataforma, em
+    conformidade com a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados
+    Pessoais — LGPD).
+  </p>
+
+  <h2>1. Quem somos / Controlador</h2>
+  <p>
+    A Plataforma é operada por <strong>{{ P.RAZAO_SOCIAL }}</strong>, inscrita
+    no CNPJ {{ P.CNPJ }}, com sede em {{ P.ENDERECO }}.
+  </p>
+
+  <h2>2. Encarregado pelo Tratamento de Dados (DPO)</h2>
+  <p>
+    O encarregado pelo tratamento de dados pessoais, nos termos do art. 41 da
+    LGPD, é <strong>{{ P.ENCARREGADO_DPO }}</strong>, que pode ser contatado
+    pelo e-mail
+    <a [href]="'mailto:' + P.EMAIL_DPO">{{ P.EMAIL_DPO }}</a>.
+  </p>
+
+  <h2>3. Quais dados coletamos</h2>
+  <p>
+    A Plataforma trata duas categorias distintas de dados:
+  </p>
+  <h3>3.1. Dados do profissional usuário</h3>
+  <ul>
+    <li>dados cadastrais: nome, e-mail, telefone, eventual CNPJ, foto de perfil;</li>
+    <li>dados de uso da Plataforma: logs de acesso, preferências de configuração,
+        endereço IP;</li>
+    <li>dados de pagamento, quando aplicável, tratados em ambiente do meio de
+        pagamento contratado.</li>
+  </ul>
+  <h3>3.2. Dados dos clientes finais do profissional</h3>
+  <p>
+    Inseridos pelo próprio profissional ou pelo cliente final ao realizar
+    agendamento pela página pública:
+  </p>
+  <ul>
+    <li>nome e telefone;</li>
+    <li>histórico de agendamentos (datas, serviços, status);</li>
+    <li>eventuais observações registradas pelo profissional.</li>
+  </ul>
+
+  <h2>4. Para que usamos esses dados (finalidades)</h2>
+  <ul>
+    <li>operar a agenda do profissional e disponibilizar sua página pública de
+        agendamentos;</li>
+    <li>enviar notificações via WhatsApp aos clientes finais (confirmações,
+        lembretes, cancelamentos, reagendamentos);</li>
+    <li>autenticar o usuário, garantir a segurança da conta e prevenir fraudes;</li>
+    <li>processar pagamentos relativos ao plano contratado;</li>
+    <li>cumprir obrigações legais e regulatórias.</li>
+  </ul>
+
+  <h2>5. Bases legais (LGPD art. 7º)</h2>
+  <ul>
+    <li><strong>Execução de contrato</strong> com o profissional usuário, para
+        prestar os serviços contratados (art. 7º, V);</li>
+    <li><strong>Legítimo interesse</strong>, para segurança, prevenção a fraude
+        e melhoria do serviço (art. 7º, IX);</li>
+    <li><strong>Consentimento</strong>, quando especificamente requerido (art. 7º, I);</li>
+    <li><strong>Cumprimento de obrigação legal ou regulatória</strong> (art. 7º, II).</li>
+  </ul>
+
+  <h2>6. Papel de controlador e operador</h2>
+  <p>
+    Em relação aos <strong>dados do profissional usuário</strong>, a Plataforma
+    atua como <strong>controladora</strong>, definindo finalidades e meios do
+    tratamento.
+  </p>
+  <p>
+    Em relação aos <strong>dados dos clientes finais</strong> — inseridos pelo
+    profissional ou coletados em sua página pública — a Plataforma atua como
+    <strong>operadora</strong>, processando os dados em nome e sob instruções
+    do profissional, que figura como <strong>controlador</strong>. Cabe ao
+    profissional dispor de base legal adequada para a coleta e o tratamento
+    desses dados e responder, perante os titulares, pelas obrigações de
+    transparência e de respeito aos direitos previstos na LGPD.
+  </p>
+
+  <h2>7. Compartilhamento com terceiros</h2>
+  <p>
+    Para operar o serviço, a Plataforma compartilha dados estritamente
+    necessários com prestadores que atuam como <strong>sub-operadores</strong>,
+    nas seguintes categorias:
+  </p>
+  <ul>
+    <li>{{ P.PROVEDOR_MENSAGERIA }} — responsável pela entrega das mensagens
+        de WhatsApp;</li>
+    <li>{{ P.PROVEDOR_INFRA }} — responsável por hospedagem e armazenamento da
+        aplicação e do banco de dados;</li>
+    <li>provedores de meios de pagamento, quando aplicável, restritos aos dados
+        necessários para processar a cobrança.</li>
+  </ul>
+  <p>
+    Esses prestadores ficam contratualmente obrigados a tratar os dados apenas
+    para as finalidades indicadas e a adotar medidas técnicas e organizacionais
+    de segurança compatíveis.
+  </p>
+
+  <h2>8. Transferência internacional de dados</h2>
+  <p>
+    Alguns prestadores podem processar dados em servidores localizados fora do
+    território nacional. Nesses casos, são adotadas garantias compatíveis com o
+    art. 33 da LGPD, de modo a assegurar nível de proteção adequado, equivalente
+    ao previsto na legislação brasileira.
+  </p>
+
+  <h2>9. Retenção dos dados</h2>
+  <p>
+    Os dados são retidos pelo prazo de {{ P.PRAZO_RETENCAO }} ou pelo tempo
+    necessário ao cumprimento das finalidades descritas nesta Política, ressalvada
+    a obrigação de guarda decorrente de lei ou processo administrativo/judicial.
+    Após esse prazo, os dados são eliminados ou anonimizados.
+  </p>
+
+  <h2>10. Direitos do titular (LGPD art. 18)</h2>
+  <p>
+    O titular dos dados pessoais pode, a qualquer momento, solicitar:
+  </p>
+  <ul>
+    <li>confirmação da existência de tratamento;</li>
+    <li>acesso aos dados;</li>
+    <li>correção de dados incompletos, inexatos ou desatualizados;</li>
+    <li>anonimização, bloqueio ou eliminação de dados desnecessários ou
+        excessivos;</li>
+    <li>portabilidade dos dados, observados os segredos comercial e industrial;</li>
+    <li>eliminação dos dados tratados com consentimento;</li>
+    <li>informação sobre entidades públicas e privadas com as quais os dados
+        foram compartilhados;</li>
+    <li>revogação do consentimento.</li>
+  </ul>
+  <p>
+    Para exercer esses direitos, envie sua solicitação para
+    <a [href]="'mailto:' + P.EMAIL_DPO">{{ P.EMAIL_DPO }}</a>.
+    Solicitações de titulares cujos dados foram inseridos por profissionais
+    usuários da Plataforma serão encaminhadas ao respectivo controlador, sem
+    prejuízo das obrigações da Plataforma como operadora.
+  </p>
+
+  <h2>11. Segurança</h2>
+  <p>
+    Adotamos medidas técnicas e organizacionais para proteger os dados contra
+    acessos não autorizados, perda, alteração ou destruição, incluindo
+    criptografia em trânsito, controle de acesso baseado em credenciais e
+    monitoramento de eventos de segurança. Apesar das medidas adotadas, nenhum
+    sistema é completamente imune a incidentes; em caso de violação relevante,
+    seguiremos o procedimento de comunicação previsto no art. 48 da LGPD.
+  </p>
+
+  <h2>12. Cookies</h2>
+  <p>
+    A Plataforma utiliza cookies e tecnologias similares estritamente necessários
+    ao funcionamento do serviço (por exemplo, manutenção da sessão autenticada).
+    Cookies analíticos ou de marketing, quando aplicáveis, dependerão do
+    consentimento do usuário.
+  </p>
+
+  <h2>13. Contato</h2>
+  <p>
+    Para dúvidas sobre esta Política, fale conosco em
+    <a [href]="'mailto:' + P.EMAIL_CONTATO">{{ P.EMAIL_CONTATO }}</a>.
+  </p>
+
+  <h2>14. Alterações desta Política</h2>
+  <p>
+    Esta Política pode ser atualizada a qualquer tempo para refletir mudanças
+    legais, tecnológicas ou no próprio serviço. A versão vigente, com a
+    respectiva data de "última atualização", estará sempre disponível nesta
+    página.
+  </p>
+</app-legal-layout>
