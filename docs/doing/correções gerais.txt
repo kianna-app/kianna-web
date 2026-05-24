@@ -1,36 +1,76 @@
 
-Correções e Melhorias:
+Adicionar no SideBar um link par Perfil.
+> Em Perfil:
+  - Mostrar o email, não está visível.
+  - Destacar o tipo de Plano utilizado.
+  - Adicionar um botão para editar o perfil.
+  - Adicionar um botão para alterar a senha.
+  - Adicionar um botão para excluir a conta.
+  - Adicionar um botão para fazer o logout.
+  - Destacar o link público. (Copiar link) (LGPD)
+  - Card destacando o plano atual comparando com o plano superior, salientar o que o ciente esté perdendo.
 
-- Refatoração da Estrutura do Projeto:
-  - Vamos falar sobre a estrutura do código, backend e frontend.
-  - Atualmente temos tudo no front?
-  - Vamos separar em dois projeto no Github e ter um backend em Node.js?
-  - Por onde devemos começar?
-  - Qual a melhor forma de fazer isso?
-  - Posso ter duas instância no Vercel?
-  - Criar um swagger das rodas?
-  - Podemos fazer isso antes de iniciar o módulo 4?
+>  Criar Página de Upgrade do Plano
+  - Use a imagem de referencia.
+  - Card expansíveis com os itens que contempla o plano selecionado.
+  - Deixar tudo pronto para a sincronização futura com uma plataforma de pagamento  
+
+> Página de Notificações
+  - Criar uma página de notificações no qual eu Admin, possa cadastrar uma notificação eu aparecer no Dash de todos os profissionais.
+  - A notificação deve ter um título e um corpo de texto. 
+  - O Admin deve poder escolher para quais profissionais enviar a notificação.
+  - O profissional deve poder marcar a notificação como lida.
+  - O profissional deve poder ver as notificações no Dash.
+  - O Admin deve poder ver o status de leitura das notificações.
+  - O Admin deve poder excluir notificações.
+  - O Admin deve poder editar notificações.
+  - O Admin deve poder criar notificações agendadas.
+  - O Admin deve poder ver um histórico de notificações enviadas.
+
+
+> Página de Relatório
+  - Criar uma página de relatório no qual o Profissional tenha uma visão dos agendamentos feito no mês, com o status de cada um de forma simplificado.
+  - Um gráfico de pizza mostrando a Popularidade dos Serviços
 
 
 
-* Como vamos resolver a atualização automática de agendamentos?
-  - Atualmente quando o cliente agenda um serviço não aparece nenhuma notificação ou altera a quantidade de agendamentos Pedentes no dashboard sem que o profissional atualize a página.
-  - Além disso o card "Pendentes" que fica no Header nãoe stá sendo atualizado,  mesmo com vários agendamentos pendentes, está mostrado o valor 1.
-  - Como podemos resolver isso?
-  - Ou isso será resolvido com a api do whats?
-  - Proponha algumas opções.
+> Interface:
+- moderna;
+- clean;
+- responsiva;
+- mobile-first.
+- minimalista
+- cores do projeto
+- experiência do usuário
+- acessibilidade
+- modernidade
+- agilidade (performance) e fluidez
+- simplicidade
+- produto premium
 
 
-- Além disso, temos que corrigir os erros abaixo.-
+> O módulo deve garantir:
+- alta disponibilidade;
+- estabilidade;
+- escalabilidade;
+- fácil manutenção;
+- baixo acoplamento;
+- código reutilizável;
+- observabilidade/logs.
 
-* Validação de Formulários
-Sem validators centralizados
-Validações feitas manualmente em componentes
-Sem mensagens de erro padronizadas
 
 
-* Mobile Responsiveness Completa
-Material Design aplicado mas bottom-nav do dashboard pode precisar refinamento
+ * Seja claro
+ * Pergunte se possuir ambiguidades
+ * Não decida se tiver dúvida
+ * Não seja prolixo
+ * Não seja repetitivo
+ * Não seja ambíguo
+ * Não seja subjetivo
+ * Não seja redundante
+ * Não seja vago
+ * Não seja genérico
+
 
 
 * Logging & Monitoring
@@ -71,62 +111,7 @@ Observações:
 
 
 
-Perguntas antes de gerar as tasks
-Sobre o backend:
-a) Quer criar o backend NestJS agora (antes do Módulo 4) apenas com a estrutura base + Swagger + as primeiras rotas? Ou quer migrar toda a lógica do Supabase client para o backend de uma vez?
-b) O backend vai usar o Supabase como banco (via Supabase JS ou via Prisma/TypeORM conectando direto no PostgreSQL)? Minha recomendação: Supabase JS no backend para manter consistência com o que já existe.
-Sobre Realtime:
-c) Confirma que quer implementar Supabase Realtime agora (Opção A) para resolver o problema imediato do card de pendentes?
-Sobre Roles:
-d) No MVP só existe o role "profissional" (quem loga). O "cliente" não tem conta. Quer adicionar roles agora ou deixar para quando implementar o plano Studio (multi-profissional)?
-Sobre Backup:
-e) Backup do Supabase é configuração no painel (plano Pro ~$25/mês com backup automático). Quer que eu inclua as instruções de configuração na task ou é só lembrete para você fazer manualmente?
-Sobre Logging:
-f) Sentry tem SDK para Angular e NestJS. Quer implementar no frontend agora ou esperar o backend para fazer nos dois juntos?
 
-
-a. Sim, criar o backend NestJS agora com estrutura base, Swagger e as primeiras rotas. A migração da lógica do Supabase client pode ser feita gradualmente. Instruir o passos.
-b. Sim, usar Supabase JS no backend para manter consistência.
-c. Sim, implementar Supabase Realtime para resolver o problema imediato do card de pendentes.
-d. Deixar para quando implementar o plano Studio (multi-profissional). Criar um usuário admin?
-e. Sim, incluir as instruções de configuração na task.
-f. esperar o backend para fazer nos dois juntos.
-
-******************************
-
-
-
-Resumo
-Branch criada: feat/backend-setup em /home/wagner/Develop/kianna/kianna-api
-
-Estrutura entregue:
-
-src/main.ts — bootstrap com CORS, ValidationPipe, HttpExceptionFilter, LoggingInterceptor, Swagger em /api/docs
-src/app.module.ts — ConfigModule.forRoot({ isGlobal: true }) + todos os módulos
-src/app.controller.ts — health check em / e /health
-Config (A2): supabase.config.ts com clients service_role e anon; app.config.ts; .env e .env.example
-Auth (A3): SupabaseAuthGuard + @CurrentUser + AuthenticatedRequest
-Roles (A4): @Roles + RolesGuard (lê profissionais.role)
-Infra comum: HttpExceptionFilter, LoggingInterceptor
-Rotas (A6):
-POST /api/agendamentos (público), GET /api/agendamentos/:id (auth), PATCH /api/agendamentos/:id/status (auth), GET /api/agendamentos/pendentes/count (auth)
-GET /api/profissionais/me (auth), GET /api/profissionais/:slug (público)
-POST /api/webhooks/zapi (sem auth, valida header x-zapi-token contra ZAPI_WEBHOOK_TOKEN)
-Módulos placeholder: servicos, disponibilidades, bloqueios
-Validação:
-
-npm run lint — 0 erros, 0 warnings
-npm run build — sucesso
-node dist/main.js — bootstrap OK; falha esperada ao instanciar Supabase porque as keys no .env estão vazias
-Próximos passos manuais (não-código):
-
-Preencher SUPABASE_SERVICE_ROLE_KEY e SUPABASE_ANON_KEY no .env (painel Supabase → Settings → API)
-Rodar SQL de A4 no Supabase para adicionar role em profissionais
-Tornar seu usuário admin com UPDATE profissionais SET role = 'admin' WHERE user_id = '<seu_user_id>'
-A7 — deploy Railway + DNS Hostinger
-Itens não cobertos do Bloco A: A7 (deploy Railway — manual no painel) e A8 (apenas instruções de migração gradual).
-
-Não fiz commit ainda. Quer que eu commite a branch feat/backend-setup? E/ou que eu siga para os Blocos B (Realtime), C (validators) ou D (mobile)
 
 
 

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
+import { ConsentService } from '@core/services/consent.service';
 
 @Component({
   selector: 'app-footer-publico',
@@ -12,4 +13,5 @@ import { APP } from '@core/constants/app.constants';
 export class FooterPublicoComponent {
   readonly APP = APP;
   readonly ano = new Date().getFullYear();
+  readonly consent = inject(ConsentService);
 }

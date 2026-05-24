@@ -62,6 +62,7 @@ export class CadastroComponent {
         this.form.value.email!,
         this.form.value.senha!,
         this.form.value.nome!,
+        { aceitos_em: new Date().toISOString(), versao: '1.0' },
       );
       await this.auth.signIn(this.form.value.email!, this.form.value.senha!);
       await new Promise(r => setTimeout(r, 250));

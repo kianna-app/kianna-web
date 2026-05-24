@@ -53,11 +53,26 @@ export class AuthService {
     });
   }
 
-  async signUp(email: string, senha: string, nome: string): Promise<void> {
+  async signUp(
+    email: string,
+    senha: string,
+    nome: string,
+    termosAceitos?: { aceitos_em: string; versao: string },
+  ): Promise<void> {
+    // TODO: persistir o aceite também na tabela `profissionais` (campo termos_aceitos_em + termos_versao)
+    //       para dar valor probatório conforme LGPD. Por ora fica em user_metadata do Supabase.
     const { error } = await supabase.auth.signUp({
       email,
       password: senha,
-      options: { data: { nome } },
+      options: {
+        data: {
+          nome,
+          ...(termosAceitos && {
+            termos_aceitos_em: termosAceitos.aceitos_em,
+            termos_versao: termosAceitos.versao,
+          }),
+        },
+      },
     });
     if (error) throw error;
   }

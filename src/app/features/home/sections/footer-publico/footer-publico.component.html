@@ -21,7 +21,10 @@
       <div class="footer-col">
         <h4 class="col-titulo">Suporte</h4>
         <ul>
-          <li><a href="mailto:contato@kianna.com.br">Contato</a></li>
+          <!-- TAREFA MANUAL (DNS): criar as caixas de e-mail antes do 1º cadastro real.
+               Sugestão: Cloudflare Email Routing (grátis) redirecionando para o Gmail. -->
+          <li><a href="mailto:contato@kianna.com.br">contato&#64;kianna.com.br</a></li>
+          <li><a href="mailto:privacidade@kianna.com.br">privacidade&#64;kianna.com.br</a></li>
           <li><a href="#faq">Central de Ajuda</a></li>
         </ul>
       </div>
@@ -31,6 +34,13 @@
         <ul>
           <li><a routerLink="/termos">Termos de Uso</a></li>
           <li><a routerLink="/privacidade">Privacidade</a></li>
+          <li>
+            <button class="footer-link-btn"
+                    (click)="consent.revoke()"
+                    aria-label="Revisar preferências de cookies">
+              Preferências de cookies
+            </button>
+          </li>
         </ul>
       </div>
     </div>

@@ -1,0 +1,45 @@
+@if (!consent.hasDecided()) {
+  <div class="cookie-banner"
+       role="dialog"
+       aria-labelledby="cookie-title"
+       aria-describedby="cookie-desc"
+       aria-modal="true">
+
+    <div class="cookie-body">
+      <h2 id="cookie-title" class="cookie-title">Cookies e privacidade</h2>
+      <p id="cookie-desc" class="cookie-desc">
+        Usamos cookies essenciais para o funcionamento do site. Com seu consentimento,
+        também usamos cookies analíticos para entender como você navega e melhorar a
+        experiência. Veja nossa
+        <a routerLink="/privacidade" class="cookie-link">Política de Privacidade</a>.
+      </p>
+
+      <ul class="cookie-categories" aria-label="Categorias de cookies">
+        <li class="cookie-category">
+          <span class="cat-name">Necessários</span>
+          <span class="cat-badge always-on">Sempre ativo</span>
+        </li>
+        <li class="cookie-category">
+          <span class="cat-name">Analíticos</span>
+          <span class="cat-badge optional">Opcional · desligado por padrão</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="cookie-actions">
+      <button mat-stroked-button
+              class="btn-recusar"
+              (click)="consent.reject()"
+              aria-label="Recusar cookies opcionais">
+        Recusar
+      </button>
+      <button mat-stroked-button
+              class="btn-aceitar"
+              (click)="consent.accept()"
+              aria-label="Aceitar todos os cookies">
+        Aceitar
+      </button>
+    </div>
+
+  </div>
+}
