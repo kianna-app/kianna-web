@@ -1,0 +1,82 @@
+<button
+  type="button"
+  mat-icon-button
+  class="bell-btn"
+  [matMenuTriggerFor]="painelAvisos"
+  (menuOpened)="onMenuOpened()"
+  matTooltip="Notificações"
+  [attr.aria-label]="naoLidas() > 0 ? naoLidas() + ' notificações não lidas' : 'Notificações'">
+  <mat-icon>notifications</mat-icon>
+  @if (badgeText()) {
+    <span class="bell-badge" aria-hidden="true">{{ badgeText() }}</span>
+  }
+</button>
+
+<mat-menu #painelAvisos="matMenu" xPosition="before" class="avisos-menu">
+  <ng-template matMenuContent>
+    <div class="avisos-panel" (click)="$event.stopPropagation()">
+
+      <div class="avisos-header">
+        <div class="avisos-titulo">
+          <mat-icon>notifications</mat-icon>
+          <strong>Notificações</strong>
+        </div>
+        @if (naoLidas() > 0) {
+          <button type="button" class="link-action" (click)="marcarTodas($event)">
+            Marcar todas como lidas
+          </button>
+        }
+      </div>
+
+      @if (carregando() && avisos().length === 0) {
+        <div class="avisos-vazio">
+          <mat-icon class="spin">progress_activity</mat-icon>
+          <span>Carregando…</span>
+        </div>
+      } @else if (erro()) {
+        <div class="avisos-vazio erro">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ erro() }}</span>
+        </div>
+      } @else if (avisos().length === 0) {
+        <div class="avisos-vazio">
+          <mat-icon>mark_email_read</mat-icon>
+          <span>Você está em dia. Sem notificações novas.</span>
+        </div>
+      } @else {
+        <ul class="avisos-lista" role="list">
+          @for (a of avisos(); track trackById($index, a)) {
+            <li
+              class="aviso-item"
+              [class.nao-lida]="!a.lida_em"
+              [class.expandida]="expandido() === a.id"
+              (click)="toggleExpand(a.id)"
+              (keydown.enter)="toggleExpand(a.id)"
+              tabindex="0"
+              role="button">
+
+              <div class="aviso-row">
+                @if (!a.lida_em) {
+                  <span class="dot-nao-lida" aria-label="Não lida"></span>
+                } @else {
+                  <span class="dot-spacer" aria-hidden="true"></span>
+                }
+
+                <div class="aviso-body">
+                  <div class="aviso-top">
+                    <strong class="aviso-titulo">{{ a.titulo }}</strong>
+                    <span class="aviso-data">{{ formatarData(a.publicar_em) }}</span>
+                  </div>
+                  <p class="aviso-corpo" [class.truncado]="expandido() !== a.id">
+                    {{ a.corpo }}
+                  </p>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+    </div>
+  </ng-template>
+</mat-menu>

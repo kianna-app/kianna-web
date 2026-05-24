@@ -1,0 +1,122 @@
+<div class="relatorio-page">
+
+  <header class="page-header">
+    <div>
+      <h1>Relatório</h1>
+      <p class="page-sub">Resumo dos seus agendamentos.</p>
+    </div>
+  </header>
+
+  <!-- Seletor de mês -->
+  <div class="mes-seletor" role="group" aria-label="Seletor de mês">
+    <button type="button"
+            class="mes-nav"
+            (click)="mesAnterior()"
+            aria-label="Mês anterior">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <div class="mes-atual">
+      <mat-icon>calendar_month</mat-icon>
+      <span>{{ mesLabel() }}</span>
+    </div>
+
+    <button type="button"
+            class="mes-nav"
+            (click)="mesSeguinte()"
+            [disabled]="!podeAvancar()"
+            aria-label="Próximo mês">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  @if (carregando()) {
+    <div class="estado-info" role="status" aria-live="polite">
+      <mat-icon class="spin">progress_activity</mat-icon>
+      <span>Carregando relatório…</span>
+    </div>
+  } @else if (erro()) {
+    <div class="estado-info erro">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ erro() }}</span>
+      <button type="button" class="btn-ghost" (click)="carregar()">
+        <mat-icon>refresh</mat-icon> Tentar novamente
+      </button>
+    </div>
+  } @else {
+
+    <!-- Total -->
+    <div class="total-card">
+      <span class="total-label">Total no mês</span>
+      <strong class="total-valor">{{ totalAgendamentos() }}</strong>
+      <span class="total-hint">agendamento{{ totalAgendamentos() === 1 ? '' : 's' }}</span>
+    </div>
+
+    <!-- Cards de status -->
+    <section aria-label="Agendamentos por status">
+      <h2 class="section-label">Por status</h2>
+      <div class="status-grid">
+        @for (c of statusCards(); track trackByStatus($index, c)) {
+          <div class="status-card"
+               [style.background]="c.bg"
+               [style.color]="c.cor">
+            <mat-icon>{{ c.icone }}</mat-icon>
+            <div class="status-info">
+              <strong>{{ c.total }}</strong>
+              <span>{{ c.label }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Pie de serviços -->
+    <section class="popularidade" aria-label="Popularidade dos serviços">
+      <h2 class="section-label">Popularidade dos serviços</h2>
+
+      @if (!temServicos()) {
+        <div class="estado-vazio">
+          <mat-icon>insert_chart_outlined</mat-icon>
+          <strong>Sem agendamentos neste mês</strong>
+          <span>Quando você tiver agendamentos, eles vão aparecer aqui distribuídos por serviço.</span>
+        </div>
+      } @else {
+        <div class="pie-wrap">
+          <svg class="pie" viewBox="-60 -60 120 120" role="img"
+               [attr.aria-label]="'Distribuição de ' + totalAgendamentos() + ' agendamentos por serviço'">
+            <!-- fundo neutro pra contraste -->
+            <circle r="50" fill="#F1F5F9" />
+            @for (f of fatias(); track trackByServico($index, f)) {
+              <circle
+                r="50" fill="transparent"
+                stroke-width="50"
+                cx="0" cy="0"
+                [attr.stroke]="f.cor"
+                [attr.stroke-dasharray]="f.dashArray"
+                [attr.stroke-dashoffset]="f.dashOffset"
+                transform="rotate(-90)">
+                <title>{{ f.nome }}: {{ f.total }} ({{ f.pct }}%)</title>
+              </circle>
+            }
+            <!-- furo central pra virar donut -->
+            <circle r="26" fill="#fff" />
+          </svg>
+
+          <ul class="legenda" role="list">
+            @for (f of fatias(); track trackByServico($index, f)) {
+              <li class="legenda-item">
+                <span class="swatch" [style.background]="f.cor" aria-hidden="true"></span>
+                <span class="legenda-nome" [attr.title]="f.nome">{{ f.nome }}</span>
+                <span class="legenda-valor">
+                  <strong>{{ f.total }}</strong>
+                  <span>({{ f.pct }}%)</span>
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+
+  }
+</div>

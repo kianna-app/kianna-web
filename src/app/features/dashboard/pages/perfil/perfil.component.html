@@ -1,12 +1,13 @@
 <div class="perfil-page">
   <div class="page-header">
     <h1>Meu Perfil</h1>
-    <p class="page-sub">Suas informações e configurações de conta</p>
+    <p class="page-sub">Suas informações, plano e configurações de conta</p>
   </div>
 
   @if (user(); as u) {
     <div class="perfil-grid">
 
+      <!-- 1. Identificação -->
       <mat-card class="perfil-card">
         <div class="avatar-section">
           @if (u.foto_url) {
@@ -16,9 +17,11 @@
           }
           <div class="avatar-info">
             <h2>{{ u.nome }}</h2>
-            <span class="especialidade-badge">{{ u.especialidade ?? 'Profissional' }}</span>
+            @if (u.especialidade) {
+              <span class="especialidade-badge">{{ u.especialidade }}</span>
+            }
           </div>
-              </div>
+        </div>
 
         <mat-divider />
 
@@ -26,33 +29,76 @@
           <div class="info-item">
             <mat-icon>email</mat-icon>
             <div>
-              <span class="info-label">Email</span>
-              <span class="info-value">{{ u.email }}</span>
+              <span class="info-label">E-mail</span>
+              <span class="info-value">{{ u.email ?? '—' }}</span>
             </div>
           </div>
 
-          <div class="info-item">
-            <mat-icon>badge</mat-icon>
-            <div>
-              <span class="info-label">Plano atual</span>
-              <span class="info-value plano-badge" [attr.data-plano]="u.plano">
-                {{ u.plano === 'gratis' ? 'Gratuito' : u.plano === 'pro' ? 'Pro' : 'Studio' }}
-              </span>
+          @if (u.whatsapp) {
+            <div class="info-item">
+              <mat-icon>phone</mat-icon>
+              <div>
+                <span class="info-label">WhatsApp</span>
+                <span class="info-value">{{ u.whatsapp }}</span>
+              </div>
             </div>
-          </div>
-
-          <div class="info-item">
-            <mat-icon>phone</mat-icon>
-            <div>
-              <span class="info-label">WhatsApp</span>
-              <span class="info-value">{{ u.whatsapp }}</span>
-            </div>
-          </div>
+          }
         </div>
       </mat-card>
 
+      <!-- 2. Plano atual + upsell -->
+      <mat-card class="plano-card">
+        <div class="plano-header">
+          <div class="plano-header-left">
+            <span class="info-label">Plano atual</span>
+            <h3 class="plano-nome">
+              {{ planoAtual().label }}
+              <span class="plano-badge" [attr.data-plano]="u.plano">{{ planoAtual().preco }}</span>
+            </h3>
+            <p class="plano-destaque">{{ planoAtual().destaque }}</p>
+          </div>
+        </div>
+
+        @if (noPlanoMaximo()) {
+          <div class="plano-maximo">
+            <mat-icon>workspace_premium</mat-icon>
+            <div>
+              <strong>Você está no plano máximo.</strong>
+              <span>Todos os recursos do Kianna estão disponíveis para você.</span>
+            </div>
+          </div>
+        } @else if (proximoPlano(); as prox) {
+          <mat-divider />
+          <div class="upsell">
+            <div class="upsell-header">
+              <span class="upsell-tag">Faça upgrade para</span>
+              <h4>{{ prox.label }}</h4>
+            </div>
+
+            <div class="upsell-destaque">
+              <mat-icon>chat</mat-icon>
+              <div>
+                <strong>{{ prox.destaque }}</strong>
+                <span class="upsell-perdendo">Você está perdendo isso no plano {{ planoAtual().label }}.</span>
+              </div>
+            </div>
+
+            <ul class="upsell-benefits">
+              @for (b of prox.beneficios; track b) {
+                <li><mat-icon>check_circle</mat-icon> {{ b }}</li>
+              }
+            </ul>
+
+            <button type="button" class="btn-primary upsell-cta" (click)="irParaUpgrade()">
+              <mat-icon>arrow_upward</mat-icon> Ver planos e fazer upgrade
+            </button>
+          </div>
+        }
+      </mat-card>
+
+      <!-- 3. Link público + LGPD -->
       <mat-card class="link-card">
-        <h3><mat-icon>link</mat-icon> Seu link de agendamento</h3>
+        <h3><mat-icon>link</mat-icon> Seu link público</h3>
         <p class="link-desc">Compartilhe este link com seus clientes para receber agendamentos.</p>
 
         <div class="link-box">
@@ -62,16 +108,70 @@
             {{ copiado() ? 'Copiado!' : 'Copiar' }}
           </button>
         </div>
+
+        <p class="lgpd-nota">
+          <mat-icon>privacy_tip</mat-icon>
+          <span>
+            Esta página expõe publicamente seus dados profissionais. Você é responsável pelos
+            dados de clientes coletados neste link (LGPD). Veja nossos
+            <a routerLink="/termos">termos</a> e
+            <a routerLink="/privacidade">política de privacidade</a>.
+          </span>
+        </p>
       </mat-card>
 
-      <mat-card class="sair-card">
-        <h3><mat-icon>logout</mat-icon> Sair da conta</h3>
-        <p>Você será redirecionado para a tela de login.</p>
-        <button type="button" class="btn-danger" (click)="logout()">
-          <mat-icon>logout</mat-icon> Sair
-        </button>
+      <!-- 4. Ações da conta -->
+      <mat-card class="acoes-card">
+        <h3><mat-icon>tune</mat-icon> Ações da conta</h3>
+
+        <div class="acoes-list">
+          <button type="button" class="acao-btn" (click)="editarPerfil()">
+            <mat-icon class="acao-icon">edit</mat-icon>
+            <div class="acao-text">
+              <strong>Editar perfil</strong>
+              <span>Nome, slug, foto, bio e endereço</span>
+            </div>
+            <mat-icon class="chevron">chevron_right</mat-icon>
+          </button>
+
+          <button type="button" class="acao-btn" (click)="alterarSenha()">
+            <mat-icon class="acao-icon">lock</mat-icon>
+            <div class="acao-text">
+              <strong>Alterar senha</strong>
+              <span>Trocar sua senha de acesso</span>
+            </div>
+            <mat-icon class="chevron">chevron_right</mat-icon>
+          </button>
+
+          <button type="button" class="acao-btn" (click)="logout()">
+            <mat-icon class="acao-icon">logout</mat-icon>
+            <div class="acao-text">
+              <strong>Sair</strong>
+              <span>Encerrar a sessão neste dispositivo</span>
+            </div>
+            <mat-icon class="chevron">chevron_right</mat-icon>
+          </button>
+
+          <button
+            type="button"
+            class="acao-btn acao-danger"
+            [disabled]="excluindo()"
+            (click)="excluirConta()">
+            <mat-icon class="acao-icon">delete_outline</mat-icon>
+            <div class="acao-text">
+              <strong>Excluir conta</strong>
+              <span>Desativa sua conta (dados preservados)</span>
+            </div>
+            <mat-icon class="chevron">chevron_right</mat-icon>
+          </button>
+        </div>
       </mat-card>
 
+    </div>
+  } @else {
+    <div class="perfil-loading" role="status" aria-live="polite">
+      <mat-icon class="spin">progress_activity</mat-icon>
+      <span>Carregando seu perfil…</span>
     </div>
   }
 </div>

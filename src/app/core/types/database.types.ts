@@ -21,6 +21,7 @@ export interface LinkPersonalizado {
 export interface Profissional {
   id: string;
   user_id: string;
+  email?: string;
   nome: string;
   slug: string;
   foto_url: string | null;

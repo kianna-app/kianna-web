@@ -1,5 +1,19 @@
 <div class="page" (click)="fecharMenu()">
   <div class="container">
+
+    <nav class="admin-tabs" aria-label="Seções do admin" (click)="$event.stopPropagation()">
+      <a routerLink="/admin"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">
+        <mat-icon>group</mat-icon>
+        <span>Profissionais</span>
+      </a>
+      <a routerLink="/admin/notificacoes" routerLinkActive="active">
+        <mat-icon>notifications</mat-icon>
+        <span>Notificações</span>
+      </a>
+    </nav>
+
     <header class="page-header">
       <div>
         <h1 class="page-title">Profissionais</h1>

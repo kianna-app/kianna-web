@@ -1,0 +1,134 @@
+<div class="page">
+  <div class="container">
+
+    <!-- Tabs do admin -->
+    <nav class="admin-tabs" aria-label="Seções do admin">
+      <a routerLink="/admin"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">
+        <mat-icon>group</mat-icon>
+        <span>Profissionais</span>
+      </a>
+      <a routerLink="/admin/notificacoes" routerLinkActive="active">
+        <mat-icon>notifications</mat-icon>
+        <span>Notificações</span>
+      </a>
+    </nav>
+
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Notificações</h1>
+        <p class="page-subtitle">Publique avisos que aparecem no dashboard dos profissionais.</p>
+      </div>
+      <button type="button" class="btn-primary" (click)="novaNotificacao()">
+        <mat-icon>add</mat-icon> Nova notificação
+      </button>
+    </header>
+
+    @if (carregando()) {
+      <div class="loading"><mat-icon class="spin">progress_activity</mat-icon> Carregando…</div>
+    } @else if (erro()) {
+      <div class="empty erro"><mat-icon>error_outline</mat-icon> {{ erro() }}</div>
+    } @else if (avisos().length === 0) {
+      <div class="empty">
+        <mat-icon>mail_outline</mat-icon>
+        <strong>Nenhuma notificação ainda</strong>
+        <span>Clique em "Nova notificação" para criar a primeira.</span>
+      </div>
+    } @else {
+
+      @if (agendadas().length > 0) {
+        <h2 class="section-label">
+          <mat-icon>schedule</mat-icon> Agendadas
+          <span class="section-count">{{ agendadas().length }}</span>
+        </h2>
+        <section class="aviso-grid">
+          @for (a of agendadas(); track a.id) {
+            <article class="aviso-card agendada">
+              <div class="aviso-card-top">
+                <div class="card-titulo">
+                  <span class="badge agendada">Agendada</span>
+                  <h3>{{ a.titulo }}</h3>
+                </div>
+                <div class="card-acoes">
+                  <button type="button" class="icon-btn" (click)="editar(a)" matTooltip="Editar">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button type="button" class="icon-btn danger" (click)="excluir(a)" matTooltip="Excluir">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <p class="card-corpo">{{ a.corpo }}</p>
+
+              <div class="card-meta">
+                <span class="meta-item">
+                  <mat-icon>event</mat-icon>
+                  Publica em {{ formatar(a.publicar_em) }}
+                </span>
+                <span class="meta-item">
+                  <mat-icon>group</mat-icon>
+                  {{ a.destino === 'todos' ? 'Todos' : a.destinatarios.length + ' selecionados' }}
+                </span>
+              </div>
+            </article>
+          }
+        </section>
+      }
+
+      @if (publicadas().length > 0) {
+        <h2 class="section-label">
+          <mat-icon>check_circle</mat-icon> Publicadas
+          <span class="section-count">{{ publicadas().length }}</span>
+        </h2>
+        <section class="aviso-grid">
+          @for (a of publicadas(); track a.id) {
+            <article class="aviso-card publicada">
+              <div class="aviso-card-top">
+                <div class="card-titulo">
+                  <span class="badge publicada">Publicada</span>
+                  <h3>{{ a.titulo }}</h3>
+                </div>
+                <div class="card-acoes">
+                  <button type="button" class="icon-btn" (click)="editar(a)" matTooltip="Editar">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button type="button" class="icon-btn danger" (click)="excluir(a)" matTooltip="Excluir">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <p class="card-corpo">{{ a.corpo }}</p>
+
+              <div class="card-meta">
+                <span class="meta-item">
+                  <mat-icon>event</mat-icon>
+                  Publicada em {{ formatar(a.publicar_em) }}
+                </span>
+                <span class="meta-item">
+                  <mat-icon>group</mat-icon>
+                  {{ a.destino === 'todos' ? 'Todos' : a.destinatarios.length + ' selecionados' }}
+                </span>
+              </div>
+
+              <button type="button" class="leituras-bar" (click)="verLeituras(a)">
+                <div class="leituras-info">
+                  <strong>{{ a.total_leituras }} de {{ a.total_destinatarios }} leram</strong>
+                  <span class="leituras-pct">{{ porcentagemLida(a) }}%</span>
+                </div>
+                <div class="leituras-track">
+                  <div class="leituras-fill" [style.width.%]="porcentagemLida(a)"></div>
+                </div>
+                <span class="leituras-link">Ver quem leu <mat-icon>chevron_right</mat-icon></span>
+              </button>
+            </article>
+          }
+        </section>
+      }
+
+    }
+
+  </div>
+</div>

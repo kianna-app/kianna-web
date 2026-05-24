@@ -14,6 +14,10 @@ export class ProfissionaisRepository {
     return this.api.patch<Profissional>('/api/profissionais/me', dados);
   }
 
+  async excluirConta(): Promise<void> {
+    await this.api.delete<void>('/api/profissionais/me');
+  }
+
   async getPorSlug(slug: string): Promise<Profissional | null> {
     try {
       return await this.api.getPublic<Profissional>(`/api/profissionais/${slug}`);

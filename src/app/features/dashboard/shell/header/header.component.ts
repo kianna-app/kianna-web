@@ -10,6 +10,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { currentUser } from '@core/signals/app.signals';
 import { BreakpointService } from '@core/services/breakpoint.service';
 import { AgendamentosStore } from '@features/dashboard/state/agendamentos.store';
+import { NotificacoesBellComponent } from '../notificacoes-bell/notificacoes-bell.component';
 
 @Component({
   selector: 'app-dashboard-header',
@@ -17,6 +18,7 @@ import { AgendamentosStore } from '@features/dashboard/state/agendamentos.store'
   imports: [
     CommonModule, RouterLink, MatIconModule, MatButtonModule,
     MatMenuModule, MatTooltipModule, MatDividerModule,
+    NotificacoesBellComponent,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',

@@ -19,6 +19,12 @@ export const dashboardRoutes: Routes = [
         title: 'Meu Perfil — Kianna',
       },
       {
+        path: 'upgrade',
+        loadComponent: () =>
+          import('./pages/upgrade/upgrade.component').then(m => m.UpgradeComponent),
+        title: 'Planos e upgrade — Kianna',
+      },
+      {
         path: 'agenda',
         loadComponent: () =>
           import('./pages/agenda/agenda.component').then(m => m.AgendaComponent),
@@ -52,8 +58,8 @@ export const dashboardRoutes: Routes = [
       {
         path: 'relatorio',
         loadComponent: () =>
-          import('./pages/em-breve/em-breve.component').then(m => m.EmBreveComponent),
-        data: { titulo: 'Relatório' },
+          import('./pages/relatorio/relatorio.component').then(m => m.RelatorioComponent),
+        title: 'Relatório — Kianna',
       },
       {
         path: 'calendario',

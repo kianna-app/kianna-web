@@ -6,18 +6,18 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { EmpresaComponent } from './empresa/empresa.component';
 import { EnderecoComponent } from './endereco/endereco.component';
 import { RedesSociaisComponent } from './redes-sociais/redes-sociais.component';
-import { PerfilComponent } from './perfil/perfil.component';
+import { SegurancaComponent } from './seguranca/seguranca.component';
 import { WhatsappComponent } from './whatsapp/whatsapp.component';
 
-const ABAS = ['empresa', 'endereco', 'redes', 'whatsapp', 'perfil'] as const;
+const ABAS = ['empresa', 'endereco', 'redes', 'whatsapp', 'seguranca'] as const;
 type Aba = typeof ABAS[number];
 
 const TABS_CONFIG = [
-  { id: 'empresa',  label: 'Empresa',  icon: 'storefront'      },
-  { id: 'endereco', label: 'Endereço', icon: 'location_on'     },
-  { id: 'redes',    label: 'Redes',    icon: 'share'           },
-  { id: 'whatsapp', label: 'WhatsApp', icon: 'chat'            },
-  { id: 'perfil',   label: 'Perfil',   icon: 'manage_accounts' },
+  { id: 'empresa',   label: 'Empresa',   icon: 'storefront'  },
+  { id: 'endereco',  label: 'Endereço',  icon: 'location_on' },
+  { id: 'redes',     label: 'Redes',     icon: 'share'       },
+  { id: 'whatsapp',  label: 'WhatsApp',  icon: 'chat'        },
+  { id: 'seguranca', label: 'Segurança', icon: 'lock'        },
 ] as const;
 
 @Component({
@@ -25,7 +25,7 @@ const TABS_CONFIG = [
   standalone: true,
   imports: [
     CommonModule, MatIconModule,
-    EmpresaComponent, EnderecoComponent, RedesSociaisComponent, WhatsappComponent, PerfilComponent,
+    EmpresaComponent, EnderecoComponent, RedesSociaisComponent, WhatsappComponent, SegurancaComponent,
   ],
   template: `
     <div class="cfg-page">
@@ -54,7 +54,7 @@ const TABS_CONFIG = [
           @case (1) { <app-cfg-endereco /> }
           @case (2) { <app-cfg-redes-sociais /> }
           @case (3) { <app-cfg-whatsapp /> }
-          @case (4) { <app-cfg-perfil /> }
+          @case (4) { <app-cfg-seguranca /> }
         }
       </div>
     </div>

@@ -1,0 +1,152 @@
+<div class="upgrade-page">
+
+  <button type="button" class="back-link" (click)="voltar()" aria-label="Voltar">
+    <mat-icon>arrow_back</mat-icon>
+    <span>Voltar</span>
+  </button>
+
+  <header class="up-header">
+    <h1>Escolha o plano ideal para você</h1>
+    <p class="up-sub">Liberte sua agenda com as ferramentas certas para o seu momento.</p>
+  </header>
+
+  <!-- Contexto / organização -->
+  @if (user(); as u) {
+    <div class="contexto-card" role="group" aria-label="Conta selecionada">
+      <div class="contexto-avatar">
+        @if (u.foto_url) {
+          <img [src]="u.foto_url" [alt]="u.nome">
+        } @else {
+          <span>{{ u.nome.charAt(0).toUpperCase() }}</span>
+        }
+      </div>
+      <div class="contexto-info">
+        <span class="contexto-label">Sua conta</span>
+        <strong>{{ u.nome }}</strong>
+        <span class="contexto-slug">{{ linkPublico() }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Loading skeleton mínimo -->
+  @if (carregando()) {
+    <div class="loading-row" role="status" aria-live="polite">
+      <mat-icon class="spin">progress_activity</mat-icon>
+      <span>Carregando planos…</span>
+    </div>
+  }
+
+  <!-- Cards de planos -->
+  <div class="planos-lista" role="radiogroup" aria-label="Planos disponíveis">
+    @for (plano of planos; track plano.id) {
+      <article
+        class="plano-card"
+        [class.selecionado]="selecionado() === plano.id"
+        [class.plano-atual]="isAtual(plano)"
+        [class.expandido]="expandido() === plano.id"
+        role="radio"
+        tabindex="0"
+        [attr.aria-checked]="selecionado() === plano.id"
+        (click)="selecionar(plano.id)"
+        (keydown.enter)="selecionar(plano.id)"
+        (keydown.space)="$event.preventDefault(); selecionar(plano.id)">
+
+        <div class="plano-row">
+          <div class="plano-radio" aria-hidden="true">
+            <div class="radio-dot"></div>
+          </div>
+
+          <div class="plano-main">
+            <div class="plano-top">
+              <div class="plano-id">
+                <h3>{{ plano.nome }}</h3>
+                @if (isAtual(plano)) {
+                  <span class="badge-atual">Seu plano atual</span>
+                }
+                @if (plano.id === 'pro') {
+                  <span class="badge-pop">Mais popular</span>
+                }
+              </div>
+              <div class="plano-preco">
+                <strong>{{ plano.precoLabel }}</strong>
+              </div>
+            </div>
+
+            <p class="plano-resumo">{{ plano.resumo }}</p>
+
+            @if (plano.destaque) {
+              <div class="plano-destaque">
+                <mat-icon>{{ plano.id === 'pro' ? 'chat' : 'workspace_premium' }}</mat-icon>
+                <span>{{ plano.destaque }}</span>
+              </div>
+            }
+
+            <!-- Chips de limites -->
+            <ul class="plano-chips" aria-label="Limites do plano">
+              @for (chip of plano.chips; track chip.legenda) {
+                <li class="chip" [attr.title]="chip.legenda">
+                  <mat-icon>{{ chip.icone }}</mat-icon>
+                  <span>{{ chip.valor }}</span>
+                </li>
+              }
+            </ul>
+
+            <button
+              type="button"
+              class="expand-toggle"
+              [attr.aria-expanded]="expandido() === plano.id"
+              (click)="toggleExpand(plano.id, $event)">
+              <span>{{ expandido() === plano.id ? 'Ocultar detalhes' : 'Ver tudo que está incluso' }}</span>
+              <mat-icon>{{ expandido() === plano.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+
+            @if (expandido() === plano.id) {
+              <ul class="plano-features">
+                @for (f of plano.features; track f.label) {
+                  <li [class.destaque]="f.destaque">
+                    <mat-icon>{{ f.destaque ? 'star' : 'check_circle' }}</mat-icon>
+                    <span>{{ f.label }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+
+  <!-- Legenda dos chips -->
+  <div class="legenda" aria-label="Legenda dos ícones">
+    <span class="legenda-titulo">O que cada ícone significa:</span>
+    <ul>
+      @for (item of legenda; track item.legenda) {
+        <li>
+          <mat-icon>{{ item.icone }}</mat-icon>
+          <span>{{ item.legenda }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <!-- Botão Continuar (sticky no mobile) -->
+  <div class="cta-bar">
+    <button
+      type="button"
+      class="btn-primary cta-btn"
+      [disabled]="!podeContinuar() || enviando()"
+      (click)="continuar()">
+      @if (enviando()) {
+        <mat-icon class="spin">progress_activity</mat-icon>
+        Processando…
+      } @else {
+        <mat-icon>arrow_forward</mat-icon>
+        Continuar
+      }
+    </button>
+    @if (!podeContinuar() && selecionado() === planoAtual()) {
+      <p class="cta-hint">Selecione um plano diferente do atual para continuar.</p>
+    }
+  </div>
+
+</div>

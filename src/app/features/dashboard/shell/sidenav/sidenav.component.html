@@ -45,19 +45,24 @@
   </span>
 </nav>
 
-<!-- Configurações -->
+<!-- Conta -->
 <nav class="nav-section">
-  <div class="nav-section-label">Configurações</div>
+  <div class="nav-section-label">Conta</div>
+  <a class="nav-item" routerLink="/dashboard/perfil" routerLinkActive="active"
+     (click)="navegarItem()">
+    <mat-icon class="nav-icon">person</mat-icon>
+    <span>Perfil</span>
+  </a>
   <a class="nav-item" routerLink="/dashboard/configuracoes" routerLinkActive="active"
      (click)="navegarItem()">
     <mat-icon class="nav-icon">settings</mat-icon>
     <span>Config.</span>
   </a>
-  <span class="nav-item disabled">
+  <a class="nav-item" routerLink="/dashboard/relatorio" routerLinkActive="active"
+     (click)="navegarItem()">
     <mat-icon class="nav-icon">bar_chart</mat-icon>
     <span>Relatório</span>
-    <span class="em-breve-badge">Em breve</span>
-  </span>
+  </a>
 </nav>
 
 <!-- Footer -->

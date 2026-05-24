@@ -14,6 +14,8 @@
       <span class="pending-count">{{ pendentesCount() }}</span>
     </div>
 
+    <app-notificacoes-bell />
+
     <button mat-icon-button class="avatar-btn" [matMenuTriggerFor]="menuPerfil"
             aria-label="Menu da conta">
       @if (user()?.foto_url) {
@@ -24,9 +26,8 @@
     </button>
 
     <mat-menu #menuPerfil="matMenu" xPosition="before" class="menu-perfil">
-      <!-- Cabeçalho clicável → vai pra aba Perfil -->
-      <button mat-menu-item routerLink="/dashboard/configuracoes"
-              [queryParams]="{ aba: 'perfil' }" class="menu-header-btn">
+      <!-- Cabeçalho clicável → vai pra página Meu Perfil -->
+      <button mat-menu-item routerLink="/dashboard/perfil" class="menu-header-btn">
         @if (user()?.foto_url) {
           <img [src]="user()!.foto_url" [alt]="user()!.nome" class="menu-avatar">
         } @else {
