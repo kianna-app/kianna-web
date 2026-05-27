@@ -12,6 +12,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AuthService } from '@core/auth/auth.service';
 import { APP } from '@core/constants/app.constants';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
+import { KiannaValidators } from '@core/validators/form.validators';
+import { limparWhatsApp } from '@core/utils/whatsapp.util';
 
 function senhasIguaisValidator(control: AbstractControl) {
   const senha    = control.get('senha');
@@ -48,6 +50,7 @@ export class CadastroComponent {
   form = this.fb.group({
     nome:           ['', [Validators.required, Validators.minLength(3)]],
     email:          ['', [Validators.required, Validators.email]],
+    whatsapp:       ['', KiannaValidators.whatsapp()],
     senha:          ['', [Validators.required, Validators.minLength(8)]],
     confirmarSenha: ['', Validators.required],
     termos:         [false, Validators.requiredTrue],
@@ -63,6 +66,7 @@ export class CadastroComponent {
         this.form.value.senha!,
         this.form.value.nome!,
         { aceitos_em: new Date().toISOString(), versao: '1.0' },
+        limparWhatsApp(this.form.value.whatsapp!),
       );
       await this.auth.signIn(this.form.value.email!, this.form.value.senha!);
       await new Promise(r => setTimeout(r, 250));

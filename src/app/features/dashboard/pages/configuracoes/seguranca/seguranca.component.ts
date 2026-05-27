@@ -36,9 +36,10 @@ import { supabase } from '@core/supabase/supabase.client';
               <mat-icon matPrefix class="field-icon">lock_outline</mat-icon>
               <input matInput formControlName="senha" type="password"
                      autocomplete="new-password"
-                     placeholder="Mínimo 8 caracteres">
+                     placeholder="Mínimo 8 caracteres"
+                     [attr.aria-describedby]="form.get('senha')?.invalid && form.get('senha')?.touched ? 'err-senha' : null">
               @if (form.get('senha')?.hasError('minlength') && form.get('senha')?.touched) {
-                <mat-error>Mínimo de 8 caracteres</mat-error>
+                <mat-error id="err-senha">Mínimo de 8 caracteres</mat-error>
               }
             </mat-form-field>
 
@@ -47,11 +48,12 @@ import { supabase } from '@core/supabase/supabase.client';
               <mat-icon matPrefix class="field-icon">lock_outline</mat-icon>
               <input matInput formControlName="confirmar" type="password"
                      autocomplete="new-password"
-                     placeholder="Repita a nova senha">
-              @if (form.hasError('naoCoincidem') && form.get('confirmar')?.touched) {
-                <mat-error>As senhas não coincidem</mat-error>
-              }
+                     placeholder="Repita a nova senha"
+                     [attr.aria-describedby]="form.hasError('naoCoincidem') && form.get('confirmar')?.touched ? 'err-confirmar' : null">
             </mat-form-field>
+            @if (form.hasError('naoCoincidem') && form.get('confirmar')?.touched) {
+              <p class="campo-erro" id="err-confirmar" role="alert">As senhas não coincidem</p>
+            }
 
             <div class="senha-actions">
               <app-loading-button
@@ -121,6 +123,12 @@ import { supabase } from '@core/supabase/supabase.client';
       color: #94A3B8;
       margin-right: 4px;
     }
+    .campo-erro {
+      color: #B91C1C;
+      font-size: 12px;
+      margin: -8px 0 4px 16px;
+      line-height: 1.4;
+    }
     .senha-actions {
       display: flex;
       justify-content: flex-end;
@@ -151,12 +159,34 @@ export class SegurancaComponent {
     try {
       const { error } = await supabase.auth.updateUser({ password: this.form.value.senha! });
       if (error) throw error;
-      this.snack.open('Senha atualizada com sucesso', 'OK', { duration: 2000 });
       this.form.reset();
+      this.form.markAsPristine();
+      this.form.markAsUntouched();
+      this.snack.open('Senha atualizada com sucesso!', 'OK', { duration: 3000 });
     } catch (e: unknown) {
-      this.snack.open(e instanceof Error ? e.message : 'Erro ao atualizar senha', 'OK', { duration: 3000 });
+      const msg = e instanceof Error ? e.message : '';
+      this.snack.open(this.traduzirErroAuth(msg), 'OK', { duration: 4000 });
     } finally {
       this.salvando.set(false);
     }
+  }
+
+  private traduzirErroAuth(msg: string): string {
+    if (msg.toLowerCase().includes('new password should be different')) {
+      return 'A nova senha deve ser diferente da senha atual.';
+    }
+    if (msg.toLowerCase().includes('password should be at least')) {
+      return 'A senha deve ter no mínimo 6 caracteres.';
+    }
+    if (msg.toLowerCase().includes('weak password')) {
+      return 'Senha muito fraca. Use letras, números e símbolos.';
+    }
+    if (msg.toLowerCase().includes('session') || msg.toLowerCase().includes('not authenticated')) {
+      return 'Sessão expirada. Faça login novamente.';
+    }
+    if (msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many')) {
+      return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+    }
+    return 'Erro ao atualizar senha. Tente novamente.';
   }
 }

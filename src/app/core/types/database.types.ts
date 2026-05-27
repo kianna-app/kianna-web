@@ -1,4 +1,4 @@
-export type Plano       = 'gratis' | 'pro' | 'studio';
+export type Plano       = 'gratis' | 'essencial' | 'pro' | 'studio';
 export type StatusAgend = 'pendente' | 'confirmado' | 'recusado' | 'cancelado' | 'reagendado' | 'finalizado' | 'nao_compareceu';
 export type DiaSemana   = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type WppStatus   = 'desconectado' | 'conectando' | 'conectado' | 'erro';

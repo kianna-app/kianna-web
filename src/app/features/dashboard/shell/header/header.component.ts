@@ -10,6 +10,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { currentUser } from '@core/signals/app.signals';
 import { BreakpointService } from '@core/services/breakpoint.service';
 import { AgendamentosStore } from '@features/dashboard/state/agendamentos.store';
+import { planoLabel } from '@core/data/planos.catalog';
 import { NotificacoesBellComponent } from '../notificacoes-bell/notificacoes-bell.component';
 
 @Component({
@@ -37,12 +38,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return nome.split(' ').slice(0, 2).map(n => n[0]?.toUpperCase()).join('');
   });
 
-  readonly planoBadge = computed(() => {
-    const plano = this.user()?.plano;
-    if (plano === 'pro')    return 'Pro';
-    if (plano === 'studio') return 'Studio';
-    return 'Gratuito';
-  });
+  readonly planoBadge = computed(() => planoLabel(this.user()?.plano));
 
   ngOnInit(): void {
     const profId = this.user()?.id;

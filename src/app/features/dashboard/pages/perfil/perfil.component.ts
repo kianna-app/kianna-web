@@ -14,60 +14,16 @@ import { AuthService } from '@core/auth/auth.service';
 import { ProfissionaisRepository } from '@core/repositories/profissionais.repository';
 import { APP } from '@core/constants/app.constants';
 import { AppUser } from '@core/signals/app.signals';
+import { Plano } from '@core/types/database.types';
+import {
+  PlanoCatalogo,
+  planoCatalogo,
+  proximoPlanoId,
+} from '@core/data/planos.catalog';
 import {
   ExcluirContaDialogComponent,
   ExcluirContaDialogData,
 } from './excluir-conta-dialog.component';
-
-type Plano = 'gratis' | 'pro' | 'studio';
-
-interface PlanoInfo {
-  label: string;
-  preco: string;
-  destaque: string;
-  beneficios: string[];
-}
-
-const PLANOS: Record<Plano, PlanoInfo> = {
-  gratis: {
-    label: 'Essencial',
-    preco: 'Gratuito',
-    destaque: 'Agenda, link público e clientes ilimitados',
-    beneficios: [
-      'Agenda completa',
-      'Link público de agendamento',
-      'Até [[N]] serviços cadastrados',
-    ],
-  },
-  pro: {
-    label: 'Pro',
-    preco: '[[ R$ XX/mês ]]',
-    destaque: 'WhatsApp completo: lembretes e confirmações automáticas',
-    beneficios: [
-      'Tudo do Essencial',
-      'WhatsApp integrado (Z-API)',
-      'Lembretes e confirmação automática de presença',
-      'Serviços ilimitados',
-    ],
-  },
-  studio: {
-    label: 'Studio',
-    preco: '[[ R$ XX/mês ]]',
-    destaque: 'Relatórios avançados e múltiplos atendentes',
-    beneficios: [
-      'Tudo do Pro',
-      'Relatórios avançados',
-      '[[ Múltiplos atendentes ]]',
-      '[[ Suporte prioritário ]]',
-    ],
-  },
-};
-
-const PROXIMO_PLANO: Record<Plano, Plano | null> = {
-  gratis: 'pro',
-  pro: 'studio',
-  studio: null,
-};
 
 @Component({
   selector: 'app-perfil',
@@ -91,11 +47,13 @@ export class PerfilComponent implements OnInit {
   readonly carregando = signal(false);
   readonly excluindo  = signal(false);
 
-  readonly planoAtual = computed<PlanoInfo>(() => PLANOS[this.user()?.plano ?? 'gratis']);
+  readonly planoAtual = computed<PlanoCatalogo>(
+    () => planoCatalogo(this.user()?.plano ?? 'gratis'),
+  );
 
-  readonly proximoPlano = computed<PlanoInfo | null>(() => {
-    const prox = PROXIMO_PLANO[this.user()?.plano ?? 'gratis'];
-    return prox ? PLANOS[prox] : null;
+  readonly proximoPlano = computed<PlanoCatalogo | null>(() => {
+    const prox: Plano | null = proximoPlanoId(this.user()?.plano ?? 'gratis');
+    return prox ? planoCatalogo(prox) : null;
   });
 
   readonly noPlanoMaximo = computed(() => this.proximoPlano() === null);

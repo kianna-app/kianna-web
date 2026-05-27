@@ -5,7 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '@core/services/api.service';
-import { WppStatus } from '@core/types/database.types';
+import { Plano, WppStatus } from '@core/types/database.types';
+import { planoLabel } from '@core/data/planos.catalog';
 import {
   EditCredentialsDialogComponent,
   EditCredentialsDialogData,
@@ -19,6 +20,11 @@ import {
   ConfirmDestrutivoDialogComponent,
   ConfirmDestrutivoData,
 } from './confirm-destrutivo-dialog.component';
+import {
+  AlterarPlanoDialogComponent,
+  AlterarPlanoDialogData,
+  AlterarPlanoResult,
+} from './alterar-plano-dialog.component';
 
 interface ProfissionalAdmin {
   id: string;
@@ -27,6 +33,7 @@ interface ProfissionalAdmin {
   whatsapp: string;
   foto_url: string | null;
   bio: string | null;
+  plano: Plano;
   wpp_instance_id: string | null;
   wpp_status: WppStatus;
   tem_token: boolean;
@@ -139,6 +146,31 @@ export class AdminPanelComponent implements OnInit {
     });
     const salvo = await ref.afterClosed().toPromise();
     if (salvo) await this.carregar();
+  }
+
+  planoLabel(plano: Plano): string {
+    return planoLabel(plano);
+  }
+
+  async alterarPlano(prof: ProfissionalAdmin): Promise<void> {
+    this.fecharMenu();
+    const data: AlterarPlanoDialogData = {
+      id: prof.id,
+      nome: prof.nome,
+      planoAtual: prof.plano,
+    };
+    const ref = this.dialog.open<
+      AlterarPlanoDialogComponent,
+      AlterarPlanoDialogData,
+      AlterarPlanoResult | null
+    >(AlterarPlanoDialogComponent, {
+      data,
+      panelClass: 'ios-dialog-panel',
+      maxWidth: '95vw',
+      autoFocus: false,
+    });
+    const res = await ref.afterClosed().toPromise();
+    if (res) await this.carregar();
   }
 
   async editarCredenciais(prof: ProfissionalAdmin): Promise<void> {

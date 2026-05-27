@@ -24,7 +24,30 @@
     </div>
   </div>
 
-  <!-- ── Card 2: Descrição ──────────────────────────────────── -->
+  <!-- ── Card 2: WhatsApp ──────────────────────────────────── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="cfg-card-icon icon-green">
+        <mat-icon>smartphone</mat-icon>
+      </div>
+      <div>
+        <h3 class="cfg-card-titulo">WhatsApp</h3>
+        <p class="cfg-card-desc">Número que seus clientes usam para falar com você</p>
+      </div>
+    </div>
+    <div class="cfg-card-body">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>WhatsApp (com DDD)</mat-label>
+        <mat-icon matPrefix>phone</mat-icon>
+        <input matInput formControlName="whatsapp" type="tel" autocomplete="tel"
+               placeholder="(44) 99999-9999">
+        <mat-hint>Pode digitar com ou sem parênteses</mat-hint>
+        <app-field-error [control]="form.controls.whatsapp" />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- ── Card 3: Descrição ──────────────────────────────────── -->
   <div class="cfg-card">
     <div class="cfg-card-head">
       <div class="cfg-card-icon icon-violet">
@@ -48,7 +71,7 @@
     </div>
   </div>
 
-  <!-- ── Card 3: Logo ───────────────────────────────────────── -->
+  <!-- ── Card 4: Logo ───────────────────────────────────────── -->
   <div class="cfg-card">
     <div class="cfg-card-head">
       <div class="cfg-card-icon icon-amber">
@@ -102,7 +125,7 @@
     </div>
   </div>
 
-  <!-- ── Card 4: Link da página ─────────────────────────────── -->
+  <!-- ── Card 5: Link da página ─────────────────────────────── -->
   <div class="cfg-card">
     <div class="cfg-card-head">
       <div class="cfg-card-icon icon-green">
@@ -128,7 +151,7 @@
     </div>
   </div>
 
-  <!-- ── Card 5: Política de cancelamento ───────────────────── -->
+  <!-- ── Card 6: Política de cancelamento ───────────────────── -->
   <div class="cfg-card">
     <div class="cfg-card-head">
       <div class="cfg-card-icon icon-slate">
@@ -148,7 +171,7 @@
     </div>
   </div>
 
-  <!-- ── Card 6: Antecedência para agendamentos ──────────────── -->
+  <!-- ── Card 7: Antecedência para agendamentos ──────────────── -->
   <div class="cfg-card">
     <div class="cfg-card-head">
       <div class="cfg-card-icon icon-amber">

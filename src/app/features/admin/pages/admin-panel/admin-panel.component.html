@@ -61,6 +61,9 @@
               </div>
 
               <div class="prof-meta">
+                <span class="pill pill--plano" [attr.data-plano]="p.plano">
+                  {{ planoLabel(p.plano) }}
+                </span>
                 <span [class]="statusClass(p.wpp_status)">
                   {{ statusLabel(p.wpp_status) }}
                 </span>
@@ -79,6 +82,7 @@
                 @if (menuAberto() === p.id) {
                   <div class="menu" role="menu">
                     <button class="menu-item" (click)="editarPerfil(p)">Editar perfil</button>
+                    <button class="menu-item" (click)="alterarPlano(p)">Alterar plano</button>
                     <button class="menu-item" (click)="editarCredenciais(p)">Credenciais Z-API</button>
                     <div class="menu-sep"></div>
                     <button class="menu-item menu-item--destructive" (click)="arquivar(p)">

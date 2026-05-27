@@ -36,7 +36,20 @@
         @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
           <mat-error>E-mail é obrigatório</mat-error>
         } @else if (form.get('email')?.hasError('email')) {
-          <mat-error>Digite um e-mail válido</mat-error>
+          <mat-error>E-mail inválido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>WhatsApp</mat-label>
+        <input matInput formControlName="whatsapp" type="tel"
+               placeholder="(11) 99999-9999" autocomplete="tel">
+        <mat-icon matPrefix>phone_iphone</mat-icon>
+        <mat-hint>DDD + número (usado para notificações de agendamento)</mat-hint>
+        @if (form.get('whatsapp')?.hasError('required') && form.get('whatsapp')?.touched) {
+          <mat-error>WhatsApp é obrigatório</mat-error>
+        } @else if (form.get('whatsapp')?.hasError('wppInvalido') && form.get('whatsapp')?.touched) {
+          <mat-error>WhatsApp inválido. Informe DDD + número (10 ou 11 dígitos)</mat-error>
         }
       </mat-form-field>
 

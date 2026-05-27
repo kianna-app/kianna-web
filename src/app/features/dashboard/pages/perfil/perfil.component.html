@@ -52,10 +52,10 @@
           <div class="plano-header-left">
             <span class="info-label">Plano atual</span>
             <h3 class="plano-nome">
-              {{ planoAtual().label }}
-              <span class="plano-badge" [attr.data-plano]="u.plano">{{ planoAtual().preco }}</span>
+              {{ planoAtual().nome }}
+              <span class="plano-badge" [attr.data-plano]="u.plano">{{ planoAtual().precoLabel }}</span>
             </h3>
-            <p class="plano-destaque">{{ planoAtual().destaque }}</p>
+            <p class="plano-destaque">{{ planoAtual().destaque ?? planoAtual().resumo }}</p>
           </div>
         </div>
 
@@ -72,20 +72,20 @@
           <div class="upsell">
             <div class="upsell-header">
               <span class="upsell-tag">Faça upgrade para</span>
-              <h4>{{ prox.label }}</h4>
+              <h4>{{ prox.nome }} <span class="upsell-preco">{{ prox.precoLabel }}</span></h4>
             </div>
 
             <div class="upsell-destaque">
               <mat-icon>chat</mat-icon>
               <div>
-                <strong>{{ prox.destaque }}</strong>
-                <span class="upsell-perdendo">Você está perdendo isso no plano {{ planoAtual().label }}.</span>
+                <strong>{{ prox.destaque ?? prox.resumo }}</strong>
+                <span class="upsell-perdendo">Você está perdendo isso no plano {{ planoAtual().nome }}.</span>
               </div>
             </div>
 
             <ul class="upsell-benefits">
-              @for (b of prox.beneficios; track b) {
-                <li><mat-icon>check_circle</mat-icon> {{ b }}</li>
+              @for (f of prox.features; track f.label) {
+                <li><mat-icon>check_circle</mat-icon> {{ f.label }}</li>
               }
             </ul>
 

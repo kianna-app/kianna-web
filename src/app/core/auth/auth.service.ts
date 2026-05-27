@@ -58,15 +58,20 @@ export class AuthService {
     senha: string,
     nome: string,
     termosAceitos?: { aceitos_em: string; versao: string },
+    whatsapp?: string,
   ): Promise<void> {
     // TODO: persistir o aceite também na tabela `profissionais` (campo termos_aceitos_em + termos_versao)
     //       para dar valor probatório conforme LGPD. Por ora fica em user_metadata do Supabase.
+    // TODO: verificar se a verificação de e-mail (double opt-in) do Supabase está habilitada no dashboard
+    //       (Authentication → Settings → Enable email confirmations). Se ativada, remover o signIn
+    //       automático abaixo e exibir tela "Verifique seu e-mail antes de continuar".
     const { error } = await supabase.auth.signUp({
       email,
       password: senha,
       options: {
         data: {
           nome,
+          ...(whatsapp && { whatsapp }),
           ...(termosAceitos && {
             termos_aceitos_em: termosAceitos.aceitos_em,
             termos_versao: termosAceitos.versao,

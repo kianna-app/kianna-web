@@ -14,6 +14,7 @@ import { KiannaValidators } from '@core/validators/form.validators';
 import { supabase } from '@core/supabase/supabase.client';
 import { currentUser, AppUser } from '@core/signals/app.signals';
 import { gerarSlug } from '@core/utils/slug.util';
+import { limparWhatsApp } from '@core/utils/whatsapp.util';
 import { ANTECEDENCIA_MINIMA_OPTIONS, ANTECEDENCIA_MAXIMA_OPTIONS } from '@core/constants/app.constants';
 import { differenceInDays, addDays } from 'date-fns';
 
@@ -43,6 +44,7 @@ export class EmpresaComponent implements OnInit {
 
   form = this.fb.group({
     nome:                      ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
+    whatsapp:                  ['', KiannaValidators.whatsapp()],
     bio:                       ['', Validators.maxLength(200)],
     slug:                      ['', KiannaValidators.slug()],
     politica_cancelamento:     [''],
@@ -75,6 +77,7 @@ export class EmpresaComponent implements OnInit {
     if (!u) return;
     this.form.patchValue({
       nome:                      u.nome,
+      whatsapp:                  u.whatsapp ?? '',
       bio:                       u.bio ?? '',
       slug:                      u.slug,
       politica_cancelamento:     u.politica_cancelamento ?? '',
@@ -214,6 +217,7 @@ export class EmpresaComponent implements OnInit {
 
       const updates: Record<string, unknown> = {
         nome:                      v.nome,
+        whatsapp:                  limparWhatsApp(v.whatsapp ?? ''),
         bio:                       v.bio || null,
         politica_cancelamento:     v.politica_cancelamento || null,
         antecedencia_minima_horas: v.antecedencia_minima_horas ?? 24,

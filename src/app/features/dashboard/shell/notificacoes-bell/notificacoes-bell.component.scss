@@ -21,17 +21,20 @@
   right: 4px;
   min-width: 18px;
   height: 18px;
-  padding: 0 5px;
-  border-radius: 99px;
+  padding: 0 4px;
+  border-radius: 9px;
   background: #e11d48;
   color: #fff;
   font-size: 10px;
   font-weight: 700;
-  line-height: 18px;
-  text-align: center;
-  border: 2px solid #fff;
-  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #fff;
+  box-sizing: border-box;
   pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
