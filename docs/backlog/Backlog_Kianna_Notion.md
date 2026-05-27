@@ -128,22 +128,6 @@
 
 **Como fazer:** Migration + service que registra eventos.
 
----
-
-## 🟢 Roadmap MVP
-
-### Módulo 3 — Página pública de agendamento
-
-- **Status:** Backlog
-- **Prioridade:** Alta
-- **Estimativa:** Semana inteira
-- **Gatilho:** Próximo módulo a desenvolver
-- **Módulo:** Módulo 3
-- **Rota:** /:slug (público)
-
-**Descrição:** Rota pública /p/:slug com SSR. Cliente final escolhe serviço, horário e informa dados. Sem necessidade de criar conta.
-
-**Como fazer:** Task card detalhado a ser gerado quando avançar.
 
 ---
 
@@ -160,22 +144,6 @@
 
 **Como fazer:** Dividir em sub-módulos 4a, 4b, 4c. Testar cada um isoladamente antes de produção.
 
----
-
-### Módulo 5 — Clientes, relatório e configurações
-
-- **Status:** Backlog
-- **Prioridade:** Média
-- **Estimativa:** Semana inteira
-- **Gatilho:** Após Módulo 4
-- **Módulo:** Módulo 5
-- **Rota:** /dashboard/clientes, /relatorio, /configuracoes
-
-**Descrição:** Lista de clientes com histórico, relatório mensal, configurações da conta (perfil, plano, exclusão).
-
-**Como fazer:** Task card a ser gerado.
-
----
 
 ### Módulo 6 — Cobrança Stripe + Pix
 
@@ -192,22 +160,6 @@
 
 ---
 
-## 🔵 Infraestrutura
-
-### Deploy de produção
-
-- **Status:** Backlog
-- **Prioridade:** Alta
-- **Estimativa:** 4-8h
-- **Gatilho:** Antes de qualquer cliente real
-- **Módulo:** -
-- **Rota:** Infra
-
-**Descrição:** Hospedagem Angular (Vercel/Railway/Cloudflare Pages), NestJS (Railway/Render). Subdomínios: kianna.com.br, painel.*, agendar.*, api.*
-
-**Como fazer:** Configurar DNS + variáveis de ambiente + CI/CD via GitHub Actions.
-
----
 
 ### Backups automáticos do Supabase
 
@@ -348,50 +300,7 @@
 
 ---
 
-### Bloqueio de horários (folgas, feriados)
 
-- **Status:** Backlog
-- **Prioridade:** Média
-- **Estimativa:** 4-6h
-- **Gatilho:** Após MVP
-- **Módulo:** -
-- **Rota:** /dashboard/horarios
-
-**Descrição:** Profissional bloqueia horários onde não atende. Tabela bloqueios + UI no Módulo 2.
-
-**Como fazer:** Adicionar tabela bloqueios + interface de gestão.
-
----
-
-### Pagamento antecipado (sinal)
-
-- **Status:** Backlog
-- **Prioridade:** Média
-- **Estimativa:** 2-3 dias
-- **Gatilho:** Após MVP estável
-- **Módulo:** -
-- **Rota:** Página pública
-
-**Descrição:** Cliente paga 30% no agendamento pra reduzir no-show. Stripe ou Mercado Pago.
-
-**Como fazer:** Integração + UX cuidadosa pro cliente final.
-
----
-
-### Lista de espera
-
-- **Status:** Backlog
-- **Prioridade:** Baixa
-- **Estimativa:** 1 dia
-- **Gatilho:** Quando profissionais reclamarem de horários cheios
-- **Módulo:** -
-- **Rota:** Página pública
-
-**Descrição:** Cliente entra na lista quando horário está cheio. Sistema avisa se vagar.
-
-**Como fazer:** Tabela waitlist + lógica de notificação.
-
----
 
 ### Multi-localidade (estúdios com 2+ unidades)
 
@@ -436,24 +345,14 @@
 
 **Como fazer:** Trigger pós-agendamento + página de avaliação pública + dashboard.
 
----
 
-## 🏛️ Legal/Admin
 
-### Comprar domínios kianna.com.br + kianna.app
 
-- **Status:** Backlog
-- **Prioridade:** URGENTE
-- **Estimativa:** 15min
-- **Gatilho:** AGORA
-- **Módulo:** -
-- **Rota:** -
 
-**Descrição:** Não esperar. R$ 40-130 por ano cada. Risco de alguém pegar antes é real.
 
-**Como fazer:** Registro.br ou hospedagem.
 
----
+
+
 
 ### Depositar marca Kianna no INPI
 

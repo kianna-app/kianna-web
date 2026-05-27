@@ -1,31 +1,6 @@
 
 Adicionar no SideBar um link par Perfil.
-> Em Perfil:
-  - Mostrar o email, não está visível.
-  - Destacar o tipo de Plano utilizado.
-  - Adicionar um botão para editar o perfil.
-  - Adicionar um botão para alterar a senha.
-  - Adicionar um botão para excluir a conta.
-  - Adicionar um botão para fazer o logout.
-  - Destacar o link público. (Copiar link) (LGPD)
-  - Card destacando o plano atual comparando com o plano superior, salientar o que o ciente esté perdendo.
 
->  Criar Página de Upgrade do Plano
-  - Use a imagem de referencia.
-  - Card expansíveis com os itens que contempla o plano selecionado.
-  - Deixar tudo pronto para a sincronização futura com uma plataforma de pagamento  
-
-> Página de Notificações
-  - Criar uma página de notificações no qual eu Admin, possa cadastrar uma notificação eu aparecer no Dash de todos os profissionais.
-  - A notificação deve ter um título e um corpo de texto. 
-  - O Admin deve poder escolher para quais profissionais enviar a notificação.
-  - O profissional deve poder marcar a notificação como lida.
-  - O profissional deve poder ver as notificações no Dash.
-  - O Admin deve poder ver o status de leitura das notificações.
-  - O Admin deve poder excluir notificações.
-  - O Admin deve poder editar notificações.
-  - O Admin deve poder criar notificações agendadas.
-  - O Admin deve poder ver um histórico de notificações enviadas.
 
 
 > Página de Relatório
@@ -111,67 +86,66 @@ Observações:
 
 
 
+** MELHORAR TELAS DE CADASTRO
+
+
+
+** Melhorar visão de listagem Serviços
+
+
+
+https://cursoclaw.com.br/curso.html#apresentacao
+
+Verificar
+
+https://iaexperts.thalena.com.br/?utm_source=organico&utm_medium=youtube&utm_campaign=videos&utm_term=descricao&utm_content=video51]
+https://doc.evolution-api.com/v2/pt/install/docker
+
+https://www.hostgator.com.br/servidor-vps/hospedagem-n8n
+https://agendazap.app/dashboard/settings/whatsapp
+https://waha.devlike.pro/
+https://app.z-api.io/
+
+
+https://www.youtube.com/watch?v=Q9ntiwwLZCI&t=983s
+https://www.youtube.com/watch?v=Ka7gPS1COcQ
 
 
 
 
-Já que meu perfil é de admin, não deveria ter limites de cadastro de serviços.
-
-Alterei o nome da organização, quanto tempo para o slug estar disponível?
-  Não alterou o link do dashboard.
-
-Bloqueio
-  Se o profissional lançar um bloqueio dia 19 das 10:00 as 12:00, na página púlica deve fica impedidos de ser lançados os horários entre 10:00 e 12:00. Ou seja, 10,11 e 12 não devem aparecer disponíveis.
 
 
 
 
-Sem ZAPI_CLIENT_TOKEN configurado / sem profissional com Instance ID
-Fluxo	Comportamento
-Criar/confirmar/recusar/cancelar/reagendar agendamento	Funciona normal. Notificação é tentada em background com .catch — getWppConfig retorna null silenciosamente (log debug), HTTP response não bloqueia.
-Cron de lembretes (a cada 15min)	Roda, busca profissionais com wpp_status='conectado', encontra zero, loga e termina.
-POST /api/whatsapp/qr-code	Retorna 400 BadRequest com mensagem clara ("Configure o Instance ID e o Token…") — esperado.
-Webhook /api/webhooks/zapi	Ninguém chama, fica ocioso.
-Banner "Conecte seu WhatsApp"	Aparece (já que wpp_status='desconectado' é o default).
-Heads-up para o deploy
-Backend (Railway) — variáveis novas:
+---
 
-ZAPI_BASE_URL (opcional, default https://api.z-api.io)
-ZAPI_CLIENT_TOKEN (opcional agora; obrigatório ao usar Z-API de verdade)
-APP_URL (opcional, default https://www.kianna.com.br)
-ZAPI_WEBHOOK_TOKEN (já existia — mantido)
-Frontend (Vercel) — nada novo. Os endpoints /api/whatsapp/* apontam para o backend via environment.apiUrl que já existe.
+### Módulo 6 — Cobrança Stripe + Pix
 
-Supabase — você já rodou o SQL da PR1, então está pronto.
+- **Status:** Backlog
+- **Prioridade:** Alta
+- **Estimativa:** Semana inteira
+- **Gatilho:** Após Módulo 5
+- **Módulo:** Módulo 6
+- **Rota:** /dashboard/configuracoes/plano
 
-Riscos de subir agora
-Nenhum dos fluxos atuais quebra se Z-API não existir — todos têm guard de null/.catch. O único "barulho" será logs warn se o webhook receber algo (mas sem ZAPI_WEBHOOK_TOKEN o webhook nem aceita).
+**Descrição:** Integração Stripe com Pix. Upgrade Grátis → Pro → Studio. Gestão de assinatura. Webhooks de pagamento.
 
-Pode subir tranquilo. Depois é só:
+**Como fazer:** Task card a ser gerado. Cuidado especial com webhooks e estados de assinatura.
 
-Criar conta em z-api.io
-Criar uma instância (por profissional)
-Settar ZAPI_CLIENT_TOKEN no Railway
-Configurar webhook na Z-API apontando para https://kianna-api-production.up.railway.app/api/webhooks/zapi com header x-zapi-token: <ZAPI_WEBHOOK_TOKEN>
-Profissional cola Instance ID/Token nas configurações e clica "Conectar"
+---
 
 
+### Backups automáticos do Supabase
 
-Tudo pushado. Resumo:
+- **Status:** Backlog
+- **Prioridade:** Alta
+- **Estimativa:** 2-3h
+- **Gatilho:** Antes de qualquer cliente real
+- **Módulo:** -
+- **Rota:** Infra
 
-Repo	Commit	Push
-kianna-api	400303a feat(modulo4): integração WhatsApp Z-API completa	✅ main
-kianna-web	ebb3643 feat(modulo4): aba WhatsApp, dialog QR Code e banner de conexão	✅ main
-Railway e Vercel devem disparar deploy automático a partir do push.
+**Descrição:** CRÍTICO: Sem backup, perda de dados = morte do produto. Plano grátis Supabase tem backup limitado (7 dias, não baixável).
 
-Lembrete para amanhã (Z-API)
-Criar conta em z-api.io → anotar Client-Token da conta
+**Como fazer:** Plano Pro Supabase (US$25/mês) OU cron job semanal exportando pra storage externo.
 
-Criar 1 instância por profissional → cada um pega Instance ID e Token no painel
-
-No Railway: setar ZAPI_CLIENT_TOKEN=<token-da-conta> (e opcionalmente APP_URL se quiser sobrescrever default)
-
-Na Z-API → Webhooks da instância → URL: https://kianna-api-production.up.railway.app/api/webhooks/zapi + header 
-x-zapi-token: <ZAPI_WEBHOOK_TOKEN>
-
-No app: profissional cola Instance ID + Token na aba Configurações → WhatsApp → Salvar → Conectar (QR aparece, escaneia, banner some, status fica verde)
+---

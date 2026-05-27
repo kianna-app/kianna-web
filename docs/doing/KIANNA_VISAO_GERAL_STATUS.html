@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kianna — Visão Geral de Status</title>
+<style>
+  :root{
+    --bg:#faf9f5; --surface:#ffffff; --surface2:#f1efe8;
+    --text:#2c2c2a; --muted:#5f5e5a; --hint:#888780;
+    --border:rgba(0,0,0,.12);
+    --green:#1D9E75; --lime:#639922; --amber:#BA7517; --red:#E24B4A; --blue:#185FA5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:820px; margin:0 auto; padding:48px 24px 80px;}
+  header{margin-bottom:8px;}
+  h1{font-size:26px; font-weight:600; margin:0 0 4px;}
+  .sub{color:var(--muted); font-size:15px; margin:0 0 4px;}
+  .date{color:var(--hint); font-size:13px;}
+  h2{font-size:19px; font-weight:600; margin:40px 0 14px; padding-top:24px; border-top:1px solid var(--border);}
+  h2:first-of-type{border-top:none; padding-top:0;}
+  p{margin:0 0 14px;}
+  .lead{font-size:15px;}
+  strong{font-weight:600;}
+  code{background:var(--surface2); padding:1px 6px; border-radius:5px; font-size:.9em; font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+
+  .metrics{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:22px 0 8px;}
+  .metric{background:var(--surface2); border-radius:10px; padding:14px 16px;}
+  .metric .lbl{font-size:12px; color:var(--muted); margin-bottom:4px;}
+  .metric .val{font-size:24px; font-weight:600;}
+  @media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr);}}
+
+  .bars{margin:10px 0 18px;}
+  .bar-row{margin-bottom:12px;}
+  .bar-top{display:flex; justify-content:space-between; align-items:baseline; font-size:13px; margin-bottom:4px; gap:12px;}
+  .bar-name{color:var(--text);}
+  .bar-note{color:var(--hint); font-size:12px;}
+  .bar-pct{color:var(--muted); font-weight:600; white-space:nowrap;}
+  .track{background:var(--surface2); border-radius:5px; height:9px; overflow:hidden;}
+  .fill{height:100%; border-radius:5px;}
+
+  .legend{display:flex; flex-wrap:wrap; gap:18px; margin-top:14px; font-size:12px; color:var(--muted);}
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block;}
+
+  .risk{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:14px;}
+  .risk h3{margin:0 0 6px; font-size:15px; font-weight:600; display:flex; align-items:center; gap:8px;}
+  .risk .tag{font-size:11px; font-weight:600; padding:2px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:.03em;}
+  .tag-red{background:#FCEBEB; color:#A32D2D;}
+  .tag-amber{background:#FAEEDA; color:#854F0B;}
+  .risk p{margin:0; font-size:14px; color:var(--muted);}
+
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:8px 0 0;}
+  ol.steps li{position:relative; padding:10px 0 10px 44px; border-bottom:1px solid var(--border);}
+  ol.steps li:last-child{border-bottom:none;}
+  ol.steps li::before{
+    counter-increment:s; content:counter(s);
+    position:absolute; left:0; top:9px;
+    width:28px; height:28px; border-radius:50%;
+    background:var(--blue); color:#fff; font-size:14px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+  }
+  ol.steps strong{display:block; font-size:15px;}
+  ol.steps .d{font-size:13px; color:var(--muted);}
+
+  .note{background:var(--surface2); border-radius:10px; padding:14px 16px; font-size:13px; color:var(--muted); margin-top:24px;}
+  footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--border); font-size:12px; color:var(--hint);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Kianna — Visão Geral de Status</h1>
+  <p class="sub">Consolidação do estado do projeto, riscos e próximos passos</p>
+  <p class="date">Gerado em 25/05/2026 · sucessor do resumo V3 (21/05/2026)</p>
+</header>
+
+<h2>Onde o Kianna está hoje</h2>
+<p class="lead">O backend NestJS está bastante completo no nível de código. O coração do produto — agendamento público, fluxo de aprovação pelo profissional, notificações WhatsApp em ambas as direções, e webhook processando respostas dos clientes — está implementado e, ao menos no caminho principal, já foi testado end-to-end na sessão da Z-API.</p>
+<p>Em cima disso, a leva recente de sessões adicionou: painel admin com CRUD de profissionais, perfil do profissional, página de upgrade, notificações internas admin&rarr;profissional, relatório, as páginas e mecanismos de LGPD, e a refatoração <code>WhatsappProvider</code> que abstrai a Z-API.</p>
+<p>A decisão estratégica de WhatsApp amadureceu: foram mapeados três caminhos (Z-API atual, 360dialog Partner Platform, Infobip). O gatilho de migração para um BSP oficial ficou concreto — em torno de <strong>15-20 profissionais pagantes</strong>, não os 30+ que se estimava. A refatoração <code>WhatsappProvider</code> é o que torna essa migração barata quando chegar a hora.</p>
+<p><strong>A ressalva honesta:</strong> "existe no código" não é "validado em produção". Os testes funcionais desta leva ainda não foram rodados, e há divergências entre o resumo gerado pela Claude Code e o que foi decidido em sessão, que precisam ser reconciliadas: os nomes dos planos (<code>gratuito/basico/profissional</code> no código vs. <code>Essencial 49 / Pro 179 / Studio 299</code> decidido), os lembretes via cron (aparecem como implementados, mas eram PR futuro no V3), e o risco do <code>wpp_status</code> desconectado, que continua em aberto.</p>
+
+<h2>Painel de progresso</h2>
+<div class="metrics">
+  <div class="metric"><div class="lbl">Código implementado</div><div class="val">~85%</div></div>
+  <div class="metric"><div class="lbl">Validado em uso real</div><div class="val">~30%</div></div>
+  <div class="metric"><div class="lbl">Pronto p/ cobrar</div><div class="val">~60%</div></div>
+  <div class="metric"><div class="lbl">Betas pagantes</div><div class="val">0</div></div>
+</div>
+
+<div class="bars" id="bars"></div>
+
+<div class="legend">
+  <span><span class="dot" style="background:#1D9E75"></span>sólido / validado</span>
+  <span><span class="dot" style="background:#639922"></span>feito, falta validar</span>
+  <span><span class="dot" style="background:#BA7517"></span>parcial / em aberto</span>
+  <span><span class="dot" style="background:#E24B4A"></span>crítico / quase zero</span>
+</div>
+
+<p style="margin-top:18px; font-size:14px; color:var(--muted);">As quatro métricas contam a história principal: o código está ~85% pronto, mas só ~30% foi validado em uso real, e há zero betas pagantes. A distância entre "implementado" e "validado" é o trabalho real daqui pra frente — não é escrever mais código, é provar que o que existe funciona com gente real.</p>
+
+<h2>Riscos e impactos</h2>
+
+<div class="risk">
+  <h3><span class="tag tag-red">Crítico</span> 1 · <code>wpp_status</code> caído</h3>
+  <p>Hoje, se o WhatsApp do profissional cai (sem bateria, sem internet, sessão expira), todas as notificações são descartadas em silêncio — o cliente agenda, acha que está tudo certo, e ninguém recebe nada. Num beta pagante isso é veneno: o profissional perde agendamento, culpa o produto e cancela. Antes de pôr gente pagando, precisa ao menos detectar a queda e avisar o profissional. Maior risco / menor esforço do backlog.</p>
+</div>
+
+<div class="risk">
+  <h3><span class="tag tag-red">Crítico</span> 2 · Pagamento inexistente</h3>
+  <p>Toda a UI de planos e upgrade existe, mas nada cobra de verdade — o Stripe é só stub. Não dá pra validar preço com beta pagante sem isso. É o gargalo entre "tenho produto" e "tenho negócio".</p>
+</div>
+
+<div class="risk">
+  <h3><span class="tag tag-red">Crítico</span> 3 · Testes funcionais da leva</h3>
+  <p>Tudo que foi implementado na leva recente (perfil, upgrade, notificações, relatório, LGPD, abstração) está em código mas não rodou de verdade. Até testar, o "85% implementado" é otimista. A refatoração <code>WhatsappProvider</code>, em especial, mexe em produção e precisa do teste de fumaça previsto no roteiro.</p>
+</div>
+
+<div class="risk">
+  <h3><span class="tag tag-amber">Atenção</span> 4 · Divergência de planos</h3>
+  <p>Se o código tem nomes/limites de plano diferentes do que será cobrado, a tela de upgrade mostra uma coisa e o backend espera outra. Reconcilie antes de tudo — é rápido e evita bug bobo depois.</p>
+</div>
+
+<div class="risk">
+  <h3><span class="tag tag-amber">Atenção</span> 5 · LGPD em placeholder</h3>
+  <p>As páginas existem mas são base, não jurídico. Antes do primeiro cadastro pagante real: e-mail de contato funcionando (config Cloudflare é tarefa manual, não da Claude Code) e idealmente revisão de advogado no enquadramento controlador/operador.</p>
+</div>
+
+<h2>Próximos passos (ordem que minimiza risco)</h2>
+<p style="font-size:14px; color:var(--muted); margin-bottom:4px;">Esta não é a ordem em que as coisas foram implementadas — é a ordem que reduz risco antes de receber dinheiro.</p>
+<ol class="steps">
+  <li><strong>Rodar os testes funcionais da leva</strong><span class="d">Você não sabe o que está sólido até testar, e o resto depende disso.</span></li>
+  <li><strong>Tapar o <code>wpp_status</code></strong><span class="d">Barato e remove o risco que mais destrói confiança de beta.</span></li>
+  <li><strong>Reconciliar os planos</strong><span class="d">Alinhar nomes/limites no código com Essencial/Pro/Studio. Rápido.</span></li>
+  <li><strong>Ligar o Stripe de verdade</strong><span class="d">Sem cobrança real, não há como validar preço.</span></li>
+  <li><strong>Onboardar 2-3 betas pagantes</strong><span class="d">Valida tudo de uma vez: preço, funcionamento real e o coração WhatsApp.</span></li>
+  <li><strong>Decisão Z-API vs BSP + call comercial</strong><span class="d">Naturalmente depois, com os 8-10 pagantes que dão leverage.</span></li>
+</ol>
+
+<div class="note">
+  <strong>Sobre as porcentagens:</strong> são uma leitura cruzando o que foi discutido em sessão com o resumo gerado pela Claude Code, não medição automática. "Código existe" e "funciona validado" foram tratados de propósito como coisas diferentes, porque misturar as duas é como projetos se enganam sobre o quanto falta. Use como mapa de prioridade, não como métrica exata.
+</div>
+
+<footer>Kianna · documento de continuidade · uso interno</footer>
+
+</div>
+
+<script>
+  var data = [
+    { nome:'Agendamento (núcleo)', pct:95, cor:'#1D9E75', nota:'testado end-to-end' },
+    { nome:'Notificações WhatsApp', pct:90, cor:'#1D9E75', nota:'caminho principal validado' },
+    { nome:'Webhook + respostas', pct:85, cor:'#1D9E75', nota:'confirmar/cancelar via msg' },
+    { nome:'Booking público', pct:90, cor:'#1D9E75', nota:'página do profissional' },
+    { nome:'Perfil / disponib. / serviços', pct:85, cor:'#639922', nota:'CRUD no código' },
+    { nome:'Painel admin', pct:80, cor:'#639922', nota:'CRUD prof. + soft-delete' },
+    { nome:'WhatsappProvider (abstração)', pct:80, cor:'#639922', nota:'pronto p/ trocar BSP' },
+    { nome:'Relatório', pct:70, cor:'#639922', nota:'agendamentos + pizza' },
+    { nome:'Upgrade de plano (UI)', pct:65, cor:'#BA7517', nota:'sem pagamento real' },
+    { nome:'Notificações internas admin', pct:65, cor:'#BA7517', nota:'sem cron, publicar_em' },
+    { nome:'LGPD (páginas + cookies)', pct:55, cor:'#BA7517', nota:'placeholder, falta jurídico' },
+    { nome:'Planos: nomes/limites', pct:40, cor:'#BA7517', nota:'divergência a reconciliar' },
+    { nome:'Tratar wpp_status caído', pct:10, cor:'#E24B4A', nota:'risco silencioso aberto' },
+    { nome:'Pagamento (Stripe)', pct:5, cor:'#E24B4A', nota:'só stub, nada cobra' },
+    { nome:'Testes funcionais da leva', pct:5, cor:'#E24B4A', nota:'pendente' }
+  ];
+  var html = '';
+  data.forEach(function(d){
+    html += '<div class="bar-row">'
+      + '<div class="bar-top"><span class="bar-name">'+d.nome+' <span class="bar-note">· '+d.nota+'</span></span>'
+      + '<span class="bar-pct">'+d.pct+'%</span></div>'
+      + '<div class="track"><div class="fill" style="width:'+d.pct+'%; background:'+d.cor+';"></div></div></div>';
+  });
+  document.getElementById('bars').innerHTML = html;
+</script>
+</body>
+</html>
