@@ -9,9 +9,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
 import { supabase } from '@core/supabase/supabase.client';
-import { currentUser, AppUser } from '@core/signals/app.signals';
+import { currentUser, AppUser, hasWhatsapp } from '@core/signals/app.signals';
 import { ApiService } from '@core/services/api.service';
 import { LEMBRETE_OPTIONS } from '@core/constants/app.constants';
 import { WppStatus } from '@core/types/database.types';
@@ -41,11 +42,13 @@ export class WhatsappComponent implements OnInit {
   private snack = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   private api = inject(ApiService);
+  private router = inject(Router);
 
   readonly user = currentUser;
   readonly salvando = signal(false);
   readonly desconectando = signal(false);
   readonly lembreteOptions = LEMBRETE_OPTIONS;
+  readonly temAcesso = hasWhatsapp;
 
   readonly status = computed<WppStatus>(() => this.user()?.wpp_status ?? 'desconectado');
   readonly statusLabel = computed(() => STATUS_LABEL[this.status()]);
@@ -71,6 +74,10 @@ export class WhatsappComponent implements OnInit {
       lembrete_horas:            u.lembrete_horas ?? null,
       cancelamento_auto_cliente: u.cancelamento_auto_cliente ?? true,
     });
+  }
+
+  irParaUpgrade(): void {
+    this.router.navigate(['/dashboard/upgrade']);
   }
 
   async salvar(): Promise<void> {

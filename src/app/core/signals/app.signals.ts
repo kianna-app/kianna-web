@@ -1,5 +1,6 @@
 import { signal, computed } from '@angular/core';
-import { LinkPersonalizado, WppStatus } from '@core/types/database.types';
+import { LinkPersonalizado, Plano, WppStatus } from '@core/types/database.types';
+import { PLAN_LIMITS } from '@core/constants/plan.limits';
 
 export interface AppUser {
   id: string;
@@ -11,7 +12,7 @@ export interface AppUser {
   whatsapp: string;
   especialidade?: string;
   bio?: string;
-  plano: 'gratis' | 'pro' | 'studio';
+  plano: Plano;
   onboarding_concluido: boolean;
 
   // ── Módulo 4 (WhatsApp Z-API) ──
@@ -51,6 +52,9 @@ export const authInitialized = signal<boolean>(false);
 
 export const isAuthenticated  = computed(() => currentUser() !== null);
 export const isOnboardingDone = computed(() => currentUser()?.onboarding_concluido ?? false);
-export const userPlano        = computed(() => currentUser()?.plano ?? 'gratis');
-export const isPro            = computed(() => userPlano() !== 'gratis');
+export const userPlano        = computed((): Plano => currentUser()?.plano ?? 'gratis');
+export const isPro            = computed(() => userPlano() !== 'gratis' && userPlano() !== 'essencial');
+export const isStudio         = computed(() => userPlano() === 'studio');
+export const hasWhatsapp      = computed(() => PLAN_LIMITS[userPlano()].whatsapp);
+export const hasRelatorio     = computed(() => PLAN_LIMITS[userPlano()].relatorio);
 export const isAdmin          = computed(() => currentUser()?.role === 'admin');

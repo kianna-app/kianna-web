@@ -1,7 +1,21 @@
 <div class="wpp-page">
 
+  <!-- ── Banner: plano sem WhatsApp ──────────────────────── -->
+  @if (!temAcesso()) {
+    <div class="plan-gate-banner">
+      <mat-icon>lock</mat-icon>
+      <div class="plan-gate-content">
+        <strong>WhatsApp não incluído no seu plano</strong>
+        <p>Integração com WhatsApp — lembretes automáticos e confirmação de presença — está disponível a partir do plano Pro.</p>
+      </div>
+      <button type="button" class="btn-primary" (click)="irParaUpgrade()">
+        Ver planos
+      </button>
+    </div>
+  }
+
   <!-- ── Card: Conexão ──────────────────────────────────── -->
-  <section class="wpp-card">
+  <section class="wpp-card" [class.plan-gate-disabled]="!temAcesso()">
     <header class="wpp-card-header">
       <div>
         <h3>Conexão</h3>
@@ -75,7 +89,7 @@
   </section>
 
   <!-- ── Card: Automações ──────────────────────────────────── -->
-  <section class="wpp-card">
+  <section class="wpp-card" [class.plan-gate-disabled]="!temAcesso()">
     <header class="wpp-card-header">
       <div>
         <h3>Automações</h3>

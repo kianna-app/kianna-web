@@ -1,12 +1,16 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Router } from '@angular/router';
 import {
   ContagemPorServico,
   ContagemPorStatus,
   RelatorioRepository,
   RelatorioResponse,
 } from '@core/repositories/relatorio.repository';
+import { hasRelatorio } from '@core/signals/app.signals';
 
 interface StatusInfo {
   label: string;
@@ -40,12 +44,19 @@ interface FatiaPie extends ContagemPorServico {
 @Component({
   selector: 'app-relatorio',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
   templateUrl: './relatorio.component.html',
   styleUrl: './relatorio.component.scss',
 })
 export class RelatorioComponent implements OnInit {
-  private repo = inject(RelatorioRepository);
+  private repo   = inject(RelatorioRepository);
+  private router = inject(Router);
+
+  readonly temAcesso = hasRelatorio;
+
+  irParaUpgrade(): void {
+    this.router.navigate(['/dashboard/upgrade']);
+  }
 
   readonly hoje = new Date();
   readonly ano  = signal(this.hoje.getFullYear());

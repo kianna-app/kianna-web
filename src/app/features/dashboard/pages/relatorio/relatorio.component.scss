@@ -7,6 +7,24 @@
   gap: 20px;
 }
 
+.plan-gate-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-radius: 12px;
+
+  mat-icon { color: #EA580C; flex-shrink: 0; }
+
+  .plan-gate-content {
+    flex: 1;
+    strong { display: block; font: 600 14px 'Inter', sans-serif; color: #0F172A; margin-bottom: 4px; }
+    p { margin: 0; font: 400 13px 'Inter', sans-serif; color: #64748B; line-height: 1.5; }
+  }
+}
+
 .page-header {
   h1 { font-size: 22px; font-weight: 700; margin: 0; color: v.$kianna-slate-900; }
   .page-sub { font-size: 13px; color: v.$kianna-slate-500; margin: 4px 0 0; }
@@ -66,7 +84,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   padding: 36px 16px;
   background: #fff;
   border: 1px dashed v.$kianna-slate-200;
@@ -77,6 +95,10 @@
   mat-icon { color: v.$kianna-slate-400; font-size: 28px; width: 28px; height: 28px; }
   &.erro { color: #be123c; mat-icon { color: #e11d48; } }
 
+  &.loading {
+    ::ng-deep circle { stroke: v.$kianna-green-600; }
+  }
+
   .btn-ghost {
     margin-top: 8px;
     display: inline-flex;
@@ -84,9 +106,6 @@
     gap: 4px;
   }
 }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-.spin { animation: spin 1s linear infinite; color: v.$kianna-green-600; }
 
 /* ── Total ─────────────────────────────────────────── */
 

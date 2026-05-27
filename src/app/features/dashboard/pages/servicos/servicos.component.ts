@@ -10,12 +10,15 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { ServicosStore } from '../../state/servicos.store';
 import { Servico, MODALIDADE_LABELS } from '@core/types/database.types';
 import { ServicoDialogComponent, ServicoDialogData } from './servico-dialog/servico-dialog.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { firstValueFrom } from 'rxjs';
+import { userPlano } from '@core/signals/app.signals';
+import { planoLabel, proximoPlanoId } from '@core/data/planos.catalog';
 
 @Component({
   selector: 'app-servicos',
@@ -29,9 +32,10 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './servicos.component.scss',
 })
 export class ServicosComponent implements OnInit {
-  protected store = inject(ServicosStore);
-  private dialog  = inject(MatDialog);
-  private snack   = inject(MatSnackBar);
+  protected store  = inject(ServicosStore);
+  private dialog   = inject(MatDialog);
+  private snack    = inject(MatSnackBar);
+  private router   = inject(Router);
 
   readonly MODALIDADE_LABELS = MODALIDADE_LABELS;
   readonly busca = signal('');
@@ -77,15 +81,26 @@ export class ServicosComponent implements OnInit {
   async abrirDialogNovo(): Promise<void> {
     if (this.store.atingiuLimite()) {
       const limite = this.store.limite();
-      this.dialog.open<ConfirmDialogComponent, ConfirmDialogData>(ConfirmDialogComponent, {
-        data: {
-          titulo: 'Limite de serviços atingido',
-          mensagem: `Seu plano gratuito permite cadastrar até ${limite} serviço${limite === 1 ? '' : 's'}. Faça upgrade para o plano Pro e cadastre serviços ilimitados.`,
-          confirmLabel: 'Entendido',
-          tipo: 'primary',
-          ocultarCancelar: true,
-        },
-      });
+      const plano = userPlano();
+      const nomePlano = planoLabel(plano);
+      const proximoPlano = proximoPlanoId(plano);
+      const nomeProximo = proximoPlano ? planoLabel(proximoPlano) : 'Pro';
+      const confirmLabel = proximoPlano ? `Ver plano ${nomeProximo}` : 'Entendido';
+
+      const confirmado = await firstValueFrom(
+        this.dialog.open<ConfirmDialogComponent, ConfirmDialogData>(ConfirmDialogComponent, {
+          data: {
+            titulo: 'Limite de serviços atingido',
+            mensagem: `Seu plano ${nomePlano} permite cadastrar até ${limite} serviço${limite === 1 ? '' : 's'}. Faça upgrade para o plano ${nomeProximo} e cadastre serviços ilimitados.`,
+            confirmLabel,
+            tipo: 'primary',
+            ocultarCancelar: !proximoPlano,
+          },
+        }).afterClosed()
+      );
+      if (confirmado && proximoPlano) {
+        this.router.navigate(['/dashboard/upgrade']);
+      }
       return;
     }
     const ref = this.dialog.open<ServicoDialogComponent, ServicoDialogData>(

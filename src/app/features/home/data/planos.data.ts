@@ -1,5 +1,10 @@
+// Catálogo da landing pública.
+// Preços e ordem alinhados com o catálogo oficial em
+// kianna-web/src/app/core/data/planos.catalog.ts (4 planos canônicos).
+// IDs idênticos aos do enum DB para evitar divergência.
+
 export interface Plano {
-  id: 'gratis' | 'pro' | 'studio';
+  id: 'gratis' | 'essencial' | 'pro' | 'studio';
   nome: string;
   descricao: string;
   precoMensal: number;
@@ -20,46 +25,54 @@ export const PLANOS: Plano[] = [
     destaque: false,
     ctaTexto: 'Criar conta grátis',
     features: [
-      'Até 20 agendamentos por mês',
-      '1 serviço cadastrado',
-      'Página pública personalizada',
-      'Confirmação automática no WhatsApp',
-      '"Powered by Kianna" na página',
+      'Até 30 agendamentos por mês',
+      'Até 3 serviços cadastrados',
+      'Página pública de agendamento',
+      'Sem WhatsApp integrado',
+    ],
+  },
+  {
+    id: 'essencial',
+    nome: 'Essencial',
+    descricao: 'Para quem já passou do Grátis.',
+    precoMensal: 49,
+    precoAnual: 49,
+    destaque: false,
+    ctaTexto: 'Assinar Essencial',
+    features: [
+      'Tudo do Grátis',
+      'Até 15 serviços cadastrados',
+      'Até 150 agendamentos por mês',
+      'Sem WhatsApp integrado',
     ],
   },
   {
     id: 'pro',
     nome: 'Pro',
     descricao: 'Pra profissional que não quer perder cliente.',
-    precoMensal: 39.90,
-    precoAnual: 31.90,
+    precoMensal: 179,
+    precoAnual: 179,
     destaque: true,
     selo: 'Mais escolhido',
-    ctaTexto: 'Começar agora',
+    ctaTexto: 'Começar Pro',
     features: [
       'Agendamentos ilimitados',
       'Serviços ilimitados',
-      'Lembretes automáticos no WhatsApp',
-      'Personalização total da página',
-      'Sem marca Kianna',
-      'Relatórios mensais',
-      'Suporte prioritário',
+      'WhatsApp integrado (lembretes + confirmação)',
     ],
   },
   {
     id: 'studio',
     nome: 'Studio',
     descricao: 'Pra estúdios e equipes pequenas.',
-    precoMensal: 79.90,
-    precoAnual: 63.90,
+    precoMensal: 299,
+    precoAnual: 299,
     destaque: false,
-    ctaTexto: 'Começar agora',
+    ctaTexto: 'Começar Studio',
     features: [
       'Tudo do Pro',
-      'Até 3 profissionais na mesma conta',
-      'Agenda compartilhada',
-      'Relatórios por profissional',
-      'Suporte prioritário',
+      'Até 5 profissionais na mesma conta',
+      'Relatórios avançados',
     ],
   },
 ];

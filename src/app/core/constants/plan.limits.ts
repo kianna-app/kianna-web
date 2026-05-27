@@ -1,38 +1,44 @@
 import { Plano } from '@core/types/database.types';
 
 export interface PlanoLimits {
-  servicos: number;
-  agendamentosMes: number;
-  lembretes: boolean;
-  linkPersonalizado: boolean;
+  servicos: number;        // -1 = ilimitado
+  agendamentosMes: number; // -1 = ilimitado
+  whatsapp: boolean;
   relatorio: boolean;
   multiProfissional: number;
 }
 
+// Fonte única de verdade para limites por plano.
+// Valores decididos pelo negócio — não alterar sem instrução explícita.
+// -1 representa ilimitado (nunca usar 999999 ou similar).
 export const PLAN_LIMITS: Record<Plano, PlanoLimits> = {
   gratis: {
     servicos: 3,
-    agendamentosMes: 20,
-    lembretes: false,
-    linkPersonalizado: false,
+    agendamentosMes: 30,
+    whatsapp: false,
+    relatorio: false,
+    multiProfissional: 1,
+  },
+  essencial: {
+    servicos: 15,
+    agendamentosMes: 150,
+    whatsapp: false,
     relatorio: false,
     multiProfissional: 1,
   },
   pro: {
     servicos: -1,
     agendamentosMes: -1,
-    lembretes: true,
-    linkPersonalizado: true,
-    relatorio: true,
+    whatsapp: true,
+    relatorio: false,
     multiProfissional: 1,
   },
   studio: {
     servicos: -1,
     agendamentosMes: -1,
-    lembretes: true,
-    linkPersonalizado: true,
+    whatsapp: true,
     relatorio: true,
-    multiProfissional: 3,
+    multiProfissional: 5,
   },
 };
 
@@ -43,4 +49,12 @@ export function isUnlimited(value: number): boolean {
 export function exceededLimit(atual: number, limite: number): boolean {
   if (isUnlimited(limite)) return false;
   return atual >= limite;
+}
+
+export function hasWhatsappAccess(plano: Plano): boolean {
+  return PLAN_LIMITS[plano].whatsapp;
+}
+
+export function hasRelatorioAccess(plano: Plano): boolean {
+  return PLAN_LIMITS[plano].relatorio;
 }
