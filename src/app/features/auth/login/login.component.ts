@@ -47,7 +47,7 @@ export class LoginComponent {
       await this.auth.signIn(this.form.value.email!, this.form.value.senha!);
       await new Promise(r => setTimeout(r, 250));
       this.router.navigate([isOnboardingDone() ? '/dashboard' : '/onboarding']);
-    } catch (err: unknown) {
+    } catch {
       this.errorMsg.set('E-mail ou senha incorretos. Tente novamente.');
     } finally {
       this.isLoading.set(false);

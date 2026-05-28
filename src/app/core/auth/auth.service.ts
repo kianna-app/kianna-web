@@ -4,12 +4,14 @@ import { supabase } from '@core/supabase/supabase.client';
 import { currentUser, isLoading, authInitialized, AppUser } from '@core/signals/app.signals';
 import { SessionService } from './session.service';
 import { ProfissionaisRepository } from '@core/repositories/profissionais.repository';
+import { AuditoriaService } from '@core/services/auditoria.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private router  = inject(Router);
   private session = inject(SessionService);
   private profissionaisRepo = inject(ProfissionaisRepository);
+  private auditoria = inject(AuditoriaService);
 
   async initialize(): Promise<void> {
     isLoading.set(true);
@@ -84,10 +86,15 @@ export class AuthService {
 
   async signIn(email: string, senha: string): Promise<void> {
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-    if (error) throw error;
+    if (error) {
+      this.auditoria.registrarAuth('login_falha', error.message);
+      throw error;
+    }
+    this.auditoria.registrarAuth('login');
   }
 
   async signOut(): Promise<void> {
+    this.auditoria.registrarAuth('logout');
     await this.session.invalidarSessao('logout');
   }
 

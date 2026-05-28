@@ -7,6 +7,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from '@core/auth/auth.interceptor';
 import { apiErrorInterceptor } from '@core/interceptors/api-error.interceptor';
 import { AuthService } from '@core/auth/auth.service';
+import { provideSentry } from '@core/sentry/sentry.init';
 
 function initializeAuth(authService: AuthService) {
   return () => authService.initialize();
@@ -22,6 +23,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideAnimationsAsync(),
     provideClientHydration(withEventReplay()),
+    ...provideSentry(),
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,

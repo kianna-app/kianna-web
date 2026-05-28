@@ -5,9 +5,10 @@
 const fs   = require('fs');
 const path = require('path');
 
-const url    = process.env['SUPABASE_URL'];
-const anonKey = process.env['SUPABASE_ANON_KEY'];
-const apiUrl  = process.env['API_URL'] || 'https://api.agendazap.tech';
+const url       = process.env['SUPABASE_URL'];
+const anonKey   = process.env['SUPABASE_ANON_KEY'];
+const apiUrl    = process.env['API_URL'] || 'https://api.agendazap.tech';
+const sentryDsn = process.env['SENTRY_DSN_FRONTEND'] || '';
 
 if (!url || !anonKey) {
   console.error('ERRO: SUPABASE_URL e SUPABASE_ANON_KEY sao obrigatorias.');
@@ -15,11 +16,16 @@ if (!url || !anonKey) {
   process.exit(1);
 }
 
+if (!sentryDsn) {
+  console.warn('AVISO: SENTRY_DSN_FRONTEND nao definido. Sentry sera desativado neste build.');
+}
+
 const content = `export const environment = {
   production: true,
   supabaseUrl: '${url}',
   supabaseAnonKey: '${anonKey}',
   apiUrl: '${apiUrl}',
+  sentryDsn: '${sentryDsn}',
 };
 `;
 

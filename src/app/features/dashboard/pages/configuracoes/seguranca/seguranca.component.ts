@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
 import { supabase } from '@core/supabase/supabase.client';
+import { AuditoriaService } from '@core/services/auditoria.service';
 
 @Component({
   selector: 'app-cfg-seguranca',
@@ -137,8 +138,9 @@ import { supabase } from '@core/supabase/supabase.client';
   `],
 })
 export class SegurancaComponent {
-  private fb    = inject(FormBuilder);
-  private snack = inject(MatSnackBar);
+  private fb        = inject(FormBuilder);
+  private snack     = inject(MatSnackBar);
+  private auditoria = inject(AuditoriaService);
 
   readonly salvando = signal(false);
 
@@ -159,6 +161,7 @@ export class SegurancaComponent {
     try {
       const { error } = await supabase.auth.updateUser({ password: this.form.value.senha! });
       if (error) throw error;
+      this.auditoria.registrarAuth('alteracao_senha');
       this.form.reset();
       this.form.markAsPristine();
       this.form.markAsUntouched();
