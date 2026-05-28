@@ -1,7 +1,9 @@
 # Roteiro de Testes — Sprint 27/05
+
 ## Limites por Plano (roteiro 11) + Polimentos de UI (ontem)
 
 **Pré-requisitos**
+
 - Aplicação rodando em localhost:4200 (frontend) e localhost:3000 (backend)
 - Quatro contas de profissional disponíveis — uma para cada plano: `gratis`, `essencial`, `pro`, `studio`
 - Para trocar o plano de uma conta: alterar `profissionais.plano` direto no banco (Supabase Studio) e fazer **logout + login** — o token JWT não atualiza automaticamente
