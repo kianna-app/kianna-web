@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Router } from '@angular/router';
 import {
   ContagemPorServico,
   ContagemPorStatus,
@@ -11,6 +10,7 @@ import {
   RelatorioResponse,
 } from '@core/repositories/relatorio.repository';
 import { hasRelatorio } from '@core/signals/app.signals';
+import { UpgradeNavigationService } from '@core/services/upgrade-navigation.service';
 
 interface StatusInfo {
   label: string;
@@ -50,13 +50,9 @@ interface FatiaPie extends ContagemPorServico {
 })
 export class RelatorioComponent implements OnInit {
   private repo   = inject(RelatorioRepository);
-  private router = inject(Router);
+  readonly upgradeNav = inject(UpgradeNavigationService);
 
   readonly temAcesso = hasRelatorio;
-
-  irParaUpgrade(): void {
-    this.router.navigate(['/dashboard/upgrade']);
-  }
 
   readonly hoje = new Date();
   readonly ano  = signal(this.hoje.getFullYear());

@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '@core/auth/auth.service';
 import { AvisoComStats, AvisosRepository } from '@core/repositories/avisos.repository';
 import {
   ConfirmDialogComponent,
@@ -31,6 +32,7 @@ export class AdminNotificacoesComponent implements OnInit {
   private repo   = inject(AvisosRepository);
   private dialog = inject(MatDialog);
   private snack  = inject(MatSnackBar);
+  private auth   = inject(AuthService);
 
   readonly carregando = signal(true);
   readonly avisos     = signal<AvisoComStats[]>([]);
@@ -131,5 +133,9 @@ export class AdminNotificacoesComponent implements OnInit {
   porcentagemLida(a: AvisoComStats): number {
     if (a.total_destinatarios === 0) return 0;
     return Math.round((a.total_leituras / a.total_destinatarios) * 100);
+  }
+
+  async logout(): Promise<void> {
+    await this.auth.signOut();
   }
 }

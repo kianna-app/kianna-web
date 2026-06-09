@@ -84,6 +84,13 @@ $ios-radius:    14px;
   flex-wrap: wrap;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .page-title {
   font-size: 2rem;
   font-weight: 700;
@@ -362,6 +369,7 @@ $ios-radius:    14px;
   cursor: pointer;
 
   &:hover { background: rgba(0, 0, 0, 0.04); }
+  &:disabled { opacity: 0.55; cursor: wait; }
 
   &--destructive { color: $ios-red; }
 }

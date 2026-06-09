@@ -10,7 +10,8 @@
       </p>
     </div>
     <button class="btn-primary" (click)="abrirDialogNovo()"
-            [disabled]="store.atingiuLimite()">
+            [class.btn-limit]="store.atingiuLimite()"
+            [attr.aria-disabled]="store.atingiuLimite()">
       <mat-icon>add</mat-icon> Novo serviço
     </button>
   </div>
@@ -195,7 +196,7 @@
         <strong>Limite de serviços atingido</strong>
         <p>Faça upgrade para adicionar mais serviços</p>
       </div>
-      <button class="btn-primary btn-sm">
+      <button class="btn-primary btn-sm" type="button" (click)="upgradeNav.irParaUpgrade()">
         <mat-icon>upgrade</mat-icon> Ver planos
       </button>
     </div>

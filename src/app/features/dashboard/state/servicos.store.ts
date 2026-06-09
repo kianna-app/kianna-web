@@ -41,9 +41,6 @@ export class ServicosStore {
   }
 
   async criar(input: ServicoInput): Promise<void> {
-    if (this.atingiuLimite()) {
-      throw new Error(`Limite do plano atingido (${this.limite()} serviços).`);
-    }
     try {
       const novo = await this.repo.criar(input);
       this.servicos.update(arr => [...arr, novo]);

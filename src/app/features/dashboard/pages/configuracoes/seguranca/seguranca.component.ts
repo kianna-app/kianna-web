@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadingButtonComponent } from '@shared/components/loading-button/loading-button.component';
 import { supabase } from '@core/supabase/supabase.client';
@@ -14,7 +15,7 @@ import { AuditoriaService } from '@core/services/auditoria.service';
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatIconModule,
+    MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
     LoadingButtonComponent,
   ],
   template: `
@@ -35,10 +36,20 @@ import { AuditoriaService } from '@core/services/auditoria.service';
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Nova senha</mat-label>
               <mat-icon matPrefix class="field-icon">lock_outline</mat-icon>
-              <input matInput formControlName="senha" type="password"
+              <input matInput formControlName="senha"
+                     [type]="mostrarSenha() ? 'text' : 'password'"
                      autocomplete="new-password"
                      placeholder="Mínimo 8 caracteres"
                      [attr.aria-describedby]="form.get('senha')?.invalid && form.get('senha')?.touched ? 'err-senha' : null">
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                class="toggle-password"
+                [attr.aria-label]="mostrarSenha() ? 'Ocultar nova senha' : 'Mostrar nova senha'"
+                (click)="mostrarSenha.set(!mostrarSenha())">
+                <mat-icon>{{ mostrarSenha() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
               @if (form.get('senha')?.hasError('minlength') && form.get('senha')?.touched) {
                 <mat-error id="err-senha">Mínimo de 8 caracteres</mat-error>
               }
@@ -47,10 +58,20 @@ import { AuditoriaService } from '@core/services/auditoria.service';
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Confirmar nova senha</mat-label>
               <mat-icon matPrefix class="field-icon">lock_outline</mat-icon>
-              <input matInput formControlName="confirmar" type="password"
+              <input matInput formControlName="confirmar"
+                     [type]="mostrarConfirmarSenha() ? 'text' : 'password'"
                      autocomplete="new-password"
                      placeholder="Repita a nova senha"
                      [attr.aria-describedby]="form.hasError('naoCoincidem') && form.get('confirmar')?.touched ? 'err-confirmar' : null">
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                class="toggle-password"
+                [attr.aria-label]="mostrarConfirmarSenha() ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'"
+                (click)="mostrarConfirmarSenha.set(!mostrarConfirmarSenha())">
+                <mat-icon>{{ mostrarConfirmarSenha() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
             </mat-form-field>
             @if (form.hasError('naoCoincidem') && form.get('confirmar')?.touched) {
               <p class="campo-erro" id="err-confirmar" role="alert">As senhas não coincidem</p>
@@ -124,6 +145,9 @@ import { AuditoriaService } from '@core/services/auditoria.service';
       color: #94A3B8;
       margin-right: 4px;
     }
+    .toggle-password {
+      color: #64748B;
+    }
     .campo-erro {
       color: #B91C1C;
       font-size: 12px;
@@ -143,6 +167,8 @@ export class SegurancaComponent {
   private auditoria = inject(AuditoriaService);
 
   readonly salvando = signal(false);
+  readonly mostrarSenha = signal(false);
+  readonly mostrarConfirmarSenha = signal(false);
 
   form = this.fb.group({
     senha:     ['', [Validators.required, Validators.minLength(8)]],

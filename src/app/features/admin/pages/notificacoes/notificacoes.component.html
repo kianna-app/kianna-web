@@ -20,9 +20,14 @@
         <h1 class="page-title">Notificações</h1>
         <p class="page-subtitle">Publique avisos que aparecem no dashboard dos profissionais.</p>
       </div>
-      <button type="button" class="btn-primary" (click)="novaNotificacao()">
-        <mat-icon>add</mat-icon> Nova notificação
-      </button>
+      <div class="header-actions">
+        <button type="button" class="btn-secondary" (click)="logout()">
+          Sair
+        </button>
+        <button type="button" class="btn-primary" (click)="novaNotificacao()">
+          <mat-icon>add</mat-icon> Nova notificação
+        </button>
+      </div>
     </header>
 
     @if (carregando()) {

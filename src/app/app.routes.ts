@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { Routes, Router } from '@angular/router';
-import { authGuard, publicGuard } from '@core/auth/auth.guard';
+import { authGuard } from '@core/auth/auth.guard';
 import { adminGuard } from '@core/auth/admin.guard';
 import { authInitialized, isAuthenticated, isOnboardingDone } from '@core/signals/app.signals';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -33,7 +33,6 @@ export const routes: Routes = [
   // ── Autenticação ─────────────────────────────────────────────
   {
     path: 'auth',
-    canActivate: [publicGuard],
     loadChildren: () =>
       import('./features/auth/auth.routes').then(m => m.authRoutes),
   },

@@ -105,6 +105,12 @@ export class AuthService {
     if (error) throw error;
   }
 
+  async updatePassword(senha: string): Promise<void> {
+    const { error } = await supabase.auth.updateUser({ password: senha });
+    if (error) throw error;
+    this.auditoria.registrarAuth('alteracao_senha');
+  }
+
   async getAccessToken(): Promise<string | null> {
     const { data: { session } } = await supabase.auth.getSession();
     return session?.access_token ?? null;

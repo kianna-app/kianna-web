@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '@core/services/api.service';
+import { AuthService } from '@core/auth/auth.service';
 import { Plano, WppStatus } from '@core/types/database.types';
 import { planoLabel } from '@core/data/planos.catalog';
 import {
@@ -28,8 +29,10 @@ import {
 
 interface ProfissionalAdmin {
   id: string;
+  user_id: string | null;
   nome: string;
   slug: string;
+  email: string | null;
   whatsapp: string;
   foto_url: string | null;
   bio: string | null;
@@ -52,11 +55,13 @@ export class AdminPanelComponent implements OnInit {
   private readonly api = inject(ApiService);
   private readonly dialog = inject(MatDialog);
   private readonly snack = inject(MatSnackBar);
+  private readonly auth = inject(AuthService);
 
   readonly carregando = signal(true);
   readonly profissionais = signal<ProfissionalAdmin[]>([]);
   readonly mostrarInativos = signal(false);
   readonly menuAberto = signal<string | null>(null);
+  readonly resetandoSenhaId = signal<string | null>(null);
 
   readonly ativos = computed(() => this.profissionais().filter((p) => p.ativo));
   readonly inativos = computed(() => this.profissionais().filter((p) => !p.ativo));
@@ -171,6 +176,35 @@ export class AdminPanelComponent implements OnInit {
     });
     const res = await ref.afterClosed().toPromise();
     if (res) await this.carregar();
+  }
+
+  async resetarSenha(prof: ProfissionalAdmin): Promise<void> {
+    this.fecharMenu();
+    this.resetandoSenhaId.set(prof.id);
+    try {
+      const res = await this.api.post<{ ok: true; email: string }>(
+        `/api/admin/profissionais/${prof.id}/reset-senha`,
+        {},
+      );
+      this.snack.open(
+        `E-mail de redefinição enviado para ${res.email}`,
+        'OK',
+        { duration: 4000 },
+      );
+    } catch (e: unknown) {
+      const err = e as { error?: { message?: string }; message?: string };
+      this.snack.open(
+        err?.error?.message ?? err?.message ?? 'Erro ao enviar redefinição',
+        'OK',
+        { duration: 4000 },
+      );
+    } finally {
+      this.resetandoSenhaId.set(null);
+    }
+  }
+
+  async logout(): Promise<void> {
+    await this.auth.signOut();
   }
 
   async editarCredenciais(prof: ProfissionalAdmin): Promise<void> {

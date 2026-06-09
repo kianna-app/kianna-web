@@ -86,6 +86,30 @@
   }
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  border: 1px solid v.$kianna-slate-200;
+  background: #fff;
+  color: v.$kianna-slate-600;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+
+  &:hover {
+    background: v.$kianna-slate-50;
+    color: v.$kianna-slate-800;
+  }
+}
+
 /* ── Loading / Empty ─────────────────────────────────── */
 
 .loading,

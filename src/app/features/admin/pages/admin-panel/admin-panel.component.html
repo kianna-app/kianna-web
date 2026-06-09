@@ -20,13 +20,22 @@
         <p class="page-subtitle">Gerencie perfis e credenciais Z-API</p>
       </div>
 
-      <button
-        type="button"
-        class="btn-primary"
-        (click)="$event.stopPropagation(); novoProfissional()"
-      >
-        + Novo
-      </button>
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="$event.stopPropagation(); logout()"
+        >
+          Sair
+        </button>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="$event.stopPropagation(); novoProfissional()"
+        >
+          + Novo
+        </button>
+      </div>
     </header>
 
     @if (carregando()) {
@@ -83,6 +92,13 @@
                   <div class="menu" role="menu">
                     <button class="menu-item" (click)="editarPerfil(p)">Editar perfil</button>
                     <button class="menu-item" (click)="alterarPlano(p)">Alterar plano</button>
+                    <button
+                      class="menu-item"
+                      [disabled]="resetandoSenhaId() === p.id"
+                      (click)="resetarSenha(p)"
+                    >
+                      {{ resetandoSenhaId() === p.id ? 'Enviando…' : 'Resetar senha' }}
+                    </button>
                     <button class="menu-item" (click)="editarCredenciais(p)">Credenciais Z-API</button>
                     <div class="menu-sep"></div>
                     <button class="menu-item menu-item--destructive" (click)="arquivar(p)">

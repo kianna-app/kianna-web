@@ -48,10 +48,6 @@ Adicionar no SideBar um link par Perfil.
 
 
 
-* Logging & Monitoring
-Sem sistema de logs centralizado
-Sem error tracking (Sentry, etc)
-Sem analytics de eventos
 
 
 * Backup & Recovery
@@ -59,9 +55,6 @@ Sem sistema de backup visível
 Sem disaster recovery documentation
 
 
-* Sistema de Permissões/Roles
-Sem diferenciação de papéis (admin, profissional, cliente)
-Sem controle de acesso baseado em roles
 
 
 * Versionamento de API
@@ -115,6 +108,11 @@ https://www.youtube.com/watch?v=Ka7gPS1COcQ
 
 
 
+Bom dia gente, então, como o valor desde salão é puxado, etamos em um dilema. Seguimos com que já confirmou 4 casais, ficando (550/4= 137,50 casal). Poderíamos convidar mais gente fora do grupo, não vejo nenhum problema, ficaria mais barato por casal. Cancelar (e infelizmente terei que pagar 50% do valor, por estar próximo da data).
+
+Lembrando gente que a ideia era o encontro do nosso grupo, confraternização mesmo. Naõ acho legal fazermos algo por obrigação ou só para não ficar caro, então eu sujiro cancelarmos e em um futuro próximo pensarmos em outro encontro, mesmo que sem tema apenas para nos reunirmos e mantermos saldáveis a nossa amizade.
+
+
 
 
 ---
@@ -149,3 +147,46 @@ https://www.youtube.com/watch?v=Ka7gPS1COcQ
 **Como fazer:** Plano Pro Supabase (US$25/mês) OU cron job semanal exportando pra storage externo.
 
 ---
+
+
+
+
+erro ao criar profissional no admin.
+
+Request URL
+http://localhost:3333/api/admin/profissionais
+Request Method
+POST
+Status Code
+
+
+
+{
+    "statusCode": 400,
+    "timestamp": "2026-06-09T02:09:47.375Z",
+    "path": "/api/admin/profissionais",
+    "message": [
+        "property plano should not exist"
+    ],
+    "error": "Bad Request"
+}
+
+
+erro resetar senha:
+
+reset-senha
+3 / 6 requests
+1.6 kB / 1.6 kB transferred
+Request URL
+http://localhost:3333/api/admin/profissionais/713d7376-9a65-4200-8bcc-0ebbf530eaa2/reset-senha
+Request Method
+POST
+Status Code
+
+{
+    "statusCode": 404,
+    "timestamp": "2026-06-09T02:11:17.568Z",
+    "path": "/api/admin/profissionais/713d7376-9a65-4200-8bcc-0ebbf530eaa2/reset-senha",
+    "message": "Cannot POST /api/admin/profissionais/713d7376-9a65-4200-8bcc-0ebbf530eaa2/reset-senha",
+    "error": "Not Found"
+}

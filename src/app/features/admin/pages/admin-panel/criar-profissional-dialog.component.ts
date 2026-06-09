@@ -7,11 +7,15 @@ import { ApiService } from '@core/services/api.service';
 import { KiannaValidators } from '@core/validators/form.validators';
 import { gerarSlug } from '@core/utils/slug.util';
 import { environment } from '@environments/environment';
+import { PLANOS_CATALOGO } from '@core/data/planos.catalog';
+import { Plano } from '@core/types/database.types';
 
 interface ProfissionalCriado {
   id: string;
   nome: string;
   slug: string;
+  email?: string | null;
+  plano?: Plano;
 }
 
 @Component({
@@ -51,6 +55,26 @@ interface ProfissionalCriado {
               autocomplete="off"
             />
           </label>
+
+          <label class="row">
+            <span class="row-label">Senha inicial</span>
+            <input
+              class="row-input"
+              type="password"
+              formControlName="senhaTemporaria"
+              placeholder="Mínimo 8 caracteres"
+              autocomplete="new-password"
+            />
+          </label>
+
+          <label class="row">
+            <span class="row-label">Plano</span>
+            <select class="row-input" formControlName="plano">
+              @for (p of planos; track p.id) {
+                <option [value]="p.id">{{ p.nome }}</option>
+              }
+            </select>
+          </label>
         </section>
 
         <h3 class="group-label">URL pública</h3>
@@ -74,12 +98,8 @@ interface ProfissionalCriado {
         </section>
 
         <p class="hint">
-          O profissional será criado em estado <strong>pendente</strong>.
-          Bio, foto e demais dados podem ser preenchidos depois.
-        </p>
-        <p class="hint hint--warning">
-          O fluxo de acesso (convite/senha) ainda precisa ser definido —
-          enquanto isso, o operador gerencia o perfil pelo painel admin.
+          Compartilhe a senha inicial por um canal seguro e oriente o profissional
+          a trocar a senha em Perfil → Segurança no primeiro acesso.
         </p>
       </div>
     </div>
@@ -95,11 +115,14 @@ export class CriarProfissionalDialogComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly salvando = signal(false);
+  readonly planos = PLANOS_CATALOGO;
 
   form = this.fb.group({
     nome: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
     email: ['', [Validators.required, Validators.email]],
+    senhaTemporaria: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
     slug: ['', KiannaValidators.slug()],
+    plano: ['gratis' as Plano, Validators.required],
   });
 
   readonly urlPublica = computed(() => {
@@ -130,9 +153,11 @@ export class CriarProfissionalDialogComponent {
       const criado = await this.api.post<ProfissionalCriado>('/api/admin/profissionais', {
         nome: v.nome!.trim(),
         email: v.email!.trim(),
+        senhaTemporaria: v.senhaTemporaria!,
         slug: v.slug,
+        plano: v.plano,
       });
-      this.snack.open('Profissional criado', 'OK', { duration: 2000 });
+      this.snack.open('Profissional criado com senha inicial', 'OK', { duration: 3000 });
       this.dialogRef.close(criado);
     } catch (e: unknown) {
       const err = e as { error?: { message?: string }; message?: string };

@@ -1,6 +1,6 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,6 +13,13 @@ import { AgendamentoView } from '../appt-card/appt-card.component';
 import { currentUser } from '@core/signals/app.signals';
 import { APP } from '@core/constants/app.constants';
 import { MatIcon } from '@angular/material/icon';
+import { KiannaValidators } from '@core/validators/form.validators';
+import { FieldErrorComponent } from '@shared/components/field-error/field-error.component';
+import { DisponibilidadesRepository } from '@core/repositories/disponibilidades.repository';
+import { BloqueiosRepository } from '@core/repositories/bloqueios.repository';
+import { AgendamentosRepository } from '@core/repositories/agendamentos.repository';
+import { SlotCalculatorService, SlotInfo } from '@features/booking/services/slot-calculator.service';
+import { Bloqueio, Disponibilidade } from '@core/types/database.types';
 
 export interface AgendamentoFormDialogData {
   modo: 'criar' | 'editar';
@@ -37,6 +44,7 @@ export interface AgendamentoFormDialogData {
     MatSelectModule,
     MatProgressSpinnerModule,
     MatIcon,
+    FieldErrorComponent,
   ],
   template: `
     <div class="dialog-wrap">
@@ -64,11 +72,13 @@ export interface AgendamentoFormDialogData {
         <mat-form-field appearance="outline">
           <mat-label>Nome do cliente</mat-label>
           <input matInput formControlName="cliente_nome" placeholder="Ex: Ana Silva" />
+          <app-field-error [control]="form.controls.cliente_nome" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>WhatsApp do cliente</mat-label>
           <input matInput formControlName="cliente_wpp" placeholder="(11) 99999-9999" type="tel" />
+          <app-field-error [control]="form.controls.cliente_wpp" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -78,19 +88,85 @@ export interface AgendamentoFormDialogData {
               <mat-option [value]="s.id">{{ s.nome }}</mat-option>
             }
           </mat-select>
+          <app-field-error [control]="form.controls.servico_id" />
         </mat-form-field>
 
         <div class="row-2">
           <mat-form-field appearance="outline">
             <mat-label>Data</mat-label>
-            <input matInput type="date" formControlName="data" />
+            <input
+              #dataInput
+              matInput
+              type="date"
+              class="picker-input"
+              formControlName="data"
+              [min]="hoje"
+              (click)="abrirPicker(dataInput)"
+              (keydown)="bloquearDigitacaoPicker($event)"
+              (paste)="$event.preventDefault()" />
+            <button
+              matSuffix
+              type="button"
+              class="picker-suffix"
+              aria-label="Selecionar data"
+              (click)="$event.stopPropagation(); abrirPicker(dataInput)">
+              <mat-icon>calendar_month</mat-icon>
+            </button>
+            @if (form.controls.data.hasError('dataPassada') && form.controls.data.touched) {
+              <mat-error>Data não pode ser anterior a hoje.</mat-error>
+            } @else if (form.controls.data.hasError('diaSemAtendimento') && form.controls.data.touched) {
+              <mat-error>Não há atendimento configurado para este dia.</mat-error>
+            } @else if (form.controls.data.hasError('semSlots') && form.controls.data.touched) {
+              <mat-error>Nenhum horário disponível nesta data.</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Horário</mat-label>
-            <input matInput type="time" formControlName="hora" />
+            <input
+              #horaInput
+              matInput
+              type="time"
+              class="picker-input"
+              formControlName="hora"
+              [attr.min]="primeiroHorario()"
+              [attr.max]="ultimoHorario()"
+              [attr.step]="intervaloHorarioSegundos()"
+              (click)="abrirPicker(horaInput)"
+              (keydown)="bloquearDigitacaoPicker($event)"
+              (paste)="$event.preventDefault()" />
+            <button
+              matSuffix
+              type="button"
+              class="picker-suffix"
+              aria-label="Selecionar horário"
+              (click)="$event.stopPropagation(); abrirPicker(horaInput)">
+              <mat-icon>schedule</mat-icon>
+            </button>
+            @if (carregandoSlots()) {
+              <mat-hint>Carregando horários…</mat-hint>
+            } @else if (horariosDisponiveis().length > 0) {
+              <mat-hint>{{ horariosDisponiveis().length }} horário{{ horariosDisponiveis().length === 1 ? '' : 's' }} disponível{{ horariosDisponiveis().length === 1 ? '' : 'is' }}</mat-hint>
+            }
+            @if (form.controls.hora.hasError('horaIndisponivel') && form.controls.hora.touched) {
+              <mat-error>Escolha um horário disponível para esta data.</mat-error>
+            }
           </mat-form-field>
         </div>
+
+        @if (horariosDisponiveis().length > 0) {
+          <div class="slots-list" aria-label="Horários disponíveis">
+            @for (slot of horariosDisponiveis(); track slot.dataHoraISO) {
+              <button
+                type="button"
+                class="slot-chip"
+                [class.ativo]="form.controls.hora.value === slot.hora"
+                (click)="selecionarHorario(slot.hora)">
+                {{ slot.hora }}
+              </button>
+            }
+          </div>
+        }
 
         <mat-form-field appearance="outline">
           <mat-label>Observações (opcional)</mat-label>
@@ -192,7 +268,7 @@ export interface AgendamentoFormDialogData {
               (click)="excluir()"
               [disabled]="salvando()"
             >
-              Excluir'
+              Excluir
             </button>
           }
           <div class="actions-right">
@@ -203,10 +279,9 @@ export interface AgendamentoFormDialogData {
             </button> -->
 
             <button
+              type="submit"
               class="btn-primary btn-lg"
-              ype="submit"
-              class="btn-primary"
-              [disabled]="form.invalid || salvando()"
+              [disabled]="form.invalid || salvando() || carregandoSlots()"
             >
               <mat-icon> save </mat-icon>
               <span>
@@ -266,6 +341,58 @@ export interface AgendamentoFormDialogData {
         grid-template-columns: 1fr 1fr;
         gap: 8px;
       }
+      .picker-input {
+        cursor: pointer;
+      }
+      .picker-input::-webkit-calendar-picker-indicator {
+        display: none;
+      }
+      .picker-suffix {
+        width: 40px;
+        height: 40px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        margin-right: -8px;
+      }
+      .picker-suffix:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      .picker-suffix mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+      .slots-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: -4px 0 8px;
+      }
+      .slot-chip {
+        min-height: 36px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid #dbe4ea;
+        background: #fff;
+        color: #334155;
+        font: 600 13px 'Inter';
+        cursor: pointer;
+      }
+      .slot-chip:hover {
+        background: #f8fafc;
+        border-color: #b6c4d0;
+      }
+      .slot-chip.ativo {
+        background: #1d9e75;
+        border-color: #1d9e75;
+        color: #fff;
+      }
 
       .status-acoes {
         border-top: 1px solid #e9ecef;
@@ -311,29 +438,53 @@ export class AgendamentoFormDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private ref = inject(MatDialogRef<AgendamentoFormDialogComponent>);
   private snack = inject(MatSnackBar);
+  private disponibilidadesRepo = inject(DisponibilidadesRepository);
+  private bloqueiosRepo = inject(BloqueiosRepository);
+  private agendamentosRepo = inject(AgendamentosRepository);
+  private slotCalculator = inject(SlotCalculatorService);
   readonly data = inject<AgendamentoFormDialogData>(MAT_DIALOG_DATA);
   readonly agendamentosStore = inject(AgendamentosStore);
   readonly servicosStore = inject(ServicosStore);
 
   readonly salvando = signal(false);
   readonly mostrarRecusa = signal(false);
+  readonly carregandoSlots = signal(false);
+  readonly disponibilidades = signal<Disponibilidade[]>([]);
+  readonly bloqueios = signal<Bloqueio[]>([]);
+  readonly slots = signal<SlotInfo[]>([]);
+  readonly slotsCalculados = signal(false);
   motivoRecusa = '';
+  readonly hoje = new Intl.DateTimeFormat('en-CA').format(new Date());
+
+  form = this.fb.group({
+    cliente_nome: ['', Validators.required],
+    cliente_wpp: ['', KiannaValidators.whatsapp()],
+    servico_id: ['', Validators.required],
+    data: ['', [Validators.required, this.dataValidator.bind(this)]],
+    hora: ['', [Validators.required, this.horaValidator.bind(this)]],
+    observacoes: [''],
+  });
+
+  readonly horariosDisponiveis = computed(() => this.slots().filter(s => s.disponivel));
+  readonly primeiroHorario = computed(() => this.horariosDisponiveis()[0]?.hora ?? null);
+  readonly ultimoHorario = computed(() => {
+    const slots = this.horariosDisponiveis();
+    return slots[slots.length - 1]?.hora ?? null;
+  });
+  readonly intervaloHorarioSegundos = computed(() => {
+    const disp = this.disponibilidadeDaData(this.form?.controls.data.value ?? '');
+    return (disp?.intervalo_min ?? 30) * 60;
+  });
 
   get statusAtual() {
     return this.data.agendamento?.status;
   }
 
-  form = this.fb.group({
-    cliente_nome: ['', Validators.required],
-    cliente_wpp: ['', Validators.required],
-    servico_id: ['', Validators.required],
-    data: ['', Validators.required],
-    hora: ['', Validators.required],
-    observacoes: [''],
-  });
-
-  ngOnInit() {
-    this.servicosStore.carregar();
+  async ngOnInit() {
+    await Promise.all([
+      this.servicosStore.carregar(),
+      this.carregarRestricoes(),
+    ]);
 
     if (this.data.modo === 'editar' && this.data.agendamento) {
       const ag = this.data.agendamento;
@@ -353,6 +504,133 @@ export class AgendamentoFormDialogComponent implements OnInit {
       const d = this.data.diaSelecionado;
       this.form.patchValue({ data: d.toISOString().slice(0, 10) });
     }
+
+    await this.recalcularSlots();
+    this.form.controls.servico_id.valueChanges.subscribe(() => void this.recalcularSlots());
+    this.form.controls.data.valueChanges.subscribe(() => void this.recalcularSlots());
+  }
+
+  selecionarHorario(hora: string): void {
+    this.form.controls.hora.setValue(hora);
+    this.form.controls.hora.markAsTouched();
+  }
+
+  abrirPicker(input: HTMLInputElement): void {
+    input.focus();
+    const picker = input as HTMLInputElement & { showPicker?: () => void };
+    try {
+      picker.showPicker?.();
+    } catch {
+      // Alguns browsers só permitem abrir o seletor em interações específicas.
+    }
+  }
+
+  bloquearDigitacaoPicker(event: KeyboardEvent): void {
+    const teclasPermitidas = ['Tab', 'Shift', 'Enter', 'Escape'];
+    if (!teclasPermitidas.includes(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  private async carregarRestricoes(): Promise<void> {
+    try {
+      const [disponibilidades, bloqueios] = await Promise.all([
+        this.disponibilidadesRepo.listar(),
+        this.bloqueiosRepo.listar(),
+      ]);
+      this.disponibilidades.set(disponibilidades);
+      this.bloqueios.set(bloqueios);
+    } catch {
+      this.snack.open('Não foi possível carregar horários disponíveis.', 'OK', { duration: 3000 });
+    }
+  }
+
+  private async recalcularSlots(): Promise<void> {
+    const data = this.form.controls.data.value;
+    const servicoId = this.form.controls.servico_id.value;
+    const servico = this.servicosStore.servicos().find(s => s.id === servicoId);
+
+    this.slots.set([]);
+    this.slotsCalculados.set(false);
+    this.form.controls.data.updateValueAndValidity({ emitEvent: false });
+    this.form.controls.hora.updateValueAndValidity({ emitEvent: false });
+
+    if (!data || !servico) return;
+
+    this.carregandoSlots.set(true);
+    try {
+      const inicio = new Date(`${data}T00:00:00`);
+      const fim = new Date(`${data}T23:59:59`);
+      const agendamentos = await this.agendamentosRepo.listarPorPeriodo(inicio, fim);
+      const user = currentUser();
+      const slots = this.slotCalculator.calcularSlotsParaDia(
+        inicio,
+        servico,
+        this.disponibilidades(),
+        agendamentos
+          .filter(a => a.status === 'confirmado' && a.id !== this.data.agendamento?.id)
+          .map(a => ({ data_hora: a.data_hora })),
+        this.bloqueios(),
+        user?.timezone ?? 'America/Sao_Paulo',
+        user?.antecedencia_minima_horas ?? 0,
+        user?.antecedencia_maxima_dias ?? 30,
+      );
+      this.slots.set(this.incluirSlotAtualSeNecessario(slots));
+      this.slotsCalculados.set(true);
+    } catch {
+      this.snack.open('Erro ao calcular horários disponíveis.', 'OK', { duration: 3000 });
+    } finally {
+      this.carregandoSlots.set(false);
+      this.form.controls.data.updateValueAndValidity({ emitEvent: false });
+      this.form.controls.hora.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
+  private incluirSlotAtualSeNecessario(slots: SlotInfo[]): SlotInfo[] {
+    if (this.data.modo !== 'editar' || !this.data.agendamento) return slots;
+    const horaAtual = this.form.controls.hora.value;
+    const dataAtual = this.form.controls.data.value;
+    if (!horaAtual || !dataAtual) return slots;
+    if (slots.some(s => s.hora === horaAtual)) return slots;
+    return [
+      ...slots,
+      {
+        hora: horaAtual,
+        dataHoraISO: new Date(`${dataAtual}T${horaAtual}`).toISOString(),
+        disponivel: true,
+      },
+    ].sort((a, b) => a.hora.localeCompare(b.hora));
+  }
+
+  private dataValidator(control: AbstractControl): ValidationErrors | null {
+    const data = control.value as string;
+    if (!data) return null;
+    if (data < this.hoje) return { dataPassada: true };
+    if (this.disponibilidades().length > 0 && !this.disponibilidadeDaData(data)) {
+      return { diaSemAtendimento: true };
+    }
+    const servicoId = this.form?.controls.servico_id.value;
+    if (servicoId && this.slotsCalculados() && this.horariosDisponiveis().length === 0) {
+      return { semSlots: true };
+    }
+    return null;
+  }
+
+  private horaValidator(control: AbstractControl): ValidationErrors | null {
+    const hora = control.value as string;
+    const data = this.form?.controls.data.value;
+    const servicoId = this.form?.controls.servico_id.value;
+    if (!hora || !data || !servicoId || this.carregandoSlots()) return null;
+    if (this.horariosDisponiveis().length === 0) return { horaIndisponivel: true };
+    return this.horariosDisponiveis().some(s => s.hora === hora)
+      ? null
+      : { horaIndisponivel: true };
+  }
+
+  private disponibilidadeDaData(data: string): Disponibilidade | null {
+    if (!data) return null;
+    const diaSemana = new Date(`${data}T00:00:00`).getDay();
+    return this.disponibilidades().find(d => d.dia_semana === diaSemana) ?? null;
   }
 
   async confirmar() {
@@ -404,7 +682,10 @@ export class AgendamentoFormDialogComponent implements OnInit {
   }
 
   async salvar() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.salvando.set(true);
 
     const v = this.form.getRawValue();

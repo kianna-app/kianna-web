@@ -12,6 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { currentUser } from '@core/signals/app.signals';
 import { AuthService } from '@core/auth/auth.service';
 import { ProfissionaisRepository } from '@core/repositories/profissionais.repository';
+import { UpgradeNavigationService } from '@core/services/upgrade-navigation.service';
 import { APP } from '@core/constants/app.constants';
 import { AppUser } from '@core/signals/app.signals';
 import { Plano } from '@core/types/database.types';
@@ -40,6 +41,7 @@ export class PerfilComponent implements OnInit {
   private snack  = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  readonly upgradeNav = inject(UpgradeNavigationService);
   private profissionaisRepo = inject(ProfissionaisRepository);
 
   readonly user      = currentUser;
@@ -83,10 +85,6 @@ export class PerfilComponent implements OnInit {
     } catch {
       this.snack.open('Não foi possível copiar', 'OK', { duration: 2000 });
     }
-  }
-
-  irParaUpgrade(): void {
-    this.router.navigate(['/dashboard/upgrade']);
   }
 
   editarPerfil(): void {

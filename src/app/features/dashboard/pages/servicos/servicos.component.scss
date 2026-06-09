@@ -15,6 +15,10 @@
 
   h1 { font-size: 24px; font-weight: 700; margin: 0; color: v.$kianna-slate-900; }
   .page-sub { font-size: 13px; color: v.$kianna-slate-500; margin: 4px 0 0; }
+
+  .btn-limit {
+    box-shadow: none;
+  }
 }
 
 .toolbar {
