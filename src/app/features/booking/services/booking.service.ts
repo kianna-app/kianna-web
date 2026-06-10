@@ -159,7 +159,6 @@ export class BookingService {
 
   selecionarHorario(iso: string): void {
     this.horarioSelecionado.set(iso);
-    this.step.set('dados');
   }
 
   semanaAnterior(): void {
@@ -226,16 +225,6 @@ export class BookingService {
   }
 
   reabrirStep(step: BookingStep): void {
-    if (step === 'servico') {
-      this.servicoSelecionado.set(null);
-      this.dataSelecionada.set(null);
-      this.horarioSelecionado.set(null);
-    } else if (step === 'data') {
-      this.dataSelecionada.set(null);
-      this.horarioSelecionado.set(null);
-    } else if (step === 'horario') {
-      this.horarioSelecionado.set(null);
-    }
     this.step.set(step);
   }
 

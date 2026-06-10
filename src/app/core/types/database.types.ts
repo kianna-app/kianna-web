@@ -67,6 +67,7 @@ export interface Servico {
   id: string;
   profissional_id: string;
   nome: string;
+  descricao?: string | null;
   duracao_min: number;
   preco: number;
   modalidade: ModalidadeAtendimento;

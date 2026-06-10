@@ -1,21 +1,21 @@
 <div class="booking-page">
 
-  <app-professional-header [profissional]="booking.profissional()" />
-
   @if (booking.agendamentoOrigemId()) {
     <div class="reagendamento-banner">
       <mat-icon>event_repeat</mat-icon>
-      Selecione a nova data e horário para o seu reagendamento.
+      <span>Escolha uma nova data e um novo horário para seu reagendamento.</span>
     </div>
   }
 
   @if (booking.loading() && !booking.enviando()) {
-    <div class="global-loading"><div class="spinner"></div></div>
+    <div class="global-loading" aria-live="polite">
+      <div class="spinner"></div>
+    </div>
   }
 
   @if (booking.step() === 'lotado') {
     <div class="estado-vazio">
-      <span class="estado-icon">😔</span>
+      <mat-icon class="estado-icon">event_busy</mat-icon>
       <p class="estado-titulo">Sem horários disponíveis</p>
       <p class="estado-desc">Este profissional atingiu o limite de agendamentos do mês.</p>
       @if (booking.profissional()?.whatsapp) {
@@ -23,7 +23,7 @@
           class="btn-wpp"
           [href]="'https://wa.me/55' + booking.profissional()!.whatsapp.replace(/\D/g, '')"
           target="_blank"
-        >
+          rel="noopener noreferrer">
           Entrar em contato pelo WhatsApp
         </a>
       }
@@ -32,7 +32,7 @@
 
   @if (booking.step() === 'not-found') {
     <div class="estado-vazio">
-      <span class="estado-icon">🔍</span>
+      <mat-icon class="estado-icon">search_off</mat-icon>
       <p class="estado-titulo">Profissional não encontrado</p>
       <p class="estado-desc">O link que você acessou não existe ou foi alterado.</p>
       <a routerLink="/" class="btn-secundario">Conhecer o Kianna</a>
@@ -40,168 +40,371 @@
   }
 
   @if (booking.step() !== 'lotado' && booking.step() !== 'not-found' && booking.step() !== 'confirmado') {
+    <section class="profile-card" aria-label="Perfil do profissional">
+      <div class="profile-hero-bg"></div>
+      <app-professional-header [profissional]="booking.profissional()" />
 
-    <!-- Seção 1: Serviço -->
-    <section class="booking-section">
-      <h2 class="section-title">Serviço</h2>
-
-      <div class="servicos-list">
-        @for (s of booking.servicos(); track s.id) {
-          <button class="servico-card"
-            [class.selected]="booking.servicoSelecionado()?.id === s.id"
-            (click)="selecionarServico(s)">
-            <div class="servico-info">
-              <span class="servico-nome">{{ s.nome }}</span>
-              <span class="servico-meta">
-                {{ s.duracao_min }} min
-                @if (s.preco) { · R$ {{ s.preco | number:'1.2-2' }} }
-              </span>
-            </div>
-            @if (booking.servicoSelecionado()?.id === s.id) {
-              <mat-icon class="servico-check">check_circle</mat-icon>
-            }
+      <div class="profile-tabs" role="tablist" aria-label="Informações do profissional">
+        @for (tab of profileTabs; track tab.key) {
+          <button
+            type="button"
+            class="profile-tab"
+            role="tab"
+            [class.active]="activeProfileTab === tab.key"
+            [attr.aria-selected]="activeProfileTab === tab.key"
+            (click)="selecionarAba(tab.key)">
+            <mat-icon>{{ tab.icon }}</mat-icon>
+            <span>{{ tab.label }}</span>
           </button>
         }
       </div>
     </section>
 
-    <!-- Seção 2: Data -->
-    @if (booking.servicoSelecionado()) {
-      <section class="booking-section" #secData>
-        <h2 class="section-title">Data</h2>
+    @if (activeProfileTab === 'agendar') {
+      <section class="booking-card" aria-label="Formulário de agendamento">
+        <div class="steps-note">
+          <strong>Agendamento em 3 passos</strong>
+          <span>Escolha o serviço, defina data e hora, revise e confirme.</span>
+        </div>
 
-        <div class="date-strip-wrap">
-          <button type="button" class="strip-nav"
+        <div class="stepper stepper-desktop" aria-label="Progresso do agendamento">
+          @for (etapa of etapas; track etapa.key; let i = $index) {
+            <button
+              type="button"
+              class="stepper-item"
+              [class.active]="etapaAtualIndex() === i"
+              [class.done]="etapaConcluida(i)"
+              [disabled]="i >= etapaAtualIndex()"
+              (click)="irParaEtapa(i)">
+              <span class="stepper-icon">
+                <mat-icon>{{ etapaConcluida(i) ? 'check' : etapa.icon }}</mat-icon>
+              </span>
+              <span class="stepper-label">{{ etapa.label }}</span>
+            </button>
+          }
+        </div>
+
+        <div class="stepper-mobile">
+          <div class="mobile-step-label">
+            Etapa {{ etapaAtualIndex() + 1 }} de 3 — {{ etapaAtual().label }}
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-bar" [style.width.%]="((etapaAtualIndex() + 1) / etapas.length) * 100"></div>
+          </div>
+        </div>
+
+        <div class="step-panel" [attr.data-step]="etapaAtual().key">
+          @if (booking.step() === 'servico') {
+            <div class="booking-section">
+              <div class="section-heading">
+                <h2>O que você quer agendar?</h2>
+                <p>Escolha o serviço desejado.</p>
+              </div>
+
+              <div class="servicos-list" role="list" aria-label="Serviços disponíveis">
+                @for (s of booking.servicos(); track s.id) {
+                  <button
+                    type="button"
+                    class="servico-card"
+                    role="button"
+                    [attr.aria-pressed]="booking.servicoSelecionado()?.id === s.id"
+                    [class.selected]="booking.servicoSelecionado()?.id === s.id"
+                    (click)="selecionarServico(s)">
+                    <span class="servico-content">
+                      <span class="servico-nome">{{ s.nome }}</span>
+                      <span class="servico-desc">{{ descricaoServico(s) }}</span>
+                      <span class="servico-meta">
+                        <span>{{ s.duracao_min }} min</span>
+                        <span>{{ precoServico(s) }}</span>
+                      </span>
+                    </span>
+                    @if (booking.servicoSelecionado()?.id === s.id) {
+                      <mat-icon class="servico-check">check_circle</mat-icon>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          @if (booking.step() === 'data' || booking.step() === 'horario') {
+            <div class="booking-section">
+              <div class="section-heading">
+                <h2>Quando você prefere?</h2>
+                <p>Escolha a data que funciona melhor para você e depois o horário.</p>
+              </div>
+
+              <div class="date-strip-wrap">
+                <button
+                  type="button"
+                  class="strip-nav"
                   (click)="booking.semanaAnterior()"
                   [disabled]="!booking.podeSemanaAnterior()"
                   aria-label="Semana anterior">
-            <mat-icon>chevron_left</mat-icon>
-          </button>
+                  <mat-icon>chevron_left</mat-icon>
+                </button>
 
-          <div class="date-strip">
-            @for (dia of booking.semana(); track dia.dataISO) {
-              <button type="button" class="date-pill"
-                [class.selected]="dataISOSelecionada() === dia.dataISO"
-                [class.disabled]="!dia.temSlots"
-                [disabled]="!dia.temSlots"
-                (click)="selecionarData(dia)">
-                <span class="date-weekday">{{ dia.letra }}</span>
-                <span class="date-num">{{ dia.numero }}</span>
-                <span class="date-month">{{ dia.mes }}</span>
-              </button>
-            }
-          </div>
+                <div class="date-strip" role="listbox" aria-label="Escolha uma data">
+                  @for (dia of booking.semana(); track dia.dataISO) {
+                    <button
+                      type="button"
+                      class="date-pill"
+                      role="option"
+                      [attr.aria-selected]="dataISOSelecionada() === dia.dataISO"
+                      [class.selected]="dataISOSelecionada() === dia.dataISO"
+                      [class.disabled]="!dia.temSlots"
+                      [disabled]="!dia.temSlots"
+                      [attr.title]="dia.temSlots ? null : 'Sem horários disponíveis nesta data.'"
+                      (click)="selecionarData(dia)">
+                      <span class="date-weekday">{{ dia.letra }}</span>
+                      <span class="date-num">{{ dia.numero }}</span>
+                      <span class="date-month">{{ dia.mes }}</span>
+                    </button>
+                  }
+                </div>
 
-          <button type="button" class="strip-nav"
+                <button
+                  type="button"
+                  class="strip-nav"
                   (click)="booking.proximaSemana()"
                   aria-label="Próxima semana">
-            <mat-icon>chevron_right</mat-icon>
-          </button>
-        </div>
-
-        @if (!booking.semana().length || booking.semana().every(d => !d.temSlots)) {
-          <p class="sem-slots-inline">Sem datas disponíveis nesta semana.</p>
-        }
-      </section>
-    }
-
-    <!-- Seção 3: Horário -->
-    @if (booking.dataSelecionada()) {
-      <section class="booking-section" #secHorario>
-        <h2 class="section-title">Horário</h2>
-
-        @if (booking.loadingSlots()) {
-          <div class="slots-loading"><mat-spinner diameter="24" /></div>
-        } @else if (!booking.slotsParaDia().length || !booking.slotsParaDia().some(s => s.disponivel)) {
-          <p class="sem-slots-inline">Sem horários disponíveis para esta data.</p>
-        } @else {
-          <div class="time-strip-wrap">
-            <button type="button" class="strip-nav"
-                    (click)="slotsScrollEsq()" aria-label="Rolar para esquerda">
-              <mat-icon>chevron_left</mat-icon>
-            </button>
-            <div class="time-strip" #timeStrip>
-              @for (slot of booking.slotsParaDia(); track slot.dataHoraISO) {
-                <button type="button" class="time-pill"
-                  [class.selected]="booking.horarioSelecionado() === slot.dataHoraISO"
-                  [class.disabled]="!slot.disponivel"
-                  [disabled]="!slot.disponivel"
-                  (click)="onSelecionouHorario(slot.dataHoraISO)">
-                  {{ slot.hora }}
+                  <mat-icon>chevron_right</mat-icon>
                 </button>
+              </div>
+
+              @if (semanaSemDatasDisponiveis()) {
+                <p class="sem-slots-inline">Não há datas livres nesta semana.</p>
+              }
+
+              @if (booking.dataSelecionada()) {
+                <div class="time-area">
+                  <h3>Agora escolha o horário</h3>
+
+                  @if (booking.loadingSlots()) {
+                    <div class="slots-loading"><mat-spinner diameter="24" /></div>
+                  } @else if (semHorariosDisponiveisNoDia()) {
+                    <p class="sem-slots-inline">Não há horários disponíveis para esta data.</p>
+                  } @else {
+                    <div class="time-strip" role="listbox" aria-label="Escolha um horário">
+                      @for (slot of booking.slotsParaDia(); track slot.dataHoraISO) {
+                        <button
+                          type="button"
+                          class="time-pill"
+                          role="option"
+                          [attr.aria-selected]="booking.horarioSelecionado() === slot.dataHoraISO"
+                          [class.selected]="booking.horarioSelecionado() === slot.dataHoraISO"
+                          [class.disabled]="!slot.disponivel"
+                          [disabled]="!slot.disponivel"
+                          [attr.title]="slot.disponivel ? null : slot.motivoIndisponivel"
+                          (click)="onSelecionouHorario(slot.dataHoraISO)">
+                          {{ slot.hora }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
               }
             </div>
-            <button type="button" class="strip-nav"
-                    (click)="slotsScrollDir()" aria-label="Rolar para direita">
-              <mat-icon>chevron_right</mat-icon>
+          }
+
+          @if (booking.step() === 'dados' || booking.step() === 'resumo') {
+            <div class="booking-section resumo-section">
+              <div class="section-heading">
+                <h2>Confira seu agendamento</h2>
+                <p>Informe seus dados e revise tudo antes de confirmar.</p>
+              </div>
+
+              <div class="dados-form confirm-form">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Nome</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="booking.clienteNome()"
+                    (ngModelChange)="onClienteNomeChange($event)"
+                    placeholder="Seu nome"
+                    autocomplete="name" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>WhatsApp</mat-label>
+                  <input
+                    matInput
+                    type="tel"
+                    [ngModel]="booking.clienteWpp()"
+                    (ngModelChange)="onClienteWppChange($event)"
+                    placeholder="WhatsApp com DDD"
+                    maxlength="16"
+                    autocomplete="tel"
+                    inputmode="numeric" />
+                </mat-form-field>
+              </div>
+
+              <div class="resumo-lista">
+                <div class="resumo-item resumo-item--full">
+                  <mat-icon>person</mat-icon>
+                  <span class="resumo-key">Cliente</span>
+                  <span class="resumo-val">{{ booking.clienteNome() || 'Seu nome' }}</span>
+                </div>
+                <div class="resumo-item resumo-item--full">
+                  <mat-icon>call</mat-icon>
+                  <span class="resumo-key">Telefone</span>
+                  <span class="resumo-val">{{ booking.clienteWpp() || 'WhatsApp com DDD' }}</span>
+                </div>
+                <div class="resumo-item resumo-item--service">
+                  <mat-icon>content_cut</mat-icon>
+                  <span class="resumo-key">Serviço</span>
+                  <span class="resumo-val">{{ booking.servicoSelecionado()?.nome }}</span>
+                  <strong class="resumo-preco">{{ precoServico(booking.servicoSelecionado()) }}</strong>
+                </div>
+                <div class="resumo-total-box">
+                  <div>
+                    <mat-icon>attach_money</mat-icon>
+                    <span>Total</span>
+                    <strong>{{ precoServico(booking.servicoSelecionado()) }}</strong>
+                  </div>
+                  <div>
+                    <mat-icon>schedule</mat-icon>
+                    <span>Duração total</span>
+                    <strong>{{ booking.servicoSelecionado()?.duracao_min }} min</strong>
+                  </div>
+                </div>
+                <div class="resumo-item resumo-item--full">
+                  <mat-icon>storefront</mat-icon>
+                  <span class="resumo-key">Modalidade de atendimento</span>
+                  <span class="resumo-val">{{ modalidadeServico(booking.servicoSelecionado()) }}</span>
+                </div>
+                <div class="resumo-item resumo-item--full">
+                  <mat-icon>badge</mat-icon>
+                  <span class="resumo-key">Profissional</span>
+                  <span class="resumo-val">{{ booking.profissional()?.nome }}</span>
+                </div>
+                <div class="resumo-item resumo-item--datetime">
+                  <mat-icon>event</mat-icon>
+                  <span class="resumo-key">Data e hora</span>
+                  <span class="resumo-val">
+                    {{ formatarDataResumo(booking.dataSelecionada()) }}
+                    <strong>{{ formatarHoraResumo(booking.horarioSelecionado()) }}</strong>
+                  </span>
+                </div>
+              </div>
+
+              @if (politicaCancelamento()) {
+                <div class="policy-box">
+                  <mat-icon>warning</mat-icon>
+                  <p>{{ politicaCancelamento() }}</p>
+                </div>
+              }
+
+              @if (booking.erro()) {
+                <p class="resumo-erro" aria-live="assertive">{{ booking.erro() }}</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="step-actions">
+          @if (etapaAtualIndex() > 0) {
+            <button type="button" class="btn-voltar" (click)="voltar()">
+              Voltar
             </button>
-          </div>
-        }
-      </section>
-    }
+          }
 
-    <!-- Seção 4: Dados do cliente -->
-    @if (booking.horarioSelecionado()) {
-      <section class="booking-section" #secDados>
-        <h2 class="section-title">Seus dados</h2>
-
-        <div class="dados-form">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Seu nome</mat-label>
-            <input matInput
-              [ngModel]="booking.clienteNome()"
-              (ngModelChange)="onClienteNomeChange($event)"
-              placeholder="Como prefere ser chamado(a)" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>WhatsApp</mat-label>
-            <input matInput type="tel"
-              [ngModel]="booking.clienteWpp()"
-              (ngModelChange)="onClienteWppChange($event)"
-              placeholder="(11) 91234-5678"
-              maxlength="16"
-              inputmode="numeric" />
-          </mat-form-field>
+          <button
+            type="button"
+            class="btn-confirmar"
+            [disabled]="!podeAvancar() || booking.enviando()"
+            (click)="avancar()">
+            @if (booking.enviando()) {
+              <mat-spinner diameter="18" />
+            }
+            <span>{{ textoAcaoPrimaria() }}</span>
+          </button>
         </div>
       </section>
-    }
-
-    <!-- Seção 5: Resumo -->
-    @if (booking.dadosPreenchidos()) {
-      <section class="booking-section resumo-section" #secResumo>
-        <h2 class="section-title">Resumo</h2>
-
-        <div class="resumo-lista">
-          <div class="resumo-item">
-            <span class="resumo-key">Serviço</span>
-            <span class="resumo-val">{{ booking.servicoSelecionado()!.nome }}</span>
-          </div>
-          <div class="resumo-item">
-            <span class="resumo-key">Data</span>
-            <span class="resumo-val">{{ formatarDataResumo(booking.dataSelecionada()) }}</span>
-          </div>
-          <div class="resumo-item">
-            <span class="resumo-key">Horário</span>
-            <span class="resumo-val">{{ formatarHoraResumo(booking.horarioSelecionado()) }}</span>
-          </div>
-          <div class="resumo-item">
-            <span class="resumo-key">Nome</span>
-            <span class="resumo-val">{{ booking.clienteNome() }}</span>
+    } @else if (activeProfileTab === 'horarios') {
+      <section class="info-tab-card" aria-label="Horários de atendimento">
+        <div class="tab-section-heading">
+          <mat-icon>schedule</mat-icon>
+          <div>
+            <h2>Horários de atendimento</h2>
+            @if (antecedenciaMinimaTexto()) {
+              <p>Agende com pelo menos {{ antecedenciaMinimaTexto() }} de antecedência.</p>
+            }
           </div>
         </div>
 
-        @if (booking.erro()) {
-          <p class="resumo-erro">{{ booking.erro() }}</p>
+        @if (possuiHorariosAtendimento()) {
+          <div class="hours-table">
+            @for (linha of horariosAtendimento(); track linha.dia) {
+              <div class="hours-row" [class.is-closed]="linha.fechado">
+                <span>{{ linha.dia }}</span>
+                <strong>{{ linha.horario }}</strong>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-tab-text">Horários não informados.</p>
+        }
+      </section>
+    } @else if (activeProfileTab === 'endereco') {
+      <section class="info-tab-card" aria-label="Endereço">
+        <div class="tab-section-heading">
+          <mat-icon>location_on</mat-icon>
+          <div>
+            <h2>Endereço</h2>
+            <p>Confira onde será o atendimento presencial.</p>
+          </div>
+        </div>
+
+        @if (enderecoTexto()) {
+          <a class="address-card" [href]="mapsUrl()" target="_blank" rel="noopener noreferrer">
+            <mat-icon>map</mat-icon>
+            <span>{{ enderecoTexto() }}</span>
+          </a>
+        } @else {
+          <p class="empty-tab-text">Endereço não informado ou atendimento remoto.</p>
+        }
+      </section>
+    } @else if (activeProfileTab === 'redes') {
+      <section class="info-tab-card" aria-label="Redes e links">
+        <div class="tab-section-heading">
+          <mat-icon>share</mat-icon>
+          <div>
+            <h2>Redes e links</h2>
+            <p>Acompanhe os canais do profissional.</p>
+          </div>
+        </div>
+
+        @if (redesSociais().length || linksPersonalizados().length) {
+          @if (redesSociais().length) {
+            <div class="social-grid">
+              @for (rede of redesSociais(); track rede.label) {
+                <a class="social-card" [href]="rede.url" target="_blank" rel="noopener noreferrer">
+                  <mat-icon>{{ rede.icon }}</mat-icon>
+                  <span>{{ rede.label }}</span>
+                </a>
+              }
+            </div>
+          }
+
+          @if (linksPersonalizados().length) {
+            <div class="custom-links-grid">
+              @for (link of linksPersonalizados(); track link.url) {
+                <a class="custom-link-card" [href]="link.url" target="_blank" rel="noopener noreferrer">
+                  {{ link.label }}
+                </a>
+              }
+            </div>
+          }
+        } @else {
+          <p class="empty-tab-text">Redes e links ainda não foram informados.</p>
         }
       </section>
     }
-
-    <div style="height: 80px"></div>
   }
 
   @if (booking.step() === 'confirmado') {
-    <section class="booking-section confirmado-section">
+    <section class="booking-card confirmado-section">
       <app-booking-confirmation
         [profissional]="booking.profissional()"
         [servico]="booking.servicoSelecionado()"
@@ -212,17 +415,3 @@
   }
 
 </div>
-
-@if (booking.step() !== 'confirmado' && booking.step() !== 'lotado' && booking.step() !== 'not-found') {
-  <div class="booking-footer">
-    <button type="button" class="btn-confirmar"
-      [disabled]="!booking.dadosPreenchidos() || booking.enviando()"
-      (click)="booking.confirmarAgendamento()">
-      @if (booking.enviando()) {
-        <mat-spinner diameter="18" />
-      } @else {
-        Confirmar solicitação
-      }
-    </button>
-  </div>
-}

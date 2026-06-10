@@ -5,6 +5,10 @@ Prioridade: Alta
 Area: Frontend — Public Booking
 ================================================================================
 
+# Analise e executes os seguintes passos:
+
+## Antes de iniciar criei uma nova branch para esta task.
+
 --------------------------------------------------------------------------------
 CONTEXTO
 --------------------------------------------------------------------------------
@@ -244,6 +248,76 @@ NOTAS PARA IMPLEMENTAÇÃO
   - Evitar quebrar o fluxo atual de submissão/confirmação via WhatsApp;
     apenas reorganizar a UX em torno dele.
 
+
+# DIRETRIZES GERAIS
+
+## UX/UI
+
+* Priorizar experiência mobile.
+* Garantir excelente usabilidade em telas pequenas.
+* Evitar poluição visual.
+* Utilizar hierarquia visual clara.
+* Evitar layout shift.
+* Melhorar percepção de estado e feedback visual.
+* Garantir consistência entre telas.
+
+---
+
+# IMPORTANTE — PESQUISA DE COMPONENTES/PLUGINS
+
+Antes de implementar:
+
+* Buscar bibliotecas/plugins já utilizados no ecossistema Angular Material.
+* Priorizar reaproveitamento de componentes prontos.
+* Evitar criar soluções complexas do zero.
+
+Avaliar especialmente:
+
+* grids responsivos
+* skeleton loaders
+* empty states
+* chips/badges
+* calendários/listagens
+* toggles modernos
+* hover actions
+* loading placeholders
+
+Preferir:
+
+* Angular Material
+* CDK
+* libs leves e maduras
+* componentes compatíveis com Angular atual do projeto
+
+### Skeleton loading
+
+Criar skeleton semelhante ao card final:
+
+* evitar layout shift
+* manter proporção real do conteúdo
+
+
+# PONTOS DE ATENÇÃO
+
+* Não quebrar stores existentes
+* Não alterar contratos da API sem necessidade
+* Evitar regressões visuais
+* Validar dark/light mode se existir
+* Validar responsividade real
+* Validar acessibilidade básica
+* Evitar excesso de animações
+* Garantir performance
+
+
+# ENTREGÁVEIS
+
+* Implementação completa
+* Código limpo
+* Componentes reutilizáveis quando fizer sentido
+* Responsividade validada
+* Estados de loading/empty/error implementados
+* UX consistente
+* Sem regressões visuais
 ================================================================================
 FIM DO TASK
 ================================================================================

@@ -7,6 +7,7 @@ export interface SlotInfo {
   hora: string;
   dataHoraISO: string;
   disponivel: boolean;
+  motivoIndisponivel?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -65,10 +66,21 @@ export class SlotCalculatorService {
         a => new Date(a.data_hora).toISOString() === slotISO,
       ).length;
 
+      const lotado = confirmadosNoSlot >= capacidade;
+      const disponivel = !dentroDaAntecedencia && !emBloqueio && !lotado;
+      const motivoIndisponivel = dentroDaAntecedencia
+        ? `Agendamento com menos de ${antecedencia} horas de antecedência não é permitido.`
+        : emBloqueio
+          ? 'Horário bloqueado pelo profissional.'
+          : lotado
+            ? 'Horário já reservado.'
+            : undefined;
+
       slots.push({
         hora: slotHora,
         dataHoraISO: slotISO,
-        disponivel: !dentroDaAntecedencia && !emBloqueio && confirmadosNoSlot < capacidade,
+        disponivel,
+        motivoIndisponivel,
       });
 
       cursor = addMinutes(cursor, intervalo);
