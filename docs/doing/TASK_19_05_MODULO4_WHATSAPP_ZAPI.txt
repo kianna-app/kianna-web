@@ -1988,3 +1988,5 @@ SWAGGER
 [ ] POST /api/whatsapp/qr-code documentado
 [ ] POST /api/whatsapp/desconectar documentado
 [ ] GET /api/whatsapp/status documentado
+
+

@@ -1,26 +1,62 @@
 @use 'styles/variables' as v;
 
+:host {
+  display: inline-flex;
+}
+
 .bell-btn {
+  --mdc-icon-button-state-layer-size: var(--header-action-h, 40px);
+  --mat-icon-button-state-layer-color: #{v.$kianna-slate-900};
+
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: var(--header-action-h, 40px);
+  height: var(--header-action-h, 40px);
+  min-width: var(--header-action-h, 40px);
+  padding: 0 !important;
+  border: 1px solid v.$kianna-slate-200;
+  border-radius: 999px;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    box-shadow .15s ease,
+    color .15s ease,
+    transform .12s ease;
 
   mat-icon {
     color: v.$kianna-slate-700;
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: v.$kianna-slate-50;
+    border-color: v.$kianna-slate-300;
   }
 
   &:hover mat-icon { color: v.$kianna-slate-900; }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(29, 158, 117, .22);
+    outline-offset: 2px;
+    border-color: v.$kianna-green-500;
+  }
 }
 
 .bell-badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  min-width: 18px;
-  height: 18px;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
   padding: 0 4px;
   border-radius: 9px;
   background: #e11d48;
@@ -35,6 +71,11 @@
   pointer-events: none;
   user-select: none;
   white-space: nowrap;
+}
+
+:host ::ng-deep .bell-btn .mat-mdc-button-touch-target {
+  width: var(--header-action-h, 40px);
+  height: var(--header-action-h, 40px);
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }

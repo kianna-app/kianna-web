@@ -91,81 +91,85 @@ export interface AgendamentoFormDialogData {
           <app-field-error [control]="form.controls.servico_id" />
         </mat-form-field>
 
-        <div class="row-2">
-          <mat-form-field appearance="outline">
-            <mat-label>Data</mat-label>
-            <input
-              #dataInput
-              matInput
-              type="date"
-              class="picker-input"
-              formControlName="data"
-              [min]="hoje"
-              (click)="abrirPicker(dataInput)"
-              (keydown)="bloquearDigitacaoPicker($event)"
-              (paste)="$event.preventDefault()" />
-            <button
-              matSuffix
-              type="button"
-              class="picker-suffix"
-              aria-label="Selecionar data"
-              (click)="$event.stopPropagation(); abrirPicker(dataInput)">
-              <mat-icon>calendar_month</mat-icon>
-            </button>
-            @if (form.controls.data.hasError('dataPassada') && form.controls.data.touched) {
-              <mat-error>Data não pode ser anterior a hoje.</mat-error>
-            } @else if (form.controls.data.hasError('diaSemAtendimento') && form.controls.data.touched) {
-              <mat-error>Não há atendimento configurado para este dia.</mat-error>
-            } @else if (form.controls.data.hasError('semSlots') && form.controls.data.touched) {
-              <mat-error>Nenhum horário disponível nesta data.</mat-error>
-            }
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Data</mat-label>
+          <input
+            #dataInput
+            matInput
+            type="date"
+            class="picker-input"
+            formControlName="data"
+            [min]="hoje"
+            (click)="abrirPicker(dataInput)"
+            (keydown)="bloquearDigitacaoPicker($event)"
+            (paste)="$event.preventDefault()" />
+          <button
+            matSuffix
+            type="button"
+            class="picker-suffix"
+            aria-label="Selecionar data"
+            (click)="$event.stopPropagation(); abrirPicker(dataInput)">
+            <mat-icon>calendar_month</mat-icon>
+          </button>
+          @if (form.controls.data.hasError('dataPassada') && form.controls.data.touched) {
+            <mat-error>Data não pode ser anterior a hoje.</mat-error>
+          } @else if (form.controls.data.hasError('diaSemAtendimento') && form.controls.data.touched) {
+            <mat-error>Não há atendimento configurado para este dia.</mat-error>
+          } @else if (form.controls.data.hasError('semSlots') && form.controls.data.touched) {
+            <mat-error>Nenhum horário disponível nesta data.</mat-error>
+          }
+        </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Horário</mat-label>
-            <input
-              #horaInput
-              matInput
-              type="time"
-              class="picker-input"
-              formControlName="hora"
-              [attr.min]="primeiroHorario()"
-              [attr.max]="ultimoHorario()"
-              [attr.step]="intervaloHorarioSegundos()"
-              (click)="abrirPicker(horaInput)"
-              (keydown)="bloquearDigitacaoPicker($event)"
-              (paste)="$event.preventDefault()" />
-            <button
-              matSuffix
-              type="button"
-              class="picker-suffix"
-              aria-label="Selecionar horário"
-              (click)="$event.stopPropagation(); abrirPicker(horaInput)">
-              <mat-icon>schedule</mat-icon>
-            </button>
+        @if (form.controls.data.value && form.controls.servico_id.value && (carregandoSlots() || horariosDisponiveis().length > 0)) {
+          <section
+            class="slots-section"
+            [class.slots-section-error]="form.controls.hora.invalid && form.controls.hora.touched"
+            aria-labelledby="slots-title"
+            [attr.aria-describedby]="form.controls.hora.invalid && form.controls.hora.touched ? 'slots-legend slots-error' : 'slots-legend'">
+            <div class="slots-header">
+              <div class="slots-title-wrap">
+                <span class="slots-icon" aria-hidden="true">
+                  <mat-icon>schedule</mat-icon>
+                </span>
+                <div>
+                  <h3 id="slots-title" class="slots-title">Horários disponíveis</h3>
+                  <p id="slots-legend" class="slots-legend">
+                    Selecione um horário abaixo para preencher o agendamento.
+                  </p>
+                </div>
+              </div>
+              @if (horariosDisponiveis().length > 0) {
+                <span class="slots-count">
+                  {{ horariosDisponiveis().length }} horário{{ horariosDisponiveis().length === 1 ? '' : 's' }}
+                </span>
+              }
+            </div>
+
             @if (carregandoSlots()) {
-              <mat-hint>Carregando horários…</mat-hint>
+              <div class="slots-loading">
+                <mat-spinner diameter="18" />
+                <span>Buscando horários...</span>
+              </div>
             } @else if (horariosDisponiveis().length > 0) {
-              <mat-hint>{{ horariosDisponiveis().length }} horário{{ horariosDisponiveis().length === 1 ? '' : 's' }} disponível{{ horariosDisponiveis().length === 1 ? '' : 'is' }}</mat-hint>
+              <div class="slots-list" role="radiogroup" aria-label="Escolha um horário disponível">
+                @for (slot of horariosDisponiveis(); track slot.dataHoraISO) {
+                  <button
+                    type="button"
+                    class="slot-chip"
+                    role="radio"
+                    [attr.aria-checked]="form.controls.hora.value === slot.hora"
+                    [class.ativo]="form.controls.hora.value === slot.hora"
+                    (click)="selecionarHorario(slot.hora)">
+                    {{ slot.hora }}
+                  </button>
+                }
+              </div>
             }
-            @if (form.controls.hora.hasError('horaIndisponivel') && form.controls.hora.touched) {
-              <mat-error>Escolha um horário disponível para esta data.</mat-error>
-            }
-          </mat-form-field>
-        </div>
 
-        @if (horariosDisponiveis().length > 0) {
-          <div class="slots-list" aria-label="Horários disponíveis">
-            @for (slot of horariosDisponiveis(); track slot.dataHoraISO) {
-              <button
-                type="button"
-                class="slot-chip"
-                [class.ativo]="form.controls.hora.value === slot.hora"
-                (click)="selecionarHorario(slot.hora)">
-                {{ slot.hora }}
-              </button>
+            @if (form.controls.hora.invalid && form.controls.hora.touched) {
+              <p id="slots-error" class="slots-error">Escolha um dos horários disponíveis.</p>
             }
-          </div>
+          </section>
         }
 
         <mat-form-field appearance="outline">
@@ -336,10 +340,8 @@ export interface AgendamentoFormDialogData {
         flex-direction: column;
         gap: 4px;
       }
-      .row-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
+      .date-field {
+        width: 100%;
       }
       .picker-input {
         cursor: pointer;
@@ -368,30 +370,112 @@ export interface AgendamentoFormDialogData {
         width: 20px;
         height: 20px;
       }
-      .slots-list {
+      .slots-section {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: 12px;
+        margin: -2px 0 8px;
+      }
+      .slots-section-error {
+        border-color: #fda4af;
+        background: #fff7f8;
+      }
+      .slots-header {
         display: flex;
-        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .slots-title-wrap {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        min-width: 0;
+      }
+      .slots-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        background: #e8f5f0;
+        color: #0f5c44;
+      }
+      .slots-icon mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+      .slots-title {
+        margin: 0;
+        color: #1e293b;
+        font: 700 13px 'Inter';
+      }
+      .slots-legend {
+        margin: 2px 0 0;
+        color: #64748b;
+        font: 500 12px/1.35 'Inter';
+      }
+      .slots-count {
+        flex: 0 0 auto;
+        border-radius: 999px;
+        background: #e8f5f0;
+        color: #0f5c44;
+        border: 1px solid #a7f3d0;
+        padding: 4px 9px;
+        font: 700 11px 'Inter';
+        white-space: nowrap;
+      }
+      .slots-loading {
+        min-height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         gap: 8px;
-        margin: -4px 0 8px;
+        color: #64748b;
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        font: 600 12px 'Inter';
+      }
+      .slots-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+        gap: 8px;
       }
       .slot-chip {
-        min-height: 36px;
-        padding: 7px 12px;
+        min-height: 44px;
+        padding: 8px 12px;
         border-radius: 999px;
         border: 1px solid #dbe4ea;
         background: #fff;
         color: #334155;
         font: 600 13px 'Inter';
         cursor: pointer;
+        transition: background .15s, border-color .15s, box-shadow .15s, color .15s;
       }
       .slot-chip:hover {
         background: #f8fafc;
         border-color: #b6c4d0;
       }
+      .slot-chip:focus-visible {
+        outline: 3px solid rgba(29, 158, 117, .22);
+        outline-offset: 2px;
+        border-color: #1d9e75;
+      }
       .slot-chip.ativo {
         background: #1d9e75;
         border-color: #1d9e75;
         color: #fff;
+        box-shadow: 0 4px 10px rgba(29, 158, 117, .24);
+      }
+      .slots-error {
+        color: #b4233c;
+        font: 600 12px 'Inter';
+        margin: 8px 2px 0;
       }
 
       .status-acoes {
@@ -431,6 +515,35 @@ export interface AgendamentoFormDialogData {
       mat-form-field {
         width: 100%;
       }
+      @media (max-width: 480px) {
+        .dialog-wrap {
+          min-width: 0;
+          width: min(100vw, 360px);
+          padding: 20px;
+        }
+        .slots-section {
+          padding: 12px 10px;
+        }
+        .slots-header {
+          flex-direction: column;
+          gap: 8px;
+        }
+        .slots-list {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .slot-chip {
+          padding-inline: 8px;
+        }
+        .dialog-actions,
+        .actions-right {
+          flex-direction: column-reverse;
+          align-items: stretch;
+          width: 100%;
+        }
+        .actions-right {
+          margin-left: 0;
+        }
+      }
     `,
   ],
 })
@@ -466,15 +579,6 @@ export class AgendamentoFormDialogComponent implements OnInit {
   });
 
   readonly horariosDisponiveis = computed(() => this.slots().filter(s => s.disponivel));
-  readonly primeiroHorario = computed(() => this.horariosDisponiveis()[0]?.hora ?? null);
-  readonly ultimoHorario = computed(() => {
-    const slots = this.horariosDisponiveis();
-    return slots[slots.length - 1]?.hora ?? null;
-  });
-  readonly intervaloHorarioSegundos = computed(() => {
-    const disp = this.disponibilidadeDaData(this.form?.controls.data.value ?? '');
-    return (disp?.intervalo_min ?? 30) * 60;
-  });
 
   get statusAtual() {
     return this.data.agendamento?.status;

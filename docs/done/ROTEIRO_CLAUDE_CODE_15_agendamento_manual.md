@@ -35,10 +35,12 @@
 
 ## Critérios de aceite
 
-- [ ] Campo de data abre calendário/seletor visual (nativo ou componente existente); não aceita digitação livre.
-- [ ] Datas passadas bloqueadas; dias sem atendimento bloqueados.
-- [ ] Campo de hora abre seletor visual; slots indisponíveis bloqueados.
-- [ ] Validação de WhatsApp do cliente reusa a regra existente; número inválido bloqueia com mensagem.
-- [ ] Comportamento mobile-first: seletores nativos do OS em dispositivos móveis.
-- [ ] Nenhuma lib nova adicionada se `<input type="date/time">` nativo resolver.
-- [ ] Build verde; regressão no booking público não introduzida.
+- [OK] Campo de data abre calendário/seletor visual (nativo ou componente existente); não aceita digitação livre.
+- [OK] Datas passadas bloqueadas; dias sem atendimento bloqueados.
+- [OK] Campo de hora abre seletor visual; slots indisponíveis bloqueados.
+- [OK] Validação de WhatsApp do cliente reusa a regra existente; número inválido bloqueia com mensagem.
+- [ [OK]] Comportamento mobile-first: seletores nativos do OS em dispositivos móveis.
+- [OK] Nenhuma lib nova adicionada se `<input type="date/time">` nativo resolver.
+- [OK] Build verde; regressão no booking público não introduzida.
+
+

@@ -1,0 +1,249 @@
+================================================================================
+TASK: Melhoria de UX — Página Pública de Agendamento (Booking Page)
+Tipo: Feature + Refactor
+Prioridade: Alta
+Area: Frontend — Public Booking
+================================================================================
+
+--------------------------------------------------------------------------------
+CONTEXTO
+--------------------------------------------------------------------------------
+
+A página pública de agendamento é o principal ponto de conversão do produto.
+Atualmente ela apresenta apenas os campos mínimos para agendar, sem aproveitar
+os dados que o profissional já configura em seu perfil. O resultado é uma página
+genérica que não transmite a identidade do negócio, nem guia o usuário de forma
+clara pelo fluxo de agendamento.
+
+Dados do profissional que já existem no sistema e ainda NÃO são exibidos
+na página pública:
+
+  - Nome e descrição do profissional / negócio
+  - Política de cancelamentos
+  - Antecedência mínima para agendamentos
+  - Endereço (para atendimento presencial)
+  - Redes sociais
+  - Links personalizados
+  - Horários de atendimento
+  - Serviços (com nome, descrição, duração e preço — já parcialmente exibidos)
+
+--------------------------------------------------------------------------------
+OBJETIVO GERAL
+--------------------------------------------------------------------------------
+
+Transformar a página pública de agendamento em uma página personalizada do
+profissional, aproveitando todos os dados já disponíveis no perfil, e reestruturar
+o fluxo de agendamento em etapas claras para o usuário.
+
+O resultado deve parecer uma landing page do profissional com um formulário de
+agendamento integrado — não apenas um formulário genérico.
+
+--------------------------------------------------------------------------------
+PARTE 1 — HERO / CABEÇALHO DO PROFISSIONAL
+--------------------------------------------------------------------------------
+
+Objetivo: apresentar o negócio com identidade antes de iniciar o agendamento.
+
+1.1 — Exibir os seguintes dados do perfil do profissional no topo da página:
+
+  - Logo / foto de perfil (já existente) — exibir em destaque
+  - Nome do profissional / negócio — tipografia maior, cor primária
+  - Descrição do negócio — subtítulo abaixo do nome, até 2 linhas visíveis
+  - Endereço — exibir com ícone de localização; se houver link para Maps, tornar
+    clicável; caso o atendimento seja remoto, não exibir
+  - Redes sociais — ícones clicáveis (Instagram, Facebook, TikTok, WhatsApp etc.)
+    alinhados horizontalmente abaixo do endereço
+  - Links personalizados — exibir como botões secundários (outlined) abaixo das
+    redes sociais; rótulo e URL configurados pelo profissional
+
+1.2 — Separar visualmente o cabeçalho do profissional do formulário de
+  agendamento com um divisor ou mudança de background sutil dentro do card.
+
+1.3 — Manter responsividade: em mobile, centralizar o cabeçalho; em desktop,
+  pode ter layout de duas colunas (foto à esquerda, dados à direita).
+
+--------------------------------------------------------------------------------
+PARTE 2 — FLUXO DE AGENDAMENTO EM ETAPAS (STEPPER)
+--------------------------------------------------------------------------------
+
+Objetivo: quebrar o formulário atual (tudo em uma única tela/scroll) em etapas
+numeradas e nomeadas, tornando o processo mais claro e menos intimidador.
+
+2.1 — Estrutura de etapas sugerida:
+
+  Etapa 1 — Serviço
+    Título: "O que você quer agendar?"
+    Instrução: "Escolha o serviço desejado. Você pode selecionar mais de um."
+    Conteúdo: lista/grid de serviços com nome, descrição curta, preço e duração.
+    Ação de avanço: botão "Continuar" — habilitado somente após 1+ serviço selecionado.
+
+  Etapa 2 — Data e Hora
+    Título: "Quando você prefere?"
+    Instrução: "Selecione o profissional, a data e o horário disponível."
+    Conteúdo:
+      - Seleção de profissional (se houver mais de um)
+      - Calendário / chips de data
+      - Chips de horário disponível
+    Ação de avanço: botão "Continuar" — habilitado somente após data e hora selecionados.
+
+  Etapa 3 — Seus Dados
+    Título: "Como podemos te chamar?"
+    Instrução: "Informe seu nome e telefone para receber a confirmação no WhatsApp."
+    Conteúdo: campos Nome e Telefone (já existentes).
+    Ação de avanço: botão "Revisar pedido".
+
+  Etapa 4 — Confirmar
+    Título: "Confira seu agendamento"
+    Instrução: "Revise os detalhes antes de confirmar."
+    Conteúdo (somente leitura):
+      - Serviço(s) selecionado(s) com preço e duração
+      - Profissional
+      - Data e horário
+      - Nome e telefone do cliente
+      - Política de cancelamentos do profissional (se preenchida) — exibir em
+        destaque como aviso antes do botão confirmar
+    Ação final: botão primário "Confirmar agendamento".
+
+2.2 — Indicador de progresso:
+
+  - Exibir stepper horizontal no topo do formulário com os 4 passos numerados
+    e nomeados (ícone + label).
+  - Etapa atual: destaque com cor primária.
+  - Etapas concluídas: ícone de check + cor mais suave.
+  - Etapas futuras: cor neutra/desabilitada.
+  - Em mobile: exibir apenas "Etapa X de 4 — [Nome da etapa]" em texto, sem
+    os 4 ícones lado a lado (evita quebra de layout).
+
+2.3 — Navegação entre etapas:
+
+  - Botão "Voltar" (secundário/text) sempre disponível exceto na Etapa 1.
+  - Botão "Continuar" / "Revisar" / "Confirmar" (primário) alinhado à direita.
+  - Não permitir avanço sem preencher os campos obrigatórios da etapa.
+  - Ao voltar, manter os valores já selecionados (não resetar o estado).
+
+2.4 — Animação entre etapas:
+
+  - Transição suave (slide ou fade) entre etapas.
+  - Respeitar prefers-reduced-motion: sem animação caso o usuário prefira.
+
+--------------------------------------------------------------------------------
+PARTE 3 — MELHORIAS NOS CARDS DE SERVIÇO
+--------------------------------------------------------------------------------
+
+3.1 — Exibir a descrição do serviço dentro do card na etapa 1.
+  - Atualmente só nome, preço e duração são exibidos.
+  - Adicionar descrição curta (2–3 linhas, com truncamento se necessário).
+
+3.2 — Estado selecionado: manter o highlight visual já existente (borda/fundo
+  colorido), garantir contraste de texto adequado no estado selecionado.
+
+3.3 — Acessibilidade: cada card deve ter role="button" ou ser um <button>,
+  com aria-pressed indicando seleção, e área clicável de pelo menos 44px de altura.
+
+--------------------------------------------------------------------------------
+PARTE 4 — INFORMAÇÕES ADICIONAIS DO PROFISSIONAL
+--------------------------------------------------------------------------------
+
+4.1 — Horários de atendimento:
+  - Exibir abaixo do cabeçalho do profissional (antes do stepper) ou em um
+    accordion/collapsible "Ver horários de atendimento".
+  - Formato: tabela simples — dia da semana | horário de abertura – fechamento.
+  - Dias sem atendimento: exibir "Fechado" em cor neutra.
+
+4.2 — Política de cancelamentos:
+  - Se preenchida pelo profissional, exibir na Etapa 4 (Confirmar) como um
+    aviso antes do botão de confirmação.
+  - Ícone de atenção + texto da política em destaque visual (box com borda
+    ou background levemente diferente).
+
+4.3 — Antecedência mínima:
+  - Se configurada, desabilitar automaticamente os horários que estejam dentro
+    da janela de antecedência mínima (comportamento já pode existir; garantir
+    que o feedback visual esteja claro — horário desabilitado com tooltip
+    "Agendamento com menos de X horas de antecedência não é permitido").
+
+--------------------------------------------------------------------------------
+PARTE 5 — MICRO-TEXTOS E LINGUAGEM
+--------------------------------------------------------------------------------
+
+Revisar todos os textos da página seguindo os princípios:
+  - Voz ativa, orientada à ação do usuário.
+  - Instrução específica por etapa (não genérica).
+  - Sem jargão técnico.
+
+Exemplos de substituição:
+
+  ANTES: "Selecione um ou mais serviços que deseja agendar."
+  DEPOIS: "Com quais serviços posso te ajudar hoje?"
+
+  ANTES: "Selecione o profissional que deseja agendar."
+  DEPOIS: "Escolha com quem você quer ser atendido(a)."
+
+  ANTES: "Selecione a data que deseja ser atendido(a)."
+  DEPOIS: "Qual data funciona melhor para você?"
+
+  ANTES: "Selecione o horário que deseja ser atendido(a)."
+  DEPOIS: "Agora escolha o horário."
+
+  ANTES: "O nome que usaremos para falar com você."
+  DEPOIS: placeholder "Seu nome" — sem necessidade de hint adicional.
+
+  ANTES: "Usaremos para entrar em contato e confirmação do agendamento."
+  DEPOIS: placeholder "WhatsApp com DDD" — sem necessidade de hint adicional.
+
+  ANTES: "Confirmar informações" (botão final único)
+  DEPOIS: "Confirmar agendamento" (apenas na etapa 4)
+
+--------------------------------------------------------------------------------
+PARTE 6 — RESPONSIVIDADE E ACESSIBILIDADE
+--------------------------------------------------------------------------------
+
+6.1 — Mobile-first:
+  - Stepper em mobile: texto "Etapa X de 4 — [Nome]" + barra de progresso linear.
+  - Cards de serviço: 1 coluna em mobile, 2–3 em tablet/desktop.
+  - Chips de data: scroll horizontal com snap em mobile.
+  - Chips de horário: scroll horizontal com snap em mobile.
+
+6.2 — Acessibilidade básica:
+  - Todos os elementos interativos com focus visível (outline na cor primária).
+  - Contraste mínimo WCAG AA em todos os textos.
+  - Labels associados a todos os campos de formulário.
+  - Mensagens de erro exibidas via aria-live para leitores de tela.
+  - Botões com texto descritivo (evitar "Clique aqui").
+
+--------------------------------------------------------------------------------
+PARTE 7 — CRITÉRIOS DE ACEITE
+--------------------------------------------------------------------------------
+
+  [ ] Cabeçalho do profissional exibe: nome, descrição, endereço (se presencial),
+      redes sociais e links personalizados.
+  [ ] Horários de atendimento visíveis na página pública.
+  [ ] Fluxo de agendamento dividido em 4 etapas com stepper visual.
+  [ ] Cada etapa tem título, instrução e botão de avanço com validação.
+  [ ] Descrição dos serviços visível nos cards da etapa 1.
+  [ ] Política de cancelamentos exibida na etapa de confirmação (se configurada).
+  [ ] Antecedência mínima bloqueia horários inválidos com feedback claro.
+  [ ] Micro-textos revisados conforme exemplos da Parte 5.
+  [ ] Layout responsivo: testado em 375px (mobile), 768px (tablet), 1280px (desktop).
+  [ ] Acessibilidade: focus visível, contraste AA, aria-pressed nos cards de serviço.
+  [ ] Transição entre etapas suave, com respeito a prefers-reduced-motion.
+  [ ] Estado das etapas anteriores preservado ao voltar.
+
+--------------------------------------------------------------------------------
+NOTAS PARA IMPLEMENTAÇÃO
+--------------------------------------------------------------------------------
+
+  - Utilizar os componentes Angular Material já presentes no projeto
+    (MatStepper, MatChipsModule, MatButtonModule, MatIconModule etc.).
+  - Reaproveitar o design system existente: variáveis CSS de cor, tipografia
+    e espaçamento já definidas no projeto.
+  - Dados do profissional devem ser carregados via a store/service já existente
+    que alimenta o perfil; não criar novas chamadas duplicadas.
+  - A etapa de confirmação não deve recarregar dados — usar o estado já
+    acumulado nas etapas anteriores.
+  - Evitar quebrar o fluxo atual de submissão/confirmação via WhatsApp;
+    apenas reorganizar a UX em torno dele.
+
+================================================================================
+FIM DO TASK
+================================================================================

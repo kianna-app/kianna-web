@@ -7,24 +7,29 @@
         Configure quando você está disponível para receber clientes
       </p>
     </div>
+  </div>
 
-    <div class="page-header-actions">
-      @if (temAlteracoes()) {
-        <span class="dirty-indicator" aria-live="polite">
-          <span class="dot"></span>
-          Alterações não salvas
+  @if (temAlteracoes() && !store.carregando()) {
+    <section class="save-reminder" aria-live="polite" aria-labelledby="save-reminder-title">
+      <div class="save-reminder-message">
+        <span class="save-reminder-icon" aria-hidden="true">
+          <mat-icon>priority_high</mat-icon>
         </span>
-      }
+        <div class="save-reminder-copy">
+          <strong id="save-reminder-title">Você tem alterações não salvas</strong>
+          <span>Salve para aplicar os novos horários na sua agenda pública.</span>
+        </div>
+      </div>
       <button
-        class="btn-primary"
-        [disabled]="!temAlteracoes() || store.salvando()"
+        class="btn-primary btn-save-full"
+        [disabled]="store.salvando()"
         (click)="salvar()"
       >
         <mat-icon>check</mat-icon>
-        <span>{{ store.salvando() ? 'Salvando...' : 'Salvar' }}</span>
+        <span>{{ store.salvando() ? 'Salvando...' : 'Salvar alterações' }}</span>
       </button>
-    </div>
-  </div>
+    </section>
+  }
 
   <mat-tab-group animationDuration="200ms" class="horarios-tabs">
     <!-- Aba 1: Disponibilidade semanal -->
@@ -156,22 +161,4 @@
       <app-bloqueios />
     </mat-tab>
   </mat-tab-group>
-
-  <!-- Barra de salvar sticky (mobile) -->
-  @if (temAlteracoes() && !store.carregando()) {
-    <div class="save-bar-mobile">
-      <span class="dirty-indicator">
-        <span class="dot"></span>
-        Alterações não salvas
-      </span>
-      <button
-        class="btn-primary btn-lg"
-        [disabled]="store.salvando()"
-        (click)="salvar()"
-      >
-        <mat-icon>check</mat-icon>
-        <span>{{ store.salvando() ? 'Salvando...' : 'Salvar' }}</span>
-      </button>
-    </div>
-  }
 </div>

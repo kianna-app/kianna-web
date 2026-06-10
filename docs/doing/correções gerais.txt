@@ -190,3 +190,4 @@ Status Code
     "message": "Cannot POST /api/admin/profissionais/713d7376-9a65-4200-8bcc-0ebbf530eaa2/reset-senha",
     "error": "Not Found"
 }
+

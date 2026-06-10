@@ -52,10 +52,13 @@
 
 // ── Ações à direita ────────────────────────────────────
 .header-actions {
+  --header-action-h: 40px;
+
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   margin-left: auto;
+  min-width: 0;
 }
 
 .header-action-btn {
@@ -64,17 +67,44 @@
   &[disabled] mat-icon { color: v.$kianna-slate-400; }
 }
 
-.plano-badge {
-  display: flex;
+.header-pill {
+  min-height: var(--header-action-h);
+  box-sizing: border-box;
+  display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 99px;
-  border: 1.5px solid #e9ecef;
-  background: #f8f9fa;
+  justify-content: center;
+  border: 1px solid v.$kianna-slate-200;
+  background: #fff;
+  color: v.$kianna-slate-700;
+  text-decoration: none;
   cursor: pointer;
-  transition: all .15s;
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    box-shadow .15s ease,
+    color .15s ease,
+    transform .12s ease;
 
-  &:hover { border-color: #1D9E75; }
+  &:hover {
+    background: v.$kianna-slate-50;
+    border-color: v.$kianna-slate-300;
+    color: v.$kianna-slate-900;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(29, 158, 117, .22);
+    outline-offset: 2px;
+    border-color: v.$kianna-green-500;
+  }
+}
+
+.plano-badge {
+  padding: 0 12px;
+  border-radius: 99px;
 
   &[data-plano="pro"] {
     background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
@@ -90,26 +120,20 @@
 }
 
 .plano-badge-text {
-  font: 600 11px 'Inter';
-  color: #495057;
+  font: 700 11px 'Inter';
+  color: v.$kianna-slate-700;
   letter-spacing: .03em;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
 .pending-card {
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 6px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  border: 1.5px solid #e9ecef;
-  background: #fff;
-  transition: all .15s;
-  min-width: 64px;
+  gap: 1px;
+  min-width: 82px;
+  padding: 4px 14px;
+  border-radius: 12px;
   text-align: center;
-
-  &:hover { border-color: #1D9E75; }
 
   &.has-pending {
     background: #FFF8E1;
@@ -120,34 +144,66 @@
 }
 
 .pending-label {
-  font: 500 10px 'Inter';
-  color: #868e96;
+  font: 700 10px 'Inter';
+  color: v.$kianna-slate-500;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  line-height: 1;
 }
 
 .pending-count {
-  font: 700 18px 'Inter';
-  color: #212529;
+  font: 800 17px 'Inter';
+  color: v.$kianna-slate-900;
   line-height: 1.1;
 }
 
 .avatar-btn {
-  width: 40px;
-  height: 40px;
-  padding: 4px !important;
+  --mdc-icon-button-state-layer-size: var(--header-action-h);
+  --mat-icon-button-state-layer-color: #{v.$kianna-slate-900};
+
+  width: var(--header-action-h);
+  height: var(--header-action-h);
+  min-width: var(--header-action-h);
+  padding: 3px !important;
+  border: 1px solid v.$kianna-slate-200;
+  background: #fff;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    box-shadow .15s ease,
+    transform .12s ease;
+
+  &:hover {
+    background: v.$kianna-slate-50;
+    border-color: v.$kianna-slate-300;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(29, 158, 117, .22);
+    outline-offset: 2px;
+    border-color: v.$kianna-green-500;
+  }
 }
 
 .avatar-img {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
 }
 
 .avatar-fallback {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: linear-gradient(135deg, v.$kianna-green-400, v.$kianna-green-600);
   color: #fff;
@@ -156,4 +212,49 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+:host ::ng-deep .avatar-btn .mat-mdc-button-touch-target {
+  width: var(--header-action-h);
+  height: var(--header-action-h);
+}
+
+@media (max-width: 480px) {
+  .dash-header {
+    padding-inline: 12px;
+  }
+
+  .header-actions {
+    --header-action-h: 38px;
+    gap: 6px;
+  }
+
+  .plano-badge {
+    max-width: 88px;
+    padding-inline: 10px;
+  }
+
+  .plano-badge-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pending-card {
+    min-width: 68px;
+    padding-inline: 10px;
+  }
+
+  .pending-label {
+    font-size: 9px;
+  }
+
+  .pending-count {
+    font-size: 16px;
+  }
+
+  .avatar-img,
+  .avatar-fallback {
+    width: 28px;
+    height: 28px;
+  }
 }

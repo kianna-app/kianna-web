@@ -1,18 +1,20 @@
 <header class="dash-header">
   <!-- ── Direita: ícones de ação ────────────────────────── -->
   <div class="header-actions">
-    <div class="plano-badge" [attr.data-plano]="user()?.plano"
-         routerLink="/dashboard/perfil"
-         matTooltip="Seu plano atual">
+    <a class="header-pill plano-badge" [attr.data-plano]="user()?.plano"
+       routerLink="/dashboard/perfil"
+       matTooltip="Seu plano atual"
+       [attr.aria-label]="'Plano atual: ' + planoBadge()">
       <span class="plano-badge-text">{{ planoBadge() }}</span>
-    </div>
+    </a>
 
-    <div class="pending-card" routerLink="/dashboard/agenda"
-         [class.has-pending]="pendentesCount() > 0"
-         [matTooltip]="pendentesCount() > 0 ? pendentesCount() + ' pendentes' : 'Sem pendentes'">
+    <a class="header-pill pending-card" routerLink="/dashboard/agenda"
+       [class.has-pending]="pendentesCount() > 0"
+       [matTooltip]="pendentesCount() > 0 ? pendentesCount() + ' pendentes' : 'Sem pendentes'"
+       [attr.aria-label]="pendentesCount() > 0 ? 'Ver ' + pendentesCount() + ' agendamentos pendentes' : 'Ver agenda sem pendentes'">
       <span class="pending-label">Pendentes</span>
       <span class="pending-count">{{ pendentesCount() }}</span>
-    </div>
+    </a>
 
     <app-notificacoes-bell />
 
