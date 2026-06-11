@@ -103,9 +103,9 @@
                 <div class="ag-left">
                   <div class="ag-cliente">{{ ag.cliente_nome }}</div>
                   <div class="ag-com">com {{ user()?.nome }}</div>
-                  <div class="ag-servico">{{ ag.servico?.nome ?? '—' }}</div>
-                  @if (ag.servico?.duracao_min) {
-                    <div class="ag-meta">{{ ag.servico!.duracao_min }} min</div>
+                  <div class="ag-servico">{{ servicosTexto(ag) }}</div>
+                  @if (duracaoTotal(ag)) {
+                    <div class="ag-meta">{{ duracaoTotal(ag) }} min</div>
                   }
                 </div>
                 <div class="ag-right">
@@ -113,8 +113,8 @@
                     <span class="ag-data">{{ formatarData(ag.data_hora) }}</span>
                     <span class="ag-hora">{{ formatarHora(ag.data_hora) }}</span>
                   </div>
-                  @if (ag.servico?.preco) {
-                    <div class="ag-valor">R$ {{ ag.servico!.preco | number:'1.2-2' }}</div>
+                  @if (precoTotal(ag)) {
+                    <div class="ag-valor">R$ {{ precoTotal(ag) | number:'1.2-2' }}</div>
                   }
                   <span class="status-badge status-badge--{{ ag.status }}">
                     {{ statusLabel(ag.status) }}

@@ -44,6 +44,7 @@ export class ServicoDialogComponent {
 
   form = this.fb.group({
     nome:        [this.data.servico?.nome ?? '', [Validators.required, Validators.minLength(2)]],
+    descricao:   [this.data.servico?.descricao ?? '', [Validators.maxLength(300)]],
     duracao_min: [this.data.servico?.duracao_min ?? 60, KiannaValidators.duracao()],
     modalidade:  [this.data.servico?.modalidade ?? 'presencial' as ModalidadeAtendimento, Validators.required],
     preco:       [this.data.servico?.preco ?? 0, KiannaValidators.preco()],
@@ -57,6 +58,7 @@ export class ServicoDialogComponent {
     const v = this.form.getRawValue();
     const input: ServicoInput = {
       nome: v.nome!.trim(),
+      descricao: v.descricao?.trim() || null,
       duracao_min: v.duracao_min!,
       preco: Number(v.preco) || 0,
       modalidade: v.modalidade!,

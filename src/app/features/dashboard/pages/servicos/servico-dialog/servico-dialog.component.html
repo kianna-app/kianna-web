@@ -10,6 +10,18 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Descrição</mat-label>
+      <textarea
+        matInput
+        formControlName="descricao"
+        rows="3"
+        maxlength="300"
+        placeholder="Ex: Técnica de massagem que melhora a circulação e proporciona bem-estar."></textarea>
+      <mat-hint align="end">{{ form.controls.descricao.value?.length || 0 }}/300</mat-hint>
+      <app-field-error [control]="form.controls.descricao" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Duração</mat-label>
       <mat-select formControlName="duracao_min">
         @for (d of duracoes; track d) {

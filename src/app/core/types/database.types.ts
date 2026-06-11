@@ -117,7 +117,7 @@ export interface Bloqueio {
   created_at: string;
 }
 
-export type ServicoInput = Pick<Servico, 'nome' | 'duracao_min' | 'preco' | 'modalidade' | 'ativo'>;
+export type ServicoInput = Pick<Servico, 'nome' | 'descricao' | 'duracao_min' | 'preco' | 'modalidade' | 'ativo'>;
 
 export interface DisponibilidadeInput {
   dia_semana: DiaSemana;

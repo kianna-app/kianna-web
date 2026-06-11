@@ -10,7 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { BookingService, BookingStep, DiaSemana } from '../../services/booking.service';
-import { Disponibilidade, MODALIDADE_LABELS, Servico } from '@core/types/database.types';
+import { Disponibilidade, Servico } from '@core/types/database.types';
 import { ProfessionalHeaderComponent } from '../../components/professional-header/professional-header.component';
 import { BookingConfirmationComponent } from '../../components/booking-confirmation/booking-confirmation.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -148,7 +148,7 @@ export class BookingPageComponent implements OnInit {
   }
 
   etapaConcluida(index: number): boolean {
-    if (index === 0) return !!this.booking.servicoSelecionado();
+    if (index === 0) return this.booking.servicosSelecionados().length > 0;
     if (index === 1) return !!this.booking.dataSelecionada() && !!this.booking.horarioSelecionado();
     return false;
   }
@@ -167,7 +167,7 @@ export class BookingPageComponent implements OnInit {
 
   podeAvancar(): boolean {
     const step = this.booking.step();
-    if (step === 'servico') return !!this.booking.servicoSelecionado();
+    if (step === 'servico') return this.booking.servicosSelecionados().length > 0;
     if (step === 'data' || step === 'horario') {
       return !!this.booking.dataSelecionada() && !!this.booking.horarioSelecionado();
     }
@@ -202,14 +202,14 @@ export class BookingPageComponent implements OnInit {
   }
 
   private async confirmarEnvioAgendamento(): Promise<boolean> {
-    const servico = this.booking.servicoSelecionado();
+    const servicos = this.booking.servicosSelecionados();
     const ref = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(
       ConfirmDialogComponent,
       {
         width: '420px',
         data: {
           titulo: 'Confirmar agendamento',
-          mensagem: `Deseja confirmar ${servico?.nome ?? 'este serviço'} para ${this.formatarDataResumo(this.booking.dataSelecionada())}, às ${this.formatarHoraResumo(this.booking.horarioSelecionado())}? Valor: ${this.precoServico(servico)}.`,
+          mensagem: `Deseja confirmar ${this.resumoServicos(servicos)} para ${this.formatarDataHoraResumo(this.booking.horarioSelecionado())}? Valor: ${this.precoServicos(servicos)}.`,
           confirmLabel: 'Confirmar',
           cancelLabel: 'Voltar',
           confirmIcon: 'event_available',
@@ -236,9 +236,21 @@ export class BookingPageComponent implements OnInit {
   }
 
   descricaoServico(servico: Servico): string {
-    return servico.descricao?.trim()
-      || MODALIDADE_LABELS[servico.modalidade]?.descricao
-      || 'Atendimento personalizado com duração definida pelo profissional.';
+    return servico.descricao?.trim() ?? '';
+  }
+
+  formatarNomeServico(nome: string | undefined): string {
+    if (!nome) return '';
+    return nome
+      .trim()
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map(parte => parte ? parte.charAt(0).toLocaleUpperCase('pt-BR') + parte.slice(1).toLocaleLowerCase('pt-BR') : '')
+      .join(' ');
+  }
+
+  servicoEstaSelecionado(servico: Servico): boolean {
+    return this.booking.servicosSelecionados().some(s => s.id === servico.id);
   }
 
   precoServico(servico: Servico | null): string {
@@ -246,9 +258,42 @@ export class BookingPageComponent implements OnInit {
     return `R$ ${Number(servico.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
-  modalidadeServico(servico: Servico | null): string {
-    if (!servico) return '—';
-    return MODALIDADE_LABELS[servico.modalidade]?.label ?? servico.modalidade;
+  precoServicos(servicos: Servico[]): string {
+    const total = servicos.reduce((soma, servico) => soma + (Number(servico.preco) || 0), 0);
+    if (!total) return 'A combinar';
+    return `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  duracaoServicos(servicos: Servico[]): string {
+    const total = servicos.reduce((soma, servico) => soma + (servico.duracao_min || 0), 0);
+    return total ? `${total} min` : '—';
+  }
+
+  resumoServicos(servicos: Servico[]): string {
+    if (!servicos.length) return 'este serviço';
+    return servicos.map(s => this.formatarNomeServico(s.nome)).join(', ');
+  }
+
+  formatarDataHoraResumo(iso: string | null): string {
+    if (!iso) return '—';
+    const data = new Date(iso);
+    const diaSemana = data.toLocaleDateString('pt-BR', { weekday: 'long' });
+    const diaSemanaFormatado = diaSemana.charAt(0).toLocaleUpperCase('pt-BR') + diaSemana.slice(1);
+    const dataCurta = data.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    const hora = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const periodo = this.periodoDoDia(data.getHours());
+    return `${diaSemanaFormatado}, ${dataCurta} às ${hora}hs ${periodo}`;
+  }
+
+  private periodoDoDia(hora: number): string {
+    if (hora < 6) return 'da madrugada';
+    if (hora < 12) return 'da manhã';
+    if (hora < 18) return 'da tarde';
+    return 'da noite';
   }
 
   horariosAtendimento(): HorarioAtendimento[] {

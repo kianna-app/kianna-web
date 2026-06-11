@@ -39,8 +39,20 @@
       </div>
       <div class="resumo-row">
         <span class="resumo-label">Serviço</span>
-        <span class="resumo-valor">{{ ag.servico?.nome ?? '—' }}</span>
+        <span class="resumo-valor">{{ servicosTexto(ag) }}</span>
       </div>
+      @if (duracaoTotal(ag)) {
+        <div class="resumo-row">
+          <span class="resumo-label">Duração</span>
+          <span class="resumo-valor">{{ duracaoTotal(ag) }} min</span>
+        </div>
+      }
+      @if (precoTotal(ag)) {
+        <div class="resumo-row">
+          <span class="resumo-label">Valor</span>
+          <span class="resumo-valor">{{ formatarPreco(precoTotal(ag)!) }}</span>
+        </div>
+      }
       <div class="resumo-row">
         <span class="resumo-label">Data e hora</span>
         <span class="resumo-valor">

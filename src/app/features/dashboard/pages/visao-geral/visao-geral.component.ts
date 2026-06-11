@@ -12,6 +12,11 @@ import { AgendamentosStore } from '../../state/agendamentos.store';
 import { currentUser } from '@core/signals/app.signals';
 import { APP } from '@core/constants/app.constants';
 import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
+import {
+  duracaoAgendamento,
+  precoAgendamento,
+  servicosTextoAgendamento,
+} from '@core/utils/agendamento-totais.util';
 
 const STATUS_LABELS: Record<string, string> = {
   pendente: 'Pendente',
@@ -153,6 +158,18 @@ export class VisaoGeralComponent implements OnInit {
     return new Date(dataHora).toLocaleTimeString('pt-BR', {
       hour: '2-digit', minute: '2-digit',
     });
+  }
+
+  servicosTexto(ag: AgendamentoComServico): string {
+    return servicosTextoAgendamento(ag);
+  }
+
+  duracaoTotal(ag: AgendamentoComServico): number | null {
+    return duracaoAgendamento(ag);
+  }
+
+  precoTotal(ag: AgendamentoComServico): number | null {
+    return precoAgendamento(ag);
   }
 
   isLoadingAction(id: string, action: string): boolean {

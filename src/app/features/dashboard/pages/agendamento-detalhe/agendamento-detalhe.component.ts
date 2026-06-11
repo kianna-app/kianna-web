@@ -14,10 +14,15 @@ import { ServicosStore } from '../../state/servicos.store';
 import { AgendamentosRepository } from '@core/repositories/agendamentos.repository';
 import { currentUser } from '@core/signals/app.signals';
 import { APP } from '@core/constants/app.constants';
-import { StatusAgend } from '@core/types/database.types';
+import { AgendamentoComServico, StatusAgend } from '@core/types/database.types';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { FieldErrorComponent } from '@shared/components/field-error/field-error.component';
 import { KiannaValidators } from '@core/validators/form.validators';
+import {
+  duracaoAgendamento,
+  precoAgendamento,
+  servicosTextoAgendamento,
+} from '@core/utils/agendamento-totais.util';
 
 @Component({
   selector: 'app-agendamento-detalhe',
@@ -141,6 +146,22 @@ export class AgendamentoDetalheComponent implements OnInit {
     navigator.clipboard.writeText(link)
       .then(() => this.snack.open('Link de reagendamento copiado!', 'OK', { duration: 4000 }))
       .catch(() => this.snack.open('Não foi possível copiar o link.', 'OK', { duration: 4000 }));
+  }
+
+  servicosTexto(ag: AgendamentoComServico): string {
+    return servicosTextoAgendamento(ag);
+  }
+
+  duracaoTotal(ag: AgendamentoComServico): number | null {
+    return duracaoAgendamento(ag);
+  }
+
+  precoTotal(ag: AgendamentoComServico): number | null {
+    return precoAgendamento(ag);
+  }
+
+  formatarPreco(valor: number): string {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
   private async executarAcao(status: StatusAgend, motivo?: string): Promise<void> {

@@ -19,6 +19,11 @@ import { AgendamentoFormDialogComponent, AgendamentoFormDialogData } from './com
 import { AgendamentoComServico, StatusAgend } from '@core/types/database.types'
 import { currentUser } from '@core/signals/app.signals'
 import { APP } from '@core/constants/app.constants'
+import {
+  duracaoAgendamento,
+  precoAgendamento,
+  servicosTextoAgendamento,
+} from '@core/utils/agendamento-totais.util'
 
 const STATUS_STYLE: Record<StatusAgend, { bg: string; border: string; text: string; label: string }> = {
   confirmado:     { bg: '#DCFCE7', border: '#1D9E75', text: '#166534', label: 'Confirmado'      },
@@ -267,6 +272,18 @@ export class AgendaComponent implements OnInit {
 
   formatarPreco(v: number): string {
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
+
+  servicosTexto(ag: AgendamentoComServico): string {
+    return servicosTextoAgendamento(ag)
+  }
+
+  duracaoTotal(ag: AgendamentoComServico): number | null {
+    return duracaoAgendamento(ag)
+  }
+
+  precoTotal(ag: AgendamentoComServico): number | null {
+    return precoAgendamento(ag)
   }
 
   private async carregarSemana(): Promise<void> {

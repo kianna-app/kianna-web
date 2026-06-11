@@ -4,6 +4,11 @@ import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef, MatBottomSheetModule } from '
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AgendamentoComServico, StatusAgend, MODALIDADE_LABELS } from '@core/types/database.types';
+import {
+  duracaoAgendamento,
+  precoAgendamento,
+  servicosTextoAgendamento,
+} from '@core/utils/agendamento-totais.util';
 
 export interface SheetData {
   agendamento: AgendamentoComServico;
@@ -27,6 +32,13 @@ export class AgendamentoSheetComponent {
   get podeConfirmar(): boolean { return this.a.status === 'pendente'; }
   get podeCancelar(): boolean { return this.a.status === 'pendente' || this.a.status === 'confirmado'; }
   get podeReabrir(): boolean { return this.a.status === 'cancelado'; }
+  get servicosTexto(): string { return servicosTextoAgendamento(this.a); }
+  get duracaoTotal(): number | null { return duracaoAgendamento(this.a); }
+  get precoTotal(): number | null { return precoAgendamento(this.a); }
+
+  formatarPreco(valor: number): string {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
 
   acao(a: 'confirmar' | 'cancelar' | 'reabrir'): void { this.ref.dismiss({ acao: a }); }
   fechar(): void { this.ref.dismiss(); }

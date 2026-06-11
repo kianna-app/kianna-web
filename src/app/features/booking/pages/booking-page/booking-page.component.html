@@ -98,7 +98,7 @@
             <div class="booking-section">
               <div class="section-heading">
                 <h2>O que você quer agendar?</h2>
-                <p>Escolha o serviço desejado.</p>
+                <p>Escolha um ou mais serviços desejados.</p>
               </div>
 
               <div class="servicos-list" role="list" aria-label="Serviços disponíveis">
@@ -107,18 +107,22 @@
                     type="button"
                     class="servico-card"
                     role="button"
-                    [attr.aria-pressed]="booking.servicoSelecionado()?.id === s.id"
-                    [class.selected]="booking.servicoSelecionado()?.id === s.id"
+                    [attr.aria-pressed]="servicoEstaSelecionado(s)"
+                    [class.selected]="servicoEstaSelecionado(s)"
                     (click)="selecionarServico(s)">
                     <span class="servico-content">
-                      <span class="servico-nome">{{ s.nome }}</span>
-                      <span class="servico-desc">{{ descricaoServico(s) }}</span>
-                      <span class="servico-meta">
+                      <span class="servico-body">
+                        <span class="servico-nome">{{ formatarNomeServico(s.nome) }}</span>
+                        @if (descricaoServico(s)) {
+                          <span class="servico-desc">{{ descricaoServico(s) }}</span>
+                        }
+                      </span>
+                      <span class="servico-footer">
                         <span>{{ s.duracao_min }} min</span>
                         <span>{{ precoServico(s) }}</span>
                       </span>
                     </span>
-                    @if (booking.servicoSelecionado()?.id === s.id) {
+                    @if (servicoEstaSelecionado(s)) {
                       <mat-icon class="servico-check">check_circle</mat-icon>
                     }
                   </button>
@@ -252,39 +256,34 @@
                 </div>
                 <div class="resumo-item resumo-item--service">
                   <mat-icon>content_cut</mat-icon>
-                  <span class="resumo-key">Serviço</span>
-                  <span class="resumo-val">{{ booking.servicoSelecionado()?.nome }}</span>
-                  <strong class="resumo-preco">{{ precoServico(booking.servicoSelecionado()) }}</strong>
-                </div>
-                <div class="resumo-total-box">
-                  <div>
-                    <mat-icon>attach_money</mat-icon>
-                    <span>Total</span>
-                    <strong>{{ precoServico(booking.servicoSelecionado()) }}</strong>
-                  </div>
-                  <div>
-                    <mat-icon>schedule</mat-icon>
-                    <span>Duração total</span>
-                    <strong>{{ booking.servicoSelecionado()?.duracao_min }} min</strong>
-                  </div>
-                </div>
-                <div class="resumo-item resumo-item--full">
-                  <mat-icon>storefront</mat-icon>
-                  <span class="resumo-key">Modalidade de atendimento</span>
-                  <span class="resumo-val">{{ modalidadeServico(booking.servicoSelecionado()) }}</span>
+                  <span class="resumo-key">{{ booking.servicosSelecionados().length > 1 ? 'Serviços' : 'Serviço' }}</span>
+                  <ul class="resumo-servicos-lista">
+                    @for (servico of booking.servicosSelecionados(); track servico.id) {
+                      <li>{{ formatarNomeServico(servico.nome) }}</li>
+                    }
+                  </ul>
                 </div>
                 <div class="resumo-item resumo-item--full">
                   <mat-icon>badge</mat-icon>
                   <span class="resumo-key">Profissional</span>
                   <span class="resumo-val">{{ booking.profissional()?.nome }}</span>
                 </div>
-                <div class="resumo-item resumo-item--datetime">
-                  <mat-icon>event</mat-icon>
-                  <span class="resumo-key">Data e hora</span>
-                  <span class="resumo-val">
-                    {{ formatarDataResumo(booking.dataSelecionada()) }}
-                    <strong>{{ formatarHoraResumo(booking.horarioSelecionado()) }}</strong>
-                  </span>
+                <div class="resumo-total-box">
+                  <div>
+                    <mat-icon>attach_money</mat-icon>
+                    <span>Total</span>
+                    <strong>{{ precoServicos(booking.servicosSelecionados()) }}</strong>
+                  </div>
+                  <div>
+                    <mat-icon>schedule</mat-icon>
+                    <span>Duração total</span>
+                    <strong>{{ duracaoServicos(booking.servicosSelecionados()) }}</strong>
+                  </div>
+                  <div>
+                    <mat-icon>event</mat-icon>
+                    <span>Data e hora do agendamento</span>
+                    <strong>{{ formatarDataHoraResumo(booking.horarioSelecionado()) }}</strong>
+                  </div>
                 </div>
               </div>
 
@@ -408,6 +407,7 @@
       <app-booking-confirmation
         [profissional]="booking.profissional()"
         [servico]="booking.servicoSelecionado()"
+        [servicos]="booking.servicosSelecionados()"
         [dataHora]="booking.horarioSelecionado()"
         [clienteNome]="booking.clienteNome()"
       />

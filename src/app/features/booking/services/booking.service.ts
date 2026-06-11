@@ -24,7 +24,8 @@ export class BookingService {
   readonly profissional        = signal<Profissional | null>(null);
   readonly servicos            = signal<Servico[]>([]);
   readonly disponibilidades    = signal<Disponibilidade[]>([]);
-  readonly servicoSelecionado  = signal<Servico | null>(null);
+  readonly servicosSelecionados = signal<Servico[]>([]);
+  readonly servicoSelecionado  = computed(() => this.servicosSelecionados()[0] ?? null);
   readonly dataSelecionada     = signal<Date | null>(null);
   readonly horarioSelecionado  = signal<string | null>(null);
   readonly clienteNome         = signal('');
@@ -40,9 +41,23 @@ export class BookingService {
   private agendamentosConfirmados = signal<Array<{ data_hora: string }>>([]);
   private bloqueios               = signal<Bloqueio[]>([]);
 
+  readonly duracaoTotal = computed(() =>
+    this.servicosSelecionados().reduce((total, servico) => total + (servico.duracao_min || 0), 0),
+  );
+
+  readonly precoTotal = computed(() =>
+    this.servicosSelecionados().reduce((total, servico) => total + (Number(servico.preco) || 0), 0),
+  );
+
+  private readonly servicoParaCalculo = computed(() => {
+    const principal = this.servicoSelecionado();
+    if (!principal) return null;
+    return { ...principal, duracao_min: this.duracaoTotal() };
+  });
+
   readonly slotsParaDia = computed(() => {
     const data    = this.dataSelecionada();
-    const servico = this.servicoSelecionado();
+    const servico = this.servicoParaCalculo();
     const prof    = this.profissional();
     if (!data || !servico || !prof) return [];
     return this.slotCalc.calcularSlotsParaDia(
@@ -52,7 +67,7 @@ export class BookingService {
   });
 
   readonly diasComSlots = computed(() => {
-    const servico = this.servicoSelecionado();
+    const servico = this.servicoParaCalculo();
     const prof    = this.profissional();
     if (!servico || !prof) return [];
     return this.slotCalc.diasComSlots(
@@ -96,6 +111,7 @@ export class BookingService {
   readonly podeSemanaAnterior = computed(() => this.semanaOffset() > 0);
 
   readonly dadosPreenchidos = computed(() =>
+    this.servicosSelecionados().length > 0 &&
     !!this.horarioSelecionado() &&
     this.clienteNome().trim().length >= 2 &&
     this.clienteWpp().replace(/\D/g, '').length >= 10,
@@ -143,10 +159,16 @@ export class BookingService {
   }
 
   selecionarServico(servico: Servico): void {
-    this.servicoSelecionado.set(servico);
+    const selecionados = this.servicosSelecionados();
+    const jaSelecionado = selecionados.some(s => s.id === servico.id);
+    this.servicosSelecionados.set(
+      jaSelecionado
+        ? selecionados.filter(s => s.id !== servico.id)
+        : [...selecionados, servico],
+    );
     this.dataSelecionada.set(null);
     this.horarioSelecionado.set(null);
-    this.step.set('data');
+    this.semanaOffset.set(0);
   }
 
   selecionarData(data: Date): void {
@@ -179,16 +201,19 @@ export class BookingService {
 
   async confirmarAgendamento(): Promise<void> {
     if (!this.dadosPreenchidos()) return;
+    const servicoPrincipal = this.servicoSelecionado();
+    if (!servicoPrincipal) return;
     this.enviando.set(true);
     this.loading.set(true);
     this.erro.set(null);
     try {
       const payload = {
         profissional_id: this.profissional()!.id,
-        servico_id:      this.servicoSelecionado()!.id,
+        servico_id:      servicoPrincipal.id,
         cliente_nome:    this.clienteNome(),
         cliente_wpp:     this.clienteWpp(),
         data_hora:       this.horarioSelecionado()!,
+        ...this.observacoesServicosSelecionados(),
         ...(this.agendamentoOrigemId() ? { agendamento_origem_id: this.agendamentoOrigemId()! } : {}),
       };
 
@@ -233,5 +258,18 @@ export class BookingService {
     const atual = this.step();
     const idx = ordem.indexOf(atual);
     if (idx > 0) this.step.set(ordem[idx - 1]);
+  }
+
+  private observacoesServicosSelecionados(): { observacoes?: string } {
+    const servicos = this.servicosSelecionados();
+    if (servicos.length <= 1) return {};
+    const nomes = servicos.map(s => s.nome).join(', ');
+    const total = this.precoTotal();
+    const valor = total
+      ? total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+      : 'A combinar';
+    return {
+      observacoes: `Serviços selecionados: ${nomes}. Duração total: ${this.duracaoTotal()} min. Valor total: ${valor}.`,
+    };
   }
 }

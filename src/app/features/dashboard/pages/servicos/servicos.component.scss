@@ -338,6 +338,21 @@
   margin-top: auto;
 }
 
+.card-descricao,
+.lista-descricao {
+  margin: 0;
+  color: v.$kianna-slate-500;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.card-descricao {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 // ── Ações ────────────────────────────────────────────
 .card-actions {
   display: flex;

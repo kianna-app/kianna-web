@@ -451,9 +451,18 @@
 }
 
 .servico-content {
+  align-self: stretch;
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 14px;
+}
+
+.servico-body {
   min-width: 0;
   display: grid;
-  gap: 6px;
+  gap: 7px;
 }
 
 .servico-nome {
@@ -470,10 +479,13 @@
   overflow: hidden;
 }
 
-.servico-meta {
+.servico-footer {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #edf2f6;
 
   span {
     min-height: 26px;
@@ -690,20 +702,14 @@
 }
 
 .resumo-item--service {
-  grid-template-columns: 22px minmax(0, 1fr) auto;
+  grid-template-columns: 22px minmax(92px, 0.78fr) 1fr;
 
-  .resumo-key,
-  .resumo-val {
-    grid-column: 2;
-  }
-
-  .resumo-preco {
-    grid-column: 3;
-    grid-row: 1 / span 2;
-    align-self: center;
-    color: var(--booking-primary-dark);
-    font: 850 17px/1.2 'Inter';
-    white-space: nowrap;
+  .resumo-servicos-lista {
+    grid-column: 2 / -1;
+    margin: 0;
+    padding-left: 18px;
+    color: var(--booking-text);
+    font: 750 14px/1.45 'Inter';
   }
 }
 
@@ -727,9 +733,9 @@
   display: grid;
   gap: 8px;
   padding: 14px;
-  border-top: 1px solid #d6ebe3;
-  border-bottom: 1px solid #d6ebe3;
-  background: linear-gradient(135deg, #f1fbf7, #ffffff);
+  border-top: 1px solid #bde7d8;
+  background: linear-gradient(135deg, #e7f8f1, #ffffff);
+  box-shadow: inset 4px 0 0 var(--booking-primary);
 
   div {
     display: grid;
@@ -754,7 +760,7 @@
     color: var(--booking-primary-dark);
     font: 900 17px/1.15 'Inter';
     text-align: right;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 }
 

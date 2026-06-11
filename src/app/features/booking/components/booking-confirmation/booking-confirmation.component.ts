@@ -44,8 +44,12 @@ import { Profissional, Servico } from '@core/types/database.types';
         }
 
         <div class="conf-linha">
-          <span class="conf-key">Serviço</span>
-          <span class="conf-val">{{ servico?.nome ?? '—' }}</span>
+          <span class="conf-key">{{ servicosSelecionados.length > 1 ? 'Serviços' : 'Serviço' }}</span>
+          <ul class="conf-servicos-lista">
+            @for (servico of servicosSelecionados; track servico.id) {
+              <li>{{ formatarNomeServico(servico.nome) }}</li>
+            }
+          </ul>
         </div>
 
         <div class="conf-linha">
@@ -63,17 +67,17 @@ import { Profissional, Servico } from '@core/types/database.types';
           <span class="conf-val">{{ horaFormatada }}</span>
         </div>
 
-        @if (servico?.duracao_min) {
+        @if (duracaoTotal) {
           <div class="conf-linha">
             <span class="conf-key">Duração</span>
-            <span class="conf-val">{{ servico!.duracao_min }} min</span>
+            <span class="conf-val">{{ duracaoTotal }} min</span>
           </div>
         }
 
-        @if (servico?.preco) {
+        @if (precoTotal) {
           <div class="conf-linha conf-linha--destaque">
             <span class="conf-key">Valor</span>
-            <span class="conf-val conf-val--preco">R$ {{ servico!.preco | number:'1.2-2' }}</span>
+            <span class="conf-val conf-val--preco">R$ {{ precoTotal | number:'1.2-2' }}</span>
           </div>
         }
       </div>
@@ -250,13 +254,41 @@ import { Profissional, Servico } from '@core/types/database.types';
         &:hover { background: #16A34A; }
       }
     }
+
+    .conf-servicos-lista {
+      margin: 0;
+      padding-left: 18px;
+      color: #0B0F19;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.45;
+      text-align: left;
+    }
   `],
 })
 export class BookingConfirmationComponent {
   @Input() profissional: Profissional | null = null;
   @Input() servico: Servico | null = null;
+  @Input() servicos: Servico[] = [];
   @Input() dataHora: string | null = null;
   @Input() clienteNome = '';
+
+  get servicosSelecionados(): Servico[] {
+    return this.servicos.length ? this.servicos : this.servico ? [this.servico] : [];
+  }
+
+  get servicosResumo(): string {
+    const nomes = this.servicosSelecionados.map(s => this.formatarNomeServico(s.nome));
+    return nomes.length ? nomes.join(', ') : '—';
+  }
+
+  get duracaoTotal(): number {
+    return this.servicosSelecionados.reduce((total, s) => total + (s.duracao_min || 0), 0);
+  }
+
+  get precoTotal(): number {
+    return this.servicosSelecionados.reduce((total, s) => total + (Number(s.preco) || 0), 0);
+  }
 
   get dataFormatada(): string {
     if (!this.dataHora) return '—';
@@ -273,13 +305,13 @@ export class BookingConfirmationComponent {
   }
 
   get linkGoogleAgenda(): string {
-    if (!this.servico || !this.dataHora) return '';
+    if (!this.servicosSelecionados.length || !this.dataHora) return '';
     const inicio = new Date(this.dataHora);
-    const fim    = new Date(inicio.getTime() + this.servico.duracao_min * 60_000);
+    const fim    = new Date(inicio.getTime() + this.duracaoTotal * 60_000);
     const fmt    = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     const params = new URLSearchParams({
       action:  'TEMPLATE',
-      text:    `${this.servico.nome} com ${this.profissional?.nome ?? ''}`,
+      text:    `${this.servicosResumo} com ${this.profissional?.nome ?? ''}`,
       dates:   `${fmt(inicio)}/${fmt(fim)}`,
       details: `Agendado via Kianna · kianna.com.br/${this.profissional?.slug ?? ''}`,
     });
@@ -292,8 +324,17 @@ export class BookingConfirmationComponent {
     const data  = this.dataFormatada;
     const hora  = this.horaFormatada;
     const nome  = this.clienteNome ? `\nCliente: ${this.clienteNome}` : '';
-    const svc   = this.servico?.nome ? `\nServiço: ${this.servico.nome}` : '';
+    const svc   = this.servicosSelecionados.length ? `\nServiço: ${this.servicosResumo}` : '';
     const msg   = `Olá, meu agendamento foi realizado e estou entrando em contato para confirmação.${nome}${svc}\nData: ${data} às ${hora}`;
     return `https://wa.me/55${num}?text=${encodeURIComponent(msg)}`;
+  }
+
+  formatarNomeServico(nome: string): string {
+    return nome
+      .trim()
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map(parte => parte ? parte.charAt(0).toLocaleUpperCase('pt-BR') + parte.slice(1).toLocaleLowerCase('pt-BR') : '')
+      .join(' ');
   }
 }

@@ -120,6 +120,10 @@
             </span>
           </div>
 
+          @if (s.descricao) {
+            <p class="card-descricao">{{ s.descricao }}</p>
+          }
+
           <div class="card-preco">{{ formatarPreco(s.preco) }}</div>
 
           <footer class="card-actions">
@@ -163,6 +167,9 @@
                 {{ formatarDuracao(s.duracao_min) }}
               </span>
             </div>
+            @if (s.descricao) {
+              <p class="lista-descricao">{{ s.descricao }}</p>
+            }
           </div>
 
           <div class="lista-preco">{{ formatarPreco(s.preco) }}</div>

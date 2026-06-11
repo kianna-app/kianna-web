@@ -61,6 +61,7 @@ export class ServicosComponent implements OnInit {
     if (!termo) return todos;
     return todos.filter(s =>
       s.nome.toLowerCase().includes(termo) ||
+      (s.descricao?.toLowerCase().includes(termo) ?? false) ||
       MODALIDADE_LABELS[s.modalidade].label.toLowerCase().includes(termo)
     );
   });

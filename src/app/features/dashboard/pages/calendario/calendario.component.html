@@ -79,7 +79,7 @@
         <p class="drawer-data">{{ formatarData(eventoAberto()!.data_hora) }}</p>
         <p class="drawer-hora">
           <mat-icon class="icon-sm">schedule</mat-icon>
-          {{ formatarHora(eventoAberto()!.data_hora, eventoAberto()!.servico?.duracao_min ?? null) }}
+          {{ formatarHora(eventoAberto()!.data_hora, duracaoTotal(eventoAberto()!)) }}
         </p>
       </div>
 
@@ -88,15 +88,15 @@
         @if (eventoAberto()!.servico) {
           <div class="detail-row">
             <span class="detail-label">Serviço</span>
-            <span class="detail-value">{{ eventoAberto()!.servico!.nome }}</span>
+            <span class="detail-value">{{ servicosTexto(eventoAberto()!) }}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Duração</span>
-            <span class="detail-value">{{ eventoAberto()!.servico!.duracao_min }} min</span>
+            <span class="detail-value">{{ duracaoTotal(eventoAberto()!) }} min</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Valor</span>
-            <span class="detail-value valor">{{ formatarPreco(eventoAberto()!.servico!.preco) }}</span>
+            <span class="detail-value valor">{{ formatarPreco(precoTotal(eventoAberto()!) ?? 0) }}</span>
           </div>
         }
         <div class="detail-row">

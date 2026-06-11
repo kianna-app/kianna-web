@@ -18,6 +18,11 @@ import { AgendamentosRepository } from '@core/repositories/agendamentos.reposito
 import { AgendamentoComServico, StatusAgend } from '@core/types/database.types'
 import { APP } from '@core/constants/app.constants'
 import { currentUser } from '@core/signals/app.signals'
+import {
+  duracaoAgendamento,
+  precoAgendamento,
+  servicosTextoAgendamento,
+} from '@core/utils/agendamento-totais.util'
 
 type CalView = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'
 
@@ -240,10 +245,22 @@ export class CalendarioComponent implements OnInit {
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   }
 
+  servicosTexto(ag: AgendamentoComServico): string {
+    return servicosTextoAgendamento(ag)
+  }
+
+  duracaoTotal(ag: AgendamentoComServico): number | null {
+    return duracaoAgendamento(ag)
+  }
+
+  precoTotal(ag: AgendamentoComServico): number | null {
+    return precoAgendamento(ag)
+  }
+
   private buildEventos(lista: AgendamentoComServico[]): EventInput[] {
     return lista.map(a => {
       const inicio = new Date(a.data_hora)
-      const duracao = a.servico?.duracao_min ?? 60
+      const duracao = duracaoAgendamento(a) ?? 60
       const fim = new Date(inicio.getTime() + duracao * 60_000)
       const style = STATUS_STYLE[a.status] ?? STATUS_STYLE['pendente']
       return {
@@ -257,7 +274,7 @@ export class CalendarioComponent implements OnInit {
         extendedProps: {
           agendamento: a,
           clienteNome: a.cliente_nome,
-          servicoNome: a.servico?.nome ?? '',
+          servicoNome: servicosTextoAgendamento(a),
           status: a.status,
         },
       } as EventInput

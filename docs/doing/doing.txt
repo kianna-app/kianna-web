@@ -1,0 +1,17 @@
+
+
+No card de serviço, adicione um espaço enter o nome do serviço oferecido e o tempo e valor. Como ser fosse um Card que tem um nome e um footer. O fotter conterá o tempo e preço. 
+
+No resumo do serviços que será agendado: 
+    Ajuste para que a lista de serviços fique alinha a esquerda assim como os ouros textos.
+        Serviços
+         * Massagem
+         * Unhas
+         * Corte
+
+Mova o Total para o final do resumo, deixando junto com a data do agendamento: Esse grupo que deve estar em destaque.
+    Total
+     * R$ 500,00
+    Data e hora do agendamento
+     * Quinta-feira, 23/05/2024 às 14:00hs.
+

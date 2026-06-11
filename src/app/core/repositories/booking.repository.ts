@@ -53,6 +53,7 @@ export class BookingRepository {
     cliente_nome: string;
     cliente_wpp: string;
     data_hora: string;
+    observacoes?: string;
     agendamento_origem_id?: string;
   }): Promise<{ id: string } | null> {
     try {
