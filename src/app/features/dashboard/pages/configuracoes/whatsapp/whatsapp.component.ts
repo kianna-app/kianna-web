@@ -19,19 +19,24 @@ import { WppStatus } from '@core/types/database.types';
 import { WppQrcodeDialogComponent } from './wpp-qrcode-dialog.component';
 
 const STATUS_LABEL: Record<WppStatus, string> = {
-  conectado:    'WhatsApp conectado',
-  conectando:   'Conectando…',
+  conectado: 'WhatsApp conectado',
+  conectando: 'Conectando…',
   desconectado: 'WhatsApp não conectado',
-  erro:         'Erro na conexão',
+  erro: 'Erro na conexão',
 };
 
 @Component({
   selector: 'app-cfg-whatsapp',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
-    MatSelectModule, MatSlideToggleModule,
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatSlideToggleModule,
     LoadingButtonComponent,
   ],
   templateUrl: './whatsapp.component.html',
@@ -59,9 +64,9 @@ export class WhatsappComponent implements OnInit {
   });
 
   form = this.fb.group({
-    wpp_instance_id:           [''],
-    wpp_token:                 [''],
-    lembrete_horas:            [null as number | null],
+    wpp_instance_id: [''],
+    wpp_token: [''],
+    lembrete_horas: [null as number | null],
     cancelamento_auto_cliente: [true],
   });
 
@@ -69,9 +74,9 @@ export class WhatsappComponent implements OnInit {
     const u = this.user();
     if (!u) return;
     this.form.patchValue({
-      wpp_instance_id:           u.wpp_instance_id ?? '',
-      wpp_token:                 u.wpp_token ?? '',
-      lembrete_horas:            u.lembrete_horas ?? null,
+      wpp_instance_id: u.wpp_instance_id ?? '',
+      wpp_token: u.wpp_token ?? '',
+      lembrete_horas: u.lembrete_horas ?? null,
       cancelamento_auto_cliente: u.cancelamento_auto_cliente ?? true,
     });
   }
@@ -83,9 +88,9 @@ export class WhatsappComponent implements OnInit {
     try {
       const v = this.form.getRawValue();
       const updates: Record<string, unknown> = {
-        wpp_instance_id:           v.wpp_instance_id?.trim() || null,
-        wpp_token:                 v.wpp_token?.trim() || null,
-        lembrete_horas:            v.lembrete_horas,
+        wpp_instance_id: v.wpp_instance_id?.trim() || null,
+        wpp_token: v.wpp_token?.trim() || null,
+        lembrete_horas: v.lembrete_horas,
         cancelamento_auto_cliente: !!v.cancelamento_auto_cliente,
       };
 
@@ -100,11 +105,7 @@ export class WhatsappComponent implements OnInit {
       currentUser.set({ ...u, ...data } as AppUser);
       this.snack.open('Configurações salvas', 'OK', { duration: 2000 });
     } catch (e: unknown) {
-      this.snack.open(
-        e instanceof Error ? e.message : 'Erro ao salvar',
-        'OK',
-        { duration: 3000 },
-      );
+      this.snack.open(e instanceof Error ? e.message : 'Erro ao salvar', 'OK', { duration: 3000 });
     } finally {
       this.salvando.set(false);
     }
@@ -123,11 +124,18 @@ export class WhatsappComponent implements OnInit {
       autoFocus: false,
     });
 
-    const result = await ref.afterClosed().toPromise() as { status?: WppStatus } | undefined;
+    const result = (await ref.afterClosed().toPromise()) as { status?: WppStatus } | undefined;
 
     if (result?.status === 'conectado') {
       const u = this.user();
-      if (u) currentUser.set({ ...u, wpp_status: 'conectado' });
+      if (u) {
+        currentUser.set({
+          ...u,
+          wpp_status: 'conectado',
+          wpp_desconectado_em: null,
+          wpp_aviso_desconexao_em: null,
+        });
+      }
       this.snack.open('WhatsApp conectado!', 'OK', { duration: 2500 });
     } else {
       // Mesmo sem confirmar conectado, atualiza estado local do banco
@@ -141,14 +149,16 @@ export class WhatsappComponent implements OnInit {
     this.desconectando.set(true);
     try {
       await this.api.post<{ status: WppStatus }>('/api/whatsapp/desconectar', {});
-      currentUser.set({ ...u, wpp_status: 'desconectado' });
+      currentUser.set({
+        ...u,
+        wpp_status: 'desconectado',
+        wpp_desconectado_em: new Date().toISOString(),
+      });
       this.snack.open('WhatsApp desconectado', 'OK', { duration: 2000 });
     } catch (e: unknown) {
-      this.snack.open(
-        e instanceof Error ? e.message : 'Erro ao desconectar',
-        'OK',
-        { duration: 3000 },
-      );
+      this.snack.open(e instanceof Error ? e.message : 'Erro ao desconectar', 'OK', {
+        duration: 3000,
+      });
     } finally {
       this.desconectando.set(false);
     }
@@ -159,7 +169,13 @@ export class WhatsappComponent implements OnInit {
     if (!u || !u.wpp_instance_id) return;
     try {
       const r = await this.api.get<{ status: WppStatus }>('/api/whatsapp/status');
-      currentUser.set({ ...u, wpp_status: r.status });
+      currentUser.set({
+        ...u,
+        wpp_status: r.status,
+        wpp_desconectado_em:
+          r.status === 'conectado' ? null : (u.wpp_desconectado_em ?? new Date().toISOString()),
+        wpp_aviso_desconexao_em: r.status === 'conectado' ? null : u.wpp_aviso_desconexao_em,
+      });
     } catch {
       // silencioso — falha aqui não bloqueia o usuário
     }

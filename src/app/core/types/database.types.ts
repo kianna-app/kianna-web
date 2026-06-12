@@ -1,16 +1,26 @@
-export type Plano       = 'gratis' | 'essencial' | 'pro' | 'studio';
-export type StatusAgend = 'pendente' | 'confirmado' | 'recusado' | 'cancelado' | 'reagendado' | 'finalizado' | 'nao_compareceu';
-export type DiaSemana   = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-export type WppStatus   = 'desconectado' | 'conectando' | 'conectado' | 'erro';
+export type Plano = 'gratis' | 'essencial' | 'pro' | 'studio';
+export type StatusAgend =
+  | 'pendente'
+  | 'confirmado'
+  | 'recusado'
+  | 'cancelado'
+  | 'reagendado'
+  | 'finalizado'
+  | 'nao_compareceu';
+export type DiaSemana = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type WppStatus = 'desconectado' | 'conectando' | 'conectado' | 'erro';
 export type ConfirmacaoPresenca = 'confirmou' | 'cancelou';
 
 // ── Modalidades ───────────────────────────────────────────────
 export type ModalidadeAtendimento = 'presencial' | 'domiciliar' | 'online';
 
-export const MODALIDADE_LABELS: Record<ModalidadeAtendimento, { label: string; icone: string; descricao: string }> = {
-  presencial:  { label: 'Presencial',  icone: 'storefront',     descricao: 'Cliente vai até você' },
-  domiciliar:  { label: 'Domiciliar',  icone: 'directions_car', descricao: 'Você vai até o cliente' },
-  online:      { label: 'Online',      icone: 'videocam',       descricao: 'Atendimento por vídeo' },
+export const MODALIDADE_LABELS: Record<
+  ModalidadeAtendimento,
+  { label: string; icone: string; descricao: string }
+> = {
+  presencial: { label: 'Presencial', icone: 'storefront', descricao: 'Cliente vai até você' },
+  domiciliar: { label: 'Domiciliar', icone: 'directions_car', descricao: 'Você vai até o cliente' },
+  online: { label: 'Online', icone: 'videocam', descricao: 'Atendimento por vídeo' },
 };
 
 export interface LinkPersonalizado {
@@ -32,6 +42,8 @@ export interface Profissional {
   wpp_instance_id: string | null;
   wpp_token: string | null;
   wpp_status: WppStatus;
+  wpp_desconectado_em: string | null;
+  wpp_aviso_desconexao_em: string | null;
   lembrete_horas: number | null;
   cancelamento_auto_cliente: boolean;
   stripe_subscription_id: string | null;
@@ -117,7 +129,10 @@ export interface Bloqueio {
   created_at: string;
 }
 
-export type ServicoInput = Pick<Servico, 'nome' | 'descricao' | 'duracao_min' | 'preco' | 'modalidade' | 'ativo'>;
+export type ServicoInput = Pick<
+  Servico,
+  'nome' | 'descricao' | 'duracao_min' | 'preco' | 'modalidade' | 'ativo'
+>;
 
 export interface DisponibilidadeInput {
   dia_semana: DiaSemana;

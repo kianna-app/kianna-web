@@ -79,43 +79,9 @@ Observações:
 
 
 
-** MELHORAR TELAS DE CADASTRO
+## MELHORAR TELAS DE CADASTRO
 
 
-
-** Melhorar visão de listagem Serviços
-
-
-
-https://cursoclaw.com.br/curso.html#apresentacao
-
-Verificar
-
-https://iaexperts.thalena.com.br/?utm_source=organico&utm_medium=youtube&utm_campaign=videos&utm_term=descricao&utm_content=video51]
-https://doc.evolution-api.com/v2/pt/install/docker
-
-https://www.hostgator.com.br/servidor-vps/hospedagem-n8n
-https://agendazap.app/dashboard/settings/whatsapp
-https://waha.devlike.pro/
-https://app.z-api.io/
-
-
-https://www.youtube.com/watch?v=Q9ntiwwLZCI&t=983s
-https://www.youtube.com/watch?v=Ka7gPS1COcQ
-
-
-
-
-
-
-Bom dia gente, então, como o valor desde salão é puxado, etamos em um dilema. Seguimos com que já confirmou 4 casais, ficando (550/4= 137,50 casal). Poderíamos convidar mais gente fora do grupo, não vejo nenhum problema, ficaria mais barato por casal. Cancelar (e infelizmente terei que pagar 50% do valor, por estar próximo da data).
-
-Lembrando gente que a ideia era o encontro do nosso grupo, confraternização mesmo. Naõ acho legal fazermos algo por obrigação ou só para não ficar caro, então eu sujiro cancelarmos e em um futuro próximo pensarmos em outro encontro, mesmo que sem tema apenas para nos reunirmos e mantermos saldáveis a nossa amizade.
-
-
-
-
----
 
 ### Módulo 6 — Cobrança Stripe + Pix
 
@@ -151,43 +117,31 @@ Lembrando gente que a ideia era o encontro do nosso grupo, confraternização me
 
 
 
-erro ao criar profissional no admin.
+https://cursoclaw.com.br/curso.html#apresentacao
 
-Request URL
-http://localhost:3333/api/admin/profissionais
-Request Method
-POST
-Status Code
+Verificar
 
+https://iaexperts.thalena.com.br/?utm_source=organico&utm_medium=youtube&utm_campaign=videos&utm_term=descricao&utm_content=video51]
+https://doc.evolution-api.com/v2/pt/install/docker
 
-
-{
-    "statusCode": 400,
-    "timestamp": "2026-06-09T02:09:47.375Z",
-    "path": "/api/admin/profissionais",
-    "message": [
-        "property plano should not exist"
-    ],
-    "error": "Bad Request"
-}
+https://www.hostgator.com.br/servidor-vps/hospedagem-n8n
+https://agendazap.app/dashboard/settings/whatsapp
+https://waha.devlike.pro/
+https://app.z-api.io/
 
 
-erro resetar senha:
+https://www.youtube.com/watch?v=Q9ntiwwLZCI&t=983s
+https://www.youtube.com/watch?v=Ka7gPS1COcQ
 
-reset-senha
-3 / 6 requests
-1.6 kB / 1.6 kB transferred
-Request URL
-http://localhost:3333/api/admin/profissionais/713d7376-9a65-4200-8bcc-0ebbf530eaa2/reset-senha
-Request Method
-POST
-Status Code
 
-{
-    "statusCode": 404,
-    "timestamp": "2026-06-09T02:11:17.568Z",
-    "path": "/api/admin/profissionais/713d7376-9a65-4200-8bcc-0ebbf530eaa2/reset-senha",
-    "message": "Cannot POST /api/admin/profissionais/713d7376-9a65-4200-8bcc-0ebbf530eaa2/reset-senha",
-    "error": "Not Found"
-}
+
+
+
+
+
+
+
+
+
+
 

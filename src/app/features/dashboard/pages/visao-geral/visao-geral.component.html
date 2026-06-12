@@ -1,5 +1,4 @@
 <div class="vg-page">
-
   <!-- ── Cabeçalho ────────────────────────────────────── -->
   <div class="vg-header">
     <div>
@@ -9,7 +8,24 @@
   </div>
 
   <!-- ── Banner: WhatsApp não conectado ───────────────────── -->
-  @if (user() && user()?.wpp_status !== 'conectado') {
+  @if (whatsappDesconectado()) {
+    <div class="wpp-banner wpp-banner--alert" role="alert" aria-live="assertive">
+      <div class="wpp-banner-icon">
+        <mat-icon>warning</mat-icon>
+      </div>
+      <div class="wpp-banner-text">
+        <strong>WhatsApp desconectado</strong>
+        <span>{{ whatsappDesconectadoTexto() }}</span>
+      </div>
+      <a
+        class="btn-primary btn-sm wpp-banner-cta"
+        routerLink="/dashboard/configuracoes"
+        [queryParams]="{ aba: 'whatsapp' }"
+      >
+        Reconectar
+      </a>
+    </div>
+  } @else if (user() && user()?.wpp_status !== 'conectado') {
     <div class="wpp-banner" role="status">
       <div class="wpp-banner-icon">
         <mat-icon>chat</mat-icon>
@@ -18,9 +34,11 @@
         <strong>Conecte seu WhatsApp</strong>
         <span>Ative notificações automáticas e lembretes para seus clientes.</span>
       </div>
-      <a class="btn-primary btn-sm wpp-banner-cta"
-         routerLink="/dashboard/configuracoes"
-         [queryParams]="{ aba: 'whatsapp' }">
+      <a
+        class="btn-primary btn-sm wpp-banner-cta"
+        routerLink="/dashboard/configuracoes"
+        [queryParams]="{ aba: 'whatsapp' }"
+      >
         Conectar
       </a>
     </div>
@@ -32,7 +50,10 @@
       <div class="lp-info">
         <span class="lp-label">🔗 Seu link de agendamento</span>
         <code class="lp-url">{{ linkPublico }}</code>
-        <p class="lp-help">Compartilhe este link no Instagram, WhatsApp, cartão de visita. É por aqui que seus clientes agendam.</p>
+        <p class="lp-help">
+          Compartilhe este link no Instagram, WhatsApp, cartão de visita. É por aqui que seus
+          clientes agendam.
+        </p>
       </div>
       <div class="lp-actions">
         <button class="btn-primary btn-sm" (click)="copiarLink()">
@@ -52,7 +73,7 @@
     <div class="skeleton-wrap">
       <div class="skeleton-card">
         <div class="sk-header"></div>
-        @for (i of [1,2,3]; track i) {
+        @for (i of [1, 2, 3]; track i) {
           <div class="sk-item">
             <div class="sk-line sk-line--md"></div>
             <div class="sk-line sk-line--sm"></div>
@@ -62,7 +83,7 @@
       </div>
       <div class="skeleton-card">
         <div class="sk-header"></div>
-        @for (i of [1,2]; track i) {
+        @for (i of [1, 2]; track i) {
           <div class="sk-item">
             <div class="sk-line sk-line--md"></div>
             <div class="sk-line sk-line--sm"></div>
@@ -71,7 +92,6 @@
       </div>
     </div>
   } @else {
-
     <!-- ── Card: Próximos Agendamentos ─────────────────── -->
     <div class="dash-card">
       <div class="dash-card-header">
@@ -79,10 +99,12 @@
           <h2 class="dash-card-title">Próximos Agendamentos</h2>
           <p class="dash-card-sub">Acompanhe seus próximos agendamentos</p>
         </div>
-        <button class="btn-reload"
-                (click)="recarregar()"
-                [disabled]="agendamentosStore.carregando()"
-                aria-label="Atualizar lista">
+        <button
+          class="btn-reload"
+          (click)="recarregar()"
+          [disabled]="agendamentosStore.carregando()"
+          aria-label="Atualizar lista"
+        >
           <mat-icon [class.spinning]="agendamentosStore.carregando()">refresh</mat-icon>
         </button>
       </div>
@@ -98,7 +120,11 @@
       } @else {
         <div class="ag-list">
           @for (ag of proximosAgendamentos(); track ag.id) {
-            <div class="ag-item" [class.ag-item--loading]="isAnyLoading(ag.id)" [attr.data-status]="ag.status">
+            <div
+              class="ag-item"
+              [class.ag-item--loading]="isAnyLoading(ag.id)"
+              [attr.data-status]="ag.status"
+            >
               <div class="ag-body">
                 <div class="ag-left">
                   <div class="ag-cliente">{{ ag.cliente_nome }}</div>
@@ -114,7 +140,7 @@
                     <span class="ag-hora">{{ formatarHora(ag.data_hora) }}</span>
                   </div>
                   @if (precoTotal(ag)) {
-                    <div class="ag-valor">R$ {{ precoTotal(ag) | number:'1.2-2' }}</div>
+                    <div class="ag-valor">R$ {{ precoTotal(ag) | number: '1.2-2' }}</div>
                   }
                   <span class="status-badge status-badge--{{ ag.status }}">
                     {{ statusLabel(ag.status) }}
@@ -124,9 +150,11 @@
 
               @if (ag.status === 'pendente') {
                 <div class="ag-actions">
-                  <button class="btn-ag btn-ag--confirm"
-                          (click)="confirmar(ag)"
-                          [disabled]="isAnyLoading(ag.id)">
+                  <button
+                    class="btn-ag btn-ag--confirm"
+                    (click)="confirmar(ag)"
+                    [disabled]="isAnyLoading(ag.id)"
+                  >
                     @if (isLoadingAction(ag.id, 'confirmar')) {
                       <mat-spinner diameter="14" />
                     } @else {
@@ -134,9 +162,11 @@
                     }
                     Confirmar
                   </button>
-                  <button class="btn-ag btn-ag--recusar"
-                          (click)="recusar(ag)"
-                          [disabled]="isAnyLoading(ag.id)">
+                  <button
+                    class="btn-ag btn-ag--recusar"
+                    (click)="recusar(ag)"
+                    [disabled]="isAnyLoading(ag.id)"
+                  >
                     @if (isLoadingAction(ag.id, 'recusar')) {
                       <mat-spinner diameter="14" />
                     } @else {
@@ -151,7 +181,5 @@
         </div>
       }
     </div>
-
-
   }
 </div>

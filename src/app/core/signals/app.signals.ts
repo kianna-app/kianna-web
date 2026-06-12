@@ -19,6 +19,8 @@ export interface AppUser {
   wpp_instance_id?: string | null;
   wpp_token?: string | null;
   wpp_status?: WppStatus;
+  wpp_desconectado_em?: string | null;
+  wpp_aviso_desconexao_em?: string | null;
   lembrete_horas?: number | null;
   cancelamento_auto_cliente?: boolean;
 
@@ -46,15 +48,15 @@ export interface AppUser {
   role?: string | null;
 }
 
-export const currentUser     = signal<AppUser | null>(null);
-export const isLoading       = signal<boolean>(true);
+export const currentUser = signal<AppUser | null>(null);
+export const isLoading = signal<boolean>(true);
 export const authInitialized = signal<boolean>(false);
 
-export const isAuthenticated  = computed(() => currentUser() !== null);
+export const isAuthenticated = computed(() => currentUser() !== null);
 export const isOnboardingDone = computed(() => currentUser()?.onboarding_concluido ?? false);
-export const userPlano        = computed((): Plano => currentUser()?.plano ?? 'gratis');
-export const isPro            = computed(() => userPlano() !== 'gratis' && userPlano() !== 'essencial');
-export const isStudio         = computed(() => userPlano() === 'studio');
-export const hasWhatsapp      = computed(() => PLAN_LIMITS[userPlano()].whatsapp);
-export const hasRelatorio     = computed(() => PLAN_LIMITS[userPlano()].relatorio);
-export const isAdmin          = computed(() => currentUser()?.role === 'admin');
+export const userPlano = computed((): Plano => currentUser()?.plano ?? 'gratis');
+export const isPro = computed(() => userPlano() !== 'gratis' && userPlano() !== 'essencial');
+export const isStudio = computed(() => userPlano() === 'studio');
+export const hasWhatsapp = computed(() => PLAN_LIMITS[userPlano()].whatsapp);
+export const hasRelatorio = computed(() => PLAN_LIMITS[userPlano()].relatorio);
+export const isAdmin = computed(() => currentUser()?.role === 'admin');

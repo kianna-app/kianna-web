@@ -32,31 +32,50 @@ const STATUS_LABELS: Record<string, string> = {
   selector: 'app-visao-geral',
   standalone: true,
   imports: [
-    CommonModule, RouterLink,
-    MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule,
+    CommonModule,
+    RouterLink,
+    MatCardModule,
+    MatIconModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './visao-geral.component.html',
   styleUrl: './visao-geral.component.scss',
 })
 export class VisaoGeralComponent implements OnInit {
-  private snack   = inject(MatSnackBar);
+  private snack = inject(MatSnackBar);
   private session = inject(SessionService);
   readonly agendamentosStore = inject(AgendamentosStore);
 
-  readonly user       = currentUser;
+  readonly user = currentUser;
   readonly carregando = signal(true);
-  readonly copiado    = signal(false);
+  readonly copiado = signal(false);
 
   readonly actionLoading = signal<Map<string, string>>(new Map());
+  readonly whatsappDesconectado = computed(
+    () => this.user()?.wpp_status === 'desconectado' && !!this.user()?.wpp_desconectado_em,
+  );
+  readonly whatsappDesconectadoTexto = computed(() => {
+    const iso = this.user()?.wpp_desconectado_em;
+    if (!iso) return 'Reconecte para retomar os avisos automáticos.';
+    const desde = new Date(iso).toLocaleString('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
+    return 'Desconectado desde ' + desde + '. Reconecte para retomar os avisos automáticos.';
+  });
 
   // ── Próximos agendamentos (futuros, não cancelados/recusados/finalizados) ──
   readonly proximosAgendamentos = computed<AgendamentoComServico[]>(() => {
     const agora = new Date();
-    return this.agendamentosStore.agendamentos()
-      .filter(a => {
+    return this.agendamentosStore
+      .agendamentos()
+      .filter((a) => {
         const dt = new Date(a.data_hora);
-        return dt >= agora &&
-          !['cancelado', 'recusado', 'finalizado', 'nao_compareceu'].includes(a.status);
+        return (
+          dt >= agora &&
+          !['cancelado', 'recusado', 'finalizado', 'nao_compareceu'].includes(a.status)
+        );
       })
       .sort((a, b) => a.data_hora.localeCompare(b.data_hora));
   });
@@ -83,7 +102,10 @@ export class VisaoGeralComponent implements OnInit {
     try {
       await this.agendamentosStore.carregarPeriodo(inicio, fim);
     } catch (e: unknown) {
-      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      if (isAuthError(e)) {
+        await this.session.invalidarSessao('expirou');
+        return;
+      }
       this.snack.open('Erro ao carregar dados', 'OK', { duration: 3000 });
     } finally {
       this.carregando.set(false);
@@ -100,7 +122,10 @@ export class VisaoGeralComponent implements OnInit {
     try {
       await this.agendamentosStore.carregarPeriodo(inicio, fim);
     } catch (e: unknown) {
-      if (isAuthError(e)) { await this.session.invalidarSessao('expirou'); return; }
+      if (isAuthError(e)) {
+        await this.session.invalidarSessao('expirou');
+        return;
+      }
       this.snack.open('Erro ao atualizar', 'OK', { duration: 3000 });
     }
   }
@@ -150,13 +175,16 @@ export class VisaoGeralComponent implements OnInit {
 
   formatarData(dataHora: string): string {
     return new Date(dataHora).toLocaleDateString('pt-BR', {
-      weekday: 'short', day: '2-digit', month: 'short',
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
     });
   }
 
   formatarHora(dataHora: string): string {
     return new Date(dataHora).toLocaleTimeString('pt-BR', {
-      hour: '2-digit', minute: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 
@@ -181,10 +209,18 @@ export class VisaoGeralComponent implements OnInit {
   }
 
   private _setLoading(id: string, action: string): void {
-    this.actionLoading.update(m => { const n = new Map(m); n.set(id, action); return n; });
+    this.actionLoading.update((m) => {
+      const n = new Map(m);
+      n.set(id, action);
+      return n;
+    });
   }
 
   private _clearLoading(id: string): void {
-    this.actionLoading.update(m => { const n = new Map(m); n.delete(id); return n; });
+    this.actionLoading.update((m) => {
+      const n = new Map(m);
+      n.delete(id);
+      return n;
+    });
   }
 }
